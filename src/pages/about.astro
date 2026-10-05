@@ -32,9 +32,10 @@ const desktopSizes = '(min-width: 72rem) 72rem, 100vw';
 >
   <section class="section">
     <div class="container about">
+      <!-- width/height on the portrait sources reserve its aspect ratio on mobile (no layout shift). -->
       <picture>
-        <source media={mobileMedia} type="image/avif" srcset={pAvif.srcSet.attribute} sizes={mobileSizes} />
-        <source media={mobileMedia} type="image/webp" srcset={pWebp.srcSet.attribute} sizes={mobileSizes} />
+        <source media={mobileMedia} type="image/avif" srcset={pAvif.srcSet.attribute} sizes={mobileSizes} width={portrait.width} height={portrait.height} />
+        <source media={mobileMedia} type="image/webp" srcset={pWebp.srcSet.attribute} sizes={mobileSizes} width={portrait.width} height={portrait.height} />
         <source type="image/avif" srcset={lAvif.srcSet.attribute} sizes={desktopSizes} />
         <source type="image/webp" srcset={lWebp.srcSet.attribute} sizes={desktopSizes} />
         <img

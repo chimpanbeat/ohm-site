@@ -17,8 +17,19 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 | 4A | opus | high | Copy deck | done | 30da510 | |
 | 4B | sonnet | medium | Content pages from copy deck | done | 30da510 | |
 | 4R | opus | medium | Wording, voice, and design review, commit | done | 30da510 | |
-| 5A | sonnet | medium | SEO, OG, sitemap/robots, contrast check, README draft | review | | |
-| 5R | opus | high | Final review: Lighthouse, §12 checklist, README verification, commit, launch list | in-progress | | |
+| 5A | sonnet | medium | SEO, OG, sitemap/robots, contrast check, README draft | done | 057f968 | |
+| 5R | opus | high | Final review: Lighthouse, §12 checklist, README verification, commit, launch list | done | 057f968 | About CLS fix in follow-up commit |
+
+## §12 acceptance (5R, 2026-10-05)
+| Criterion | Result | Evidence |
+|---|---|---|
+| Four zones + office route to the config link; out-of-region shows contact only | **Pass** (links are placeholders) | `dist/book/{home,shared,north}.html` and the `/book` office card use `bookingUrl()`. With `TODO_` links they fall back to the general PS page with `data-placeholder`. `out.html` has only tel/sms/mail. `site.test.ts` covers routing. Pending: Brian's tested PS links. |
+| Test addresses committed as a fixture and documented | **Pass** | `tests/fixtures/addresses.json` (all 8 brief addresses), `zones.test.ts` against the real polygons, README "Test addresses". |
+| Map and manual zone buttons work without JS or the key | **Pass** | `/book` ships the My Maps iframe and plain `<a>` links to `/book/{home,shared,north,out}` in HTML. 3R verified live that the field hides and the picker shows with a blocked key. |
+| `check:wording` passes with `licensed: false` | **Pass** | Locally and in CI (deploy.yml runs it before publishing). |
+| Lighthouse mobile ≥90 (all four categories) | **Pass, except SEO 66 (expected)** | Local Lighthouse 13.5 on the live preview: perf/a11y/best-practices 100/100/100 on `/`, `/services`, `/book`; `/about` was 91 perf (CLS 0.2, art-directed portrait unsized) → fixed, 100 / CLS 0. SEO's only failing audit is `is-crawlable`, the deliberate `noindex`. It lifts when `indexable` turns true on license day. (PSI API was out of keyless quota.) |
+| No hardcoded rates, days, links or zone names outside `src/data/` | **Pass** | grep for rates, day names, `pocketsuite` and zone names outside `src/data/`: none. No raw hex outside `tokens.css`. |
+| README covers dev, deploy, rates/links, zones, Google key, DNS cutover | **Pass** | `README.md` §§ Local dev → License-day checklist. Google/DNS facts match Pinned facts, re-checked live in 5R. |
 
 ## Open TODO(Brian)
 - [ ] Tested PocketSuite links: office, home, shared (keyword), north. Until then, buttons fall back to the general PS page.
