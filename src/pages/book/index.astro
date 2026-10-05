@@ -80,6 +80,45 @@ const key = import.meta.env.PUBLIC_GOOGLE_MAPS_KEY ?? '';
     height: 1.25rem;
     accent-color: var(--accent);
   }
+  /* The address combobox is injected by book.ts, so scoped selectors can't reach it. */
+  #address-slot {
+    position: relative;
+    max-width: 32rem;
+    margin-top: var(--s-4);
+  }
+  #address-slot :global(label) {
+    font-weight: 700;
+  }
+  #address-slot :global(input) {
+    width: 100%;
+    min-height: 44px;
+    padding: var(--s-2) var(--s-3);
+    border: 1px solid var(--green-700);
+    border-radius: var(--radius);
+    background: var(--bg-light);
+    color: var(--text-on-light);
+  }
+  #address-slot :global(ul) {
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 5;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border: 1px solid var(--green-700);
+    background: var(--bg-light);
+    color: var(--text-on-light);
+  }
+  #address-slot :global([role='option']) {
+    padding: var(--s-3);
+    min-height: 44px;
+    cursor: pointer;
+  }
+  #address-slot :global([role='option'][aria-selected='true']) {
+    background: var(--bg-mid);
+    color: var(--text-on-dark);
+  }
   #zone-result {
     margin-top: var(--s-6);
   }

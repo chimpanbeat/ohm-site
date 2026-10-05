@@ -258,7 +258,7 @@ select(zone): clone <template data-zone=zone>.content into #zone-result (replace
   - Places API (New) via Maps JS. Loaded with the **direct script tag** (`loading=async` + `callback`), not the inline bootstrap, which contains a `console.warn`. Then `google.maps.importLibrary('places')`.
   - Autocomplete: `AutocompleteSuggestion.fetchAutocompleteSuggestions` with an `AutocompleteSessionToken`, `includedRegionCodes: ['us']`, a location bias toward Colorado Springs, a minimum of 3 characters and a 300ms debounce.
   - On selection: `toPlace().fetchFields({ fields: ['location', 'formattedAddress'] })`.
-  - Unavailable when any of these happens: the import rejects, a 6s timeout, `gm_authFailure`, or an error is thrown.
+  - Unavailable when any of these happens: the import rejects, a 6s timeout, `gm_authFailure`, or an error is thrown. Any Places call that rejects also counts. A bad key surfaces only this way, on the first query (3R).
 
 ### B5. Scripts and CI
 

@@ -87,7 +87,7 @@ const loc = place.location;                          // LatLng | undefined
 Trigger it on **any** of:
 1. The script's `onerror`, meaning a network block or ad-blocker.
 2. `importLibrary('places')` not resolved within **6 s** of injecting the script.
-3. `window.gm_authFailure` firing, for a bad key, a disallowed referrer or a disabled API. Assign it **before** injecting the script. It can fire after load, so it must also work once the field is showing.
+3. `window.gm_authFailure` firing. Assign it **before** injecting the script. It can fire after load, so it must also work once the field is showing. (3R: with no map on the page, a bad key does **not** fire it. The script loads, and the first autocomplete call rejects, which is trigger 4. Keep the hook anyway, because it is free.)
 4. `fetchAutocompleteSuggestions` rejecting, for example over quota or on an auth error.
 5. `fetchFields` rejecting, or resolving with no `location`.
 6. `importLibrary` rejecting or throwing.
@@ -129,10 +129,46 @@ An empty key never loads anything, as in 2A. The visitor sees no error copy: the
    - Keyboard-only selection works.
 7. Fallback checks:
    - With `PUBLIC_GOOGLE_MAPS_KEY=` (empty), rebuild and confirm there's no address field and the picker and map are present.
-   - With an invalid key string, the field disappears within about 6s, the picker remains, and nothing appears in the console from our code.
+   - With an invalid key string, the field disappears on the first query (trigger 4), focus moves to the picker, and nothing appears in the console from our code. (Amended in 3R. The earlier "within about 6s" assumed `gm_authFailure` would fire, and it doesn't.)
 
 ## Report
 (Sonnet)
 
+**Files changed**
+- `scripts/kml-to-geojson.mjs` (new): KML → GeoJSON per §B5.
+- `src/data/zones.geojson`: regenerated from the real KML. 3 features (home, shared, north), `properties` is only `{zone}`.
+- `tests/zones.test.ts` (new): feature count and keys, no extra properties, plus one test per fixture address.
+- `src/scripts/book.ts`: loader, `unavailable()`, combobox and `zones.geojson?raw` import, all per the pinned spec.
+- `src/pages/book/index.astro`: `:global()` styles for the injected combobox (scoped CSS can't reach it). No copy added; no hint line.
+
+**Checks**
+1. `npm run zones`: "Wrote 3 zones … Skipped: 4 description, 0 ExtendedData, 0 Point, 0 LineString". `git diff --stat` shows the regeneration (303 insertions, 6 deletions). PASS.
+2. `grep -ciE 'description|home office|sat' src/data/zones.geojson` → 0. PASS.
+3. `npm test`: 23 pass, 0 fail, including all 8 fixtures. PASS.
+4. `npm run build` and `npm run check:wording`: both pass.
+5. `grep -n 'console\.' src/scripts/book.ts`: prints nothing. PASS. (I reworded two comments that mentioned it.)
+6. Real key in `.env`, dev server on 4321, headless Chrome driven over CDP. Each fixture query typed, then ArrowDown + Enter only: all 8 show the expected card (home ×2, shared, north, out ×4). No console output from our code. PASS.
+7. Fallback:
+   - Empty key: no `#addr`, picker (4 links), map and "Text me" line present. PASS.
+   - Invalid key: **does not match the step as written.** See Deviations.
+
+**Deviations**
+- Done-when 7 (invalid key → field gone within ~6s) fails. With `PUBLIC_GOOGLE_MAPS_KEY=bogus-key-123`, the script loads, `importLibrary('places')` resolves, and Google only writes an `InvalidKey` console warning. `window.gm_authFailure` never fires, so at 8s the field is still showing. The field is removed on the **first query**: the autocomplete request returns 400, `fetchAutocompleteSuggestions` rejects and `unavailable()` runs, so the visitor ends up in the right place. I did not add a workaround (e.g. a probe request at load), since that would add an unbudgeted billed call.
+- Real fixture queries returned a different top suggestion in a few cases (e.g. "2400 Colorado Ave" rather than "W Colorado Ave"), but every one resolved to the expected zone.
+
+**TODO(Brian):** none new.
+
+**Questions for Opus**
+1. Is "field disappears on first query with a bad key" acceptable, or should the Done-when and §G4 trigger 3 be reworded? Places (New) auth errors surface only as a rejected request, not through `gm_authFailure`. If you want the field gone within 6s at load, that needs a design decision (a probe call costs a request per visit).
+2. Cosmetic: the combobox styles use `--green-700` borders and `--bg-light` fills. Please check the look in 3R.
+
 ## Review
 (Opus)
+
+**Accepted in 3R (2026-10-05).** I reread the diff in full and reran Done-when 1–5: all pass, 23/23 tests. I also tested live on :4321 over CDP.
+- **Privacy:** the address reaches only `fetchAutocompleteSuggestions`. The input gets `formattedAddress` back for display only. Nothing goes to storage, cookies, the URL or `console`. The loader is only in `book.html`'s bundle, and it loads only after the mobile choice.
+- **Cost:** typing a full address made 2 `AutocompletePlaces` calls and 1 `GetPlace`, all on one session token. That is one Place Details Essentials charge. The fields are exactly `location` and `formattedAddress`. Google-side requests: the loader, its JS chunks, Google's own `gen_204` and `log.js` telemetry, `AutocompletePlaces` and `GetPlace`.
+- **Fixtures live:** all 8 show the expected card.
+- **Q1 (bad key):** accepted as built. A bad key is a deploy misconfiguration. The field disappears on the first query, and the visitor lands on the picker. A probe at load would bill a request on every visit. I reworded §G4 trigger 3 and Done-when 7.
+- **Q2 (look), fixed by Opus:** the input and the options had no `color`, so they inherited cream text on a cream fill and every character was invisible. I added `color: var(--text-on-light)` to both.
+- **Nit, fixed by Opus:** `search()` returns early once the field is gone, so a pending debounce can't send a request after `unavailable()`.
