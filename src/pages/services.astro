@@ -1,0 +1,18 @@
+---
+import Base from '../layouts/Base.astro';
+import RateTable from '../components/RateTable.astro';
+import { site } from '../data/site.ts';
+---
+
+<Base title={`Services and pricing · ${site.name}`} description={site.tagline}>
+  <section class="section">
+    <div class="container">
+      <h1>Services and pricing</h1>
+    </div>
+  </section>
+  <section class="section band-light">
+    <div class="container">
+      <RateTable />
+    </div>
+  </section>
+</Base>

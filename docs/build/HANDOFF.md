@@ -1,6 +1,6 @@
 # Build handoff playbook
 
-**Opus** owns architecture, contracts, research, copy, and review. **Sonnet** owns implementation. **Brian** switches the session model with `/model sonnet` / `/model opus`. Files in `docs/build/` are the shared memory, so a model switch in the same session and a brand-new session both work.
+**Opus** owns architecture, contracts, research, copy, and review. **Sonnet** owns implementation. **Brian** switches the session model with `/model sonnet` / `/model opus` and sets the effort level. Each STATUS row has an `Effort` column (`low` · `medium` · `high` · `xhigh` · `max`), and **every handoff message names both the model and the effort**. Files in `docs/build/` are the shared memory, so a model switch in the same session and a brand-new session both work.
 
 ## 1. Model gate
 
@@ -15,8 +15,8 @@ Run this at the start of every session, every step, and every "continue".
 3. Find your own model in your system prompt ("The exact model ID is claude-opus-…" / "claude-sonnet-…"), and compare the family.
 4. **Mismatch: stop.** Don't edit any file, including STATUS.md. Reply with exactly this shape:
 
-   > Next step **<ID> – <title>** is a **<Model>** step, but this session is running **<your model>**.
-   > Run `/model <sonnet|opus>`, then say **continue**.
+   > Next step **<ID> – <title>** is a **<Model>** step (effort **<Effort>**), but this session is running **<your model>**.
+   > Run `/model <sonnet|opus>`, set effort to **<Effort>**, then say **continue**.
 
 5. **Match:**
    - Set the row to `in-progress`.
@@ -49,7 +49,7 @@ Sonnet may implement the *bodies* in `geo.ts` (step 2A) but must not change its 
    - **TODO(Brian):** new items (also left as `TODO(Brian):` comments in code).
    - **Questions for Opus.**
 5. Set the STATUS row to `review`. The next row is the matching Opus `R` step.
-6. Tell Brian: "Step <ID> is ready for review. Run `/model opus`, then say **continue**."
+6. Tell Brian: "Step <ID> is ready for review. Run `/model opus`, set effort to **<R row's Effort>**, then say **continue**."
 
 ### Escalate (stop early)
 Set the row to `blocked`, write *why* under Report → Questions for Opus, and ask Brian to switch to Opus, when any of these happens:
@@ -73,7 +73,7 @@ Don't work around a blocker by guessing.
    - privacy rules
 4. Then one of:
    - **Accept.** Fix any trivial nits yourself. Commit with the message `Phase N: <summary>` and the co-author trailer, then push `main`. Set both rows to `done` with the commit hash. Send Brian a phase summary: what was built, the checks, and new TODO(Brian) items.
-   - **Changes.** Write a numbered fix list under the Sonnet step's **Review** section. Set that row to `changes-requested`, and set the `R` row back to `todo`. Ask Brian to run `/model sonnet`. After **2** change rounds, Opus makes the remaining fixes itself.
+   - **Changes.** Write a numbered fix list under the Sonnet step's **Review** section. Set that row to `changes-requested`, and set the `R` row back to `todo`. Ask Brian to run `/model sonnet` and set effort to the Sonnet row's Effort. After **2** change rounds, Opus makes the remaining fixes itself.
 5. Opus may revise later step files during a review when the architecture needs it. Note any such change under "Architecture changes" in `STATUS.md`.
 
 ## 5. Opus: research/architecture steps (`A` steps with Model opus)

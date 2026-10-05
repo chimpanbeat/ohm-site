@@ -1,0 +1,13 @@
+---
+import Base from '../../layouts/Base.astro';
+import { site } from '../../data/site.ts';
+---
+
+<Base title={`Book a session · ${site.name}`} description={site.tagline}>
+  <section class="section">
+    <div class="container">
+      <h1>Book a session</h1>
+      <p>{site.name}</p>
+    </div>
+  </section>
+</Base>

@@ -1,0 +1,53 @@
+---
+import { site } from '../data/site.ts';
+
+const rows = [site.rates.initial, site.rates.s60, site.rates.s90];
+---
+
+<table class="rate-table">
+  <caption class="visually-hidden">Session rates</caption>
+  <thead>
+    <tr>
+      <th scope="col">Session</th>
+      <th scope="col">Minutes</th>
+      <th scope="col">Price</th>
+    </tr>
+  </thead>
+  <tbody>
+    {
+      rows.map((r) => (
+        <tr>
+          <th scope="row">{r.label}</th>
+          <td class="num">{r.minutes}</td>
+          <td class="num">${r.price}</td>
+        </tr>
+      ))
+    }
+    <tr>
+      <th scope="row">Travel fee (mobile sessions)</th>
+      <td></td>
+      <td class="num">${site.travelFee.amount}</td>
+    </tr>
+  </tbody>
+</table>
+
+<style>
+  .rate-table {
+    width: 100%;
+    max-width: var(--measure);
+    border-collapse: collapse;
+  }
+  .rate-table th,
+  .rate-table td {
+    padding: var(--s-3) var(--s-2);
+    border-bottom: 1px solid var(--line-light);
+    text-align: left;
+  }
+  .rate-table td:last-child,
+  .rate-table th:last-child {
+    text-align: right;
+  }
+  .rate-table thead th {
+    font-size: var(--fs-small);
+  }
+</style>

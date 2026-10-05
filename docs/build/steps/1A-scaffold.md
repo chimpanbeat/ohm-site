@@ -80,7 +80,43 @@ Paste the results into the Report.
 9. `npm run dev`, then load `http://localhost:4321/ohm-site/`. Check that every route returns 200 and that `/ohm-site/nope` shows the 404 page. If browser tooling is available, screenshot the home page at 375px and 1280px wide and confirm Book is visible in the header without scrolling. Otherwise, note "not visually checked".
 
 ## Report
-(Sonnet fills this in.)
+**Files changed:**
+- `src/assets/fonts/*.woff2` (2), `src/assets/*` (7 images per §B6): downloaded and copied.
+- `scripts/make-icons.mjs` and `public/favicon-32.png`, `apple-touch-icon.png`, `icon-512.png`.
+- `src/styles/global.css`, `src/lib/url.ts`, `src/layouts/Base.astro`.
+- `src/components/Header.astro`, `Footer.astro`, `BookCta.astro`, `RateTable.astro`.
+- `src/pages/index.astro` (replaced the smoke test), `services.astro`, `about.astro`, `book/index.astro`, `404.astro`.
+- `scripts/check-wording.mjs`, `tests/site.test.ts`, `.github/workflows/deploy.yml`.
+- `docs/build/STATUS.md`: row set to in-progress, then review.
+
+**Checks:**
+1. `npm run icons`: wrote the 3 PNGs.
+2. `npm run build`: pass (5 pages).
+3. `npm test`: 6 pass, 0 fail.
+4. `npm run check:wording`: exit 0. One WARN: "treatment" in the rate label (already a TODO(Brian)).
+5. Guard self-test: with `<p>LMT</p>` in 404.astro, `check:wording` exited 1 and printed `FAIL dist\404.html: "LMT"`. After reverting and rebuilding it exited 0.
+6. Internal hrefs: all start with `/ohm-site/` (`/`, `/about`, `/book`, `/services`, `_astro/*`, favicon, apple-touch-icon).
+7. Raw-hex grep over `src` (excluding tokens.css): empty.
+8. `dist/_astro` has 2 `.woff2` files, and `index.html` has 2 `rel="preload"` links. No `<script>` in `index.html`.
+9. Dev server: `/`, `/services`, `/about`, `/book` return 200, and `/nope` returns 404 and shows the "Page not found" H1. Screenshots were taken with headless Edge. At 1280px Book is visible in the header. For 375px I used a 375px-wide iframe wrapper, because headless Edge's minimum window width is about 500px. Book is visible there too, after I narrowed the mobile logo to 110px and the nav font. The icon-only logo below 360px was **not** visually checked.
+
+**Deviations:**
+- Dropped `<meta name="theme-color">`. It needs a raw hex, which the no-hex rule forbids.
+- The logo is two `<Image>` elements (full and icon), swapped by CSS media queries at 360px. Both are eager. The Image component has `densities={[2,3]}`.
+- `Base.astro` renders the JSON-LD `<script type="application/ld+json">` only when `jsonLd` is passed. It is data, not client JS, and no page passes it yet.
+- 404 uses `noindex`. Its link text is "Book a session" plus a home link.
+- Added an unrequested `.section` padding class to global.css (§A3 section padding).
+- The test file also covers `bookingUrl('general')` not being a placeholder.
+
+**TODO(Brian):** none new.
+
+**Questions for Opus:**
+- `check:wording` WARNs on "treatment" in the rate label (existing TODO).
+- The `?url` font preloads and the CSS `@font-face` URLs hash to the same files. Confirmed in dist.
 
 ## Review
-(Opus fills this in if changes are needed.)
+Accepted by Opus (1R, 2026-10-05). Every Done-when check was re-run and passes. The guard was also verified on a crafted page: it fails on forbidden words in `alt` and `aria-label`.
+- Opus nit fix: `.skip-link` now uses semantic tokens (`--bg-light` / `--text-on-light`).
+- Accepted deviations: dropping `theme-color`, the two-image logo swap, and the conditional JSON-LD. The raw hex in `scripts/make-icons.mjs` is per §B6 (a build script, not shipped CSS).
+- Header at 320px fits by arithmetic (about 234px of content in a 288px container), but it hasn't been checked visually. Recheck in 5R with real browser tooling.
+- Treatment WARN: still open with Brian (see STATUS).

@@ -1,0 +1,12 @@
+---
+import { href } from '../lib/url.ts';
+
+interface Props {
+  label?: string;
+  variant?: 'primary' | 'quiet';
+}
+
+const { label = 'Book a session', variant = 'primary' } = Astro.props;
+---
+
+<a class:list={['btn', { 'btn--quiet': variant === 'quiet' }]} href={href('/book')}>{label}</a>

@@ -1,0 +1,104 @@
+---
+import { Image } from 'astro:assets';
+import logoLine from '../assets/logo-line.png';
+import icon from '../assets/icon.png';
+import { site } from '../data/site.ts';
+import { href } from '../lib/url.ts';
+---
+
+<header class="site-header">
+  <div class="container site-header__row">
+    <a class="site-header__logo" href={href('/')} aria-label={`${site.name}, home`}>
+      <Image
+        class="logo-full"
+        src={logoLine}
+        alt={site.name}
+        width={180}
+        densities={[2, 3]}
+        loading="eager"
+      />
+      <Image
+        class="logo-icon"
+        src={icon}
+        alt={site.name}
+        width={40}
+        height={40}
+        densities={[2, 3]}
+        loading="eager"
+      />
+    </a>
+    <nav class="site-header__nav" aria-label="Main">
+      <a href={href('/services')}>Services</a>
+      <a href={href('/about')}>About</a>
+      <a class="btn" href={href('/book')}>Book</a>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    height: var(--header-h);
+    background: var(--bg-dark);
+    border-bottom: 1px solid var(--line-dark);
+  }
+  .site-header__row {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-3);
+  }
+  .site-header__logo {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .logo-full {
+    width: 180px;
+    height: auto;
+  }
+  .logo-icon {
+    display: none;
+    width: 40px;
+    height: 40px;
+  }
+  .site-header__nav {
+    display: flex;
+    align-items: center;
+    gap: var(--s-4);
+  }
+  .site-header__nav a:not(.btn) {
+    text-decoration: none;
+    padding-block: var(--s-3);
+  }
+  .site-header__nav a:not(.btn):hover {
+    text-decoration: underline;
+  }
+  .site-header__nav .btn {
+    min-height: 44px;
+    padding-inline: var(--s-4);
+  }
+  @media (max-width: 29rem) {
+    .logo-full {
+      width: 110px;
+    }
+    .site-header__nav {
+      gap: var(--s-3);
+      font-size: var(--fs-small);
+    }
+    .site-header__nav .btn {
+      padding-inline: var(--s-3);
+    }
+  }
+  @media (max-width: 22.5rem) {
+    .logo-full {
+      display: none;
+    }
+    .logo-icon {
+      display: block;
+    }
+  }
+</style>

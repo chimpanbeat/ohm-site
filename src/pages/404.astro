@@ -1,0 +1,14 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../data/site.ts';
+import { href } from '../lib/url.ts';
+---
+
+<Base title={`Page not found · ${site.name}`} description={site.tagline} noindex>
+  <section class="section">
+    <div class="container">
+      <h1>Page not found</h1>
+      <p>That page doesn't exist. <a href={href('/book')}>Book a session</a> or head back to the <a href={href('/')}>home page</a>.</p>
+    </div>
+  </section>
+</Base>
