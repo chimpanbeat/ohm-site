@@ -44,8 +44,7 @@ export const site = {
   },
 
   rates: {
-    // TODO(Brian): "treatment" trips the medical-claims warning; confirm this label.
-    initial: { label: 'Initial assessment + treatment', minutes: 75, price: 110 },
+    initial: { label: 'Initial assessment + session', minutes: 75, price: 110 },
     s60: { label: '60-minute session', minutes: 60, price: 90 },
     s90: { label: '90-minute session', minutes: 90, price: 120 },
   } satisfies Record<string, Rate>,
@@ -82,29 +81,26 @@ export const site = {
     },
     north: {
       key: 'north',
-      // TODO(Brian): the North polygon stops at Baptist Rd, so most of Monument routes as "out".
-      name: 'North Springs & Monument',
+      name: 'North Springs',
       days: 'Wednesdays',
       linkKey: 'north',
-      // TODO(Brian): polygon also covers east of Academy (Austin Bluffs/Templeton Gap to Woodmen, west of Powers),
-      // Wolf Ranch and Cordera, and is bounded by Hwy 83. Description left as briefed.
-      area: 'North of Woodmen Rd through Monument.',
+      // Describes the KML polygon, which is authoritative (Brian, Oct 5 2026). Monument is out for now.
+      area: 'North of Woodmen Rd up to Baptist Rd, east of Hwy 83, including Briargate, Wolf Ranch, and Cordera. Also east of Academy Blvd between Austin Bluffs Pkwy / Templeton Gap Rd and Woodmen Rd, west of Powers Blvd.',
     },
     out: {
       key: 'out',
       name: 'Outside my regular area',
       days: 'By request',
       linkKey: null,
-      area: 'East of Academy Blvd, Black Forest, Falcon, Fountain, Security-Widefield.',
+      area: 'East of Academy Blvd outside North Springs, Monument, Black Forest, Falcon, Fountain, Security-Widefield.',
     },
   } satisfies Record<ZoneKey, Zone>,
 
   /** If a point is in more than one polygon, the first listed wins. None = 'out'. */
   zonePrecedence: ['shared', 'home', 'north'] as const,
 
-  // TODO(Brian): Monument is outside the current North polygon.
-  serviceAreaSummary: 'Colorado Springs, Manitou Springs, and Monument; other areas by request',
-  areaServed: ['Colorado Springs', 'Manitou Springs', 'Monument'],
+  serviceAreaSummary: 'Colorado Springs and Manitou Springs; other areas by request',
+  areaServed: ['Colorado Springs', 'Manitou Springs'],
 
   // Google My Maps "Ohm Service Map". The /embed form allows iframing; the
   // /viewer form sends X-Frame-Options: SAMEORIGIN, so it's used only as a link.

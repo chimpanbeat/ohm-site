@@ -58,7 +58,7 @@ export const site = {
   email: "brian@ohmprecisionbodywork.com",
   officeArea: "Southwest Colorado Springs (address sent after booking)",
   rates: {
-    initial: { label: "Initial assessment + treatment", minutes: 75, price: 110 },
+    initial: { label: "Initial assessment + session", minutes: 75, price: 110 },
     s60:     { label: "60-minute session", minutes: 60, price: 90 },
     s90:     { label: "90-minute session", minutes: 90, price: 120 },
   },
@@ -97,7 +97,7 @@ Packages and the friends-and-family rate are **not** shown on the site.
 **Global elements:**
 
 - **Header:** logo and nav (Services, About, Book).
-- **Footer:** phone, email, and a one-line service area summary ("Colorado Springs, Manitou Springs, and Monument; other areas by request"). Show the license line only when `licensed` is true and `licenseNumber` is set.
+- **Footer:** phone, email, and a one-line service area summary ("Colorado Springs and Manitou Springs; other areas by request"). Show the license line only when `licensed` is true and `licenseNumber` is set.
 - Every page links to `/book`.
 
 ## 6. Booking router (`/book`)
@@ -123,14 +123,14 @@ Packages and the friends-and-family rate are **not** shown on the site.
 |----------|-----------------------------|------------------------------|---------------------------------------------------------------------|
 | `home`   | Central & Southwest Springs | Tue, Fri (some Wed evenings) | `links.home`                                                        |
 | `shared` | Mid-north Springs           | Tue, Wed, Fri                | `links.shared`, a keyword link showing both home and north services |
-| `north`  | North Springs & Monument    | Wed                          | `links.north`                                                       |
+| `north`  | North Springs               | Wed                          | `links.north`                                                       |
 | `out`    | Outside regular area        | By request                   | contact only                                                        |
 
 Rough boundary descriptions (for copy and alt text only; the polygons decide):
 
 - **Home:** inside Academy Blvd to the east and south, west to Manitou Springs, north to Garden of the Gods Rd / Austin Bluffs Pkwy. Includes Broadmoor Bluffs.
 - **Shared:** from Garden of the Gods / Austin Bluffs north to Woodmen Rd, west of Academy.
-- **North:** north of Woodmen Rd through Monument.
+- **North:** north of Woodmen Rd up to Baptist Rd, east of Hwy 83, including Briargate, Wolf Ranch and Cordera; also east of Academy between Austin Bluffs/Templeton Gap and Woodmen, west of Powers. Monument is out for now (possible future expansion).
 - **Out of region:** east of Academy Blvd, Black Forest, Falcon, Fountain, Security-Widefield.
 
 ### Zone data
@@ -233,7 +233,7 @@ Follow the brand exactly. Use your own judgment within it.
 - [ ] Test addresses:
   - Home: Old Colorado City; Broadmoor Bluffs.
   - Shared: near Garden of the Gods Rd & Centennial.
-  - North: Briargate; Monument.
+  - North: Briargate. Out: Monument.
   - Out of region: Falcon; Fountain; east of Academy.
   - Commit the address list as a fixture and document it in the README.
 - [ ] Without JavaScript or the API key, the map and manual zone buttons still work.
@@ -262,4 +262,5 @@ Follow the brand exactly. Use your own judgment within it.
 - **Autocomplete volume:** requests bill per request, not per address. Use a minimum character count and a short debounce so a daily cap of about 300 lasts.
 - **Test the fallback:** simulate a missing or failing key and confirm the address field hides and the map and manual zone buttons show.
 - **The preview is public.** Anyone with the URL can load it before license day, so apply the §7 wording rules and `npm run check:wording` from the first deploy. In your plan, say whether the preview should be `noindex` until `licensed` is true.
-- **North boundary is not final.** Brian exported the KML with the current boundaries and is still deciding whether the area east of Academy, north of Austin Bluffs/Templeton Gap, and west of Powers joins the North zone. The polygons in his exported KML decide (§6). If they disagree with the boundary descriptions in §6, list the differences as `TODO(Brian)` and do not edit the descriptions yourself.
+- **North boundary decided (Oct 5, 2026):** the KML polygon is authoritative, and Monument is out for now. Revisit if the zone cuts out an area Brian meant to serve.
+- *(Superseded)* **North boundary is not final.** Brian exported the KML with the current boundaries and is still deciding whether the area east of Academy, north of Austin Bluffs/Templeton Gap, and west of Powers joins the North zone. The polygons in his exported KML decide (§6). If they disagree with the boundary descriptions in §6, list the differences as `TODO(Brian)` and do not edit the descriptions yourself.

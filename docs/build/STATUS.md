@@ -9,7 +9,7 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 | 0 | opus | high | Architecture, contracts, playbook | done | (see git log) | |
 | 1A | sonnet | medium | Scaffold: fonts, icons, global CSS, layout, stub pages, wording check, CI | done | 0188a05 | |
 | 1R | opus | medium | Review Phase 1, commit, push, Pages setup with Brian | done | 37e4a3f | |
-| 2A | sonnet | high | Booking router with placeholder zones (no Google) | todo | | |
+| 2A | sonnet | high | Booking router with placeholder zones (no Google) | review | | |
 | 2R | opus | high | Review Phase 2, commit | todo | | |
 | 3A | opus | high | Research: Google Places (New) + GitHub Pages DNS; pin API spec; fixture coordinates | todo | | |
 | 3B | sonnet | high | Real zones (KML script), autocomplete combobox, fallback, fixture tests | todo | | |
@@ -23,9 +23,9 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 ## Open TODO(Brian)
 - [ ] Tested PocketSuite links: office, home, shared (keyword), north. Until then, buttons fall back to the general PS page.
 - [x] Google My Maps URL (supplied Oct 5; embed and viewer forms in `site.ts`).
-- [ ] Monument is outside the North polygon (stops at Baptist Rd), so it currently routes as "out". The zone name and footer still mention Monument.
-- [ ] North polygon also covers east of Academy (Austin Bluffs/Templeton Gap to Woodmen, west of Powers) plus Wolf Ranch and Cordera, and uses Hwy 83 as its west bound. The §6 descriptions don't say this.
-- [ ] Rate label "Initial assessment + treatment": "treatment" trips the medical-claims warning. Keep or reword?
+- [x] Monument: out for now, as possible future expansion. Removed from the zone name, footer and `areaServed` (Oct 5).
+- [x] North zone: the polygon is authoritative. The descriptions in `site.ts` and the brief were rewritten to match (Oct 5).
+- [x] Rate label is now "Initial assessment + session" (Oct 5).
 - [ ] SVG logo, if one exists (PNGs work, but an SVG would be crisper).
 - [ ] License number (license day).
 

@@ -20,7 +20,7 @@ Brief: §3 (DNS), §6 (Google Maps / Places, zone data), §12 (test addresses), 
    - Broadmoor Bluffs → home
    - Garden of the Gods Rd & Centennial Blvd → shared
    - Briargate → north
-   - Monument → out (note: "TODO(Brian): North polygon stops at Baptist Rd")
+   - Monument → out (Brian, Oct 5: Monument is out for now)
    - Falcon → out
    - Fountain → out
    - Academy Blvd & Platte Ave → out (decided Oct 5: east of Academy, south of Templeton Gap)
