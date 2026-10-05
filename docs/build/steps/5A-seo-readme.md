@@ -37,6 +37,12 @@ The quota names come from a Feb 2026 setup guide and match the brief. Google's d
 3. **Add a budget alert** (Billing → Budgets & alerts), for example at $1. Alerts only notify; the caps are what stop usage.
 4. If the trial lapses before the upgrade, the key stops working and `/book` falls back to the map and picker (§6). Nothing breaks.
 
+### P3a. Key referrers (found live in 3R, 2026-10-05)
+Places (New) calls go cross-origin, so with the browser's default referrer policy they carry **only the origin**, e.g. `Referer: https://chimpanbeat.github.io/`. A path-scoped pattern such as `https://chimpanbeat.github.io/ohm-site/*` never matches, and Google answers `403 API_KEY_HTTP_REFERRER_BLOCKED`. The site then falls back to the picker. Every referrer must be **origin-wide**:
+- `http://localhost:4321/*` (dev)
+- `https://chimpanbeat.github.io/*` (preview). This is no wider in practice, because only Brian can publish under that origin.
+- License day: `https://ohmprecisionbodywork.com/*`. `www` redirects to the apex, so it needs no entry.
+
 ### P4. GitHub Pages custom domain (docs.github.com, checked 2026-10-05)
 - **Apex A records (all four):** `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`.
 - **Apex AAAA records (all four):** `2606:50c0:8000::153`, `2606:50c0:8001::153`, `2606:50c0:8002::153`, `2606:50c0:8003::153`.

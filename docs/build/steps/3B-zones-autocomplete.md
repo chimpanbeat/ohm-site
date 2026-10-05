@@ -39,7 +39,7 @@ function loadMapsJs(key: string): Promise<void> {
 const places = (await google.maps.importLibrary('places')) as PlacesLib;
 ```
 - Don't add `libraries=`; `importLibrary('places')` covers it.
-- **Don't set `auth_referrer_policy=origin`.** Brian's referrers are path-scoped (`https://chimpanbeat.github.io/ohm-site/*`), and `origin` would send only the origin, which would fail that match.
+- **Don't set `auth_referrer_policy=origin`.** (3R correction: the Places (New) RPCs send only the origin anyway, so the key's referrers must be origin-wide. See 5A §P3a.)
 - **No `@types/google.maps`** (no new dependencies). Declare a minimal local type for the subset used: `importLibrary`, `AutocompleteSuggestion.fetchAutocompleteSuggestions`, `AutocompleteSessionToken`, `PlacePrediction.text.text`, `toPlace()`, `Place.fetchFields`, `Place.location.lat()/lng()`, and `Place.formattedAddress`. Put `declare global { interface Window { gm_authFailure?: () => void; google?: … } }` in `book.ts`.
 
 ### G2. Calls
@@ -171,4 +171,5 @@ An empty key never loads anything, as in 2A. The visitor sees no error copy: the
 - **Fixtures live:** all 8 show the expected card.
 - **Q1 (bad key):** accepted as built. A bad key is a deploy misconfiguration. The field disappears on the first query, and the visitor lands on the picker. A probe at load would bill a request on every visit. I reworded §G4 trigger 3 and Done-when 7.
 - **Q2 (look), fixed by Opus:** the input and the options had no `color`, so they inherited cream text on a cream fill and every character was invisible. I added `color: var(--text-on-light)` to both.
+- **Production check:** the deployed bundle has the key and the combobox. On `chimpanbeat.github.io` autocomplete returned `403 API_KEY_HTTP_REFERRER_BLOCKED` (Referer `https://chimpanbeat.github.io/` vs the path-scoped `/ohm-site/*` pattern). The silent fallback worked as designed. Fix: Brian sets the referrer to `https://chimpanbeat.github.io/*` (5A §P3a). No code change.
 - **Nit, fixed by Opus:** `search()` returns early once the field is gone, so a pending debounce can't send a request after `unavailable()`.

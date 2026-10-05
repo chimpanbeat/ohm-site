@@ -26,6 +26,7 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 - [x] Monument: out for now, as possible future expansion. Removed from the zone name, footer and `areaServed` (Oct 5).
 - [x] North zone: the polygon is authoritative. The descriptions in `site.ts` and the brief were rewritten to match (Oct 5).
 - [x] Rate label is now "Initial assessment + session" (Oct 5).
+- [ ] Google key referrer: change `https://chimpanbeat.github.io/ohm-site/*` to `https://chimpanbeat.github.io/*`. Places calls send only the origin, so on the live preview the field is blocked and falls back to the picker (found in 3R; 5A §P3a).
 - [ ] SVG logo, if one exists (PNGs work, but an SVG would be crisper).
 - [ ] License number (license day).
 
@@ -37,3 +38,4 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 - 2026-10-05 (2R): ARCHITECTURE §B3/§B4 now record the 2A copy Opus approved (OfficeCard heading, travel-fee line, `/book/[zone]` back links).
 - 2026-10-05 (3A): Google loader → direct script tag; `zones.geojson` imported via `?raw` (ARCHITECTURE §B4, 3B step).
 - 2026-10-05 (3R): a bad key doesn't fire `gm_authFailure` (no map on the page). The field disappears on the first query instead. Amended 3B §G4 and Done-when 7, and ARCHITECTURE §B4.
+- 2026-10-05 (3R): key referrers must be origin-wide (Places sends origin-only Referer). Added 5A §P3a and corrected the 3B G1 note.
