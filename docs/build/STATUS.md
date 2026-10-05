@@ -14,9 +14,9 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 | 3A | opus | high | Research: Google Places (New) + GitHub Pages DNS; pin API spec; fixture coordinates | done | 4a1ecfc | |
 | 3B | sonnet | high | Real zones (KML script), autocomplete combobox, fallback, fixture tests | done | ebdb0ae | |
 | 3R | opus | high | Privacy and cost review, live test, commit | done | ebdb0ae | |
-| 4A | opus | high | Copy deck | done | (with Phase 4) | |
-| 4B | sonnet | medium | Content pages from copy deck | done | (Phase 4) | |
-| 4R | opus | medium | Wording, voice, and design review, commit | done | (Phase 4) | |
+| 4A | opus | high | Copy deck | done | 30da510 | |
+| 4B | sonnet | medium | Content pages from copy deck | done | 30da510 | |
+| 4R | opus | medium | Wording, voice, and design review, commit | done | 30da510 | |
 | 5A | sonnet | medium | SEO, OG, sitemap/robots, contrast check, README draft | todo | | |
 | 5R | opus | high | Final review: Lighthouse, §12 checklist, README verification, commit, launch list | todo | | |
 
