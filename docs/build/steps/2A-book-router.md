@@ -51,9 +51,9 @@ All contract files except the geo.ts bodies.
 1. `npm test` passes, including `geo.test.ts`.
 2. `npm run build` succeeds.
 3. `npm run check:wording` exits 0.
-4. `ls dist/book` shows `home shared north out office` directories plus `index.html`.
-5. `grep -l '<script' dist/book/*/index.html` prints nothing. `dist/book/index.html` references one script.
-6. `grep -o 'href="[^"]*"' dist/book/out/index.html` shows no pocketsuite link. `dist/book/home/index.html` shows the general PS link with `data-placeholder`.
+4. `ls dist/book` shows `home.html shared.html north.html out.html office.html`, and `dist/book.html` exists (`build.format: 'file'`).
+5. `grep -l '<script' dist/book/*.html` prints nothing. `dist/book.html` references one script.
+6. `grep -o 'href="[^"]*"' dist/book/out.html` shows no pocketsuite link. `dist/book/home.html` shows the general PS link with `data-placeholder`.
 7. In `npm run dev`, check these by hand (or with browser tooling):
    - Radios toggle the sections.
    - Calling `showZone('north')` from the console renders the North card in `#zone-result` and focuses it.

@@ -332,3 +332,4 @@ Copy into `src/assets/`, renamed to kebab-case. Only these are committed:
 Record any change to this file here with the date and reason.
 - 2026-10-05 (Opus): initial version. `--terra-700` darkened from `#A35C3E` (4.51:1) to `#9C5739` (4.89:1) for margin. Fonts moved from `public/fonts` to `src/assets/fonts` so URLs follow the base path.
 - 2026-10-05 (Opus): Brian supplied the My Maps link. Added `site.mapViewerUrl` alongside `site.mapEmbedUrl`, since the viewer URL refuses framing and the `/embed` form is iframable. MapEmbed also renders an "Open the map in Google Maps" link.
+- 2026-10-05 (Opus, 1R): `astro.config.mjs` `build.format` is now `'file'` (was `'directory'`). GitHub Pages 301-redirected `/services` to `/services/`, so every internal link cost an extra hop. Pages serve as `services.html` at `/services` with no redirect. `Base.astro` strips `.html` / `index.html` from the canonical. Internal links and the sitemap use clean, slash-less URLs.

@@ -34,7 +34,7 @@ Replace the Home, Services, About and 404 stubs with the real pages, following t
 ## Done when
 1. `npm run build`, `npm test` and `npm run check:wording` all pass, with no failures. Paste any warnings into the Report.
 2. `grep -rnE '\$[0-9]|Tue|Wed|Fri|Sat|Central|Mid-north|North Springs' src/pages src/components` prints nothing.
-3. In the built `about/index.html`, the `<picture>` has a portrait `<source media=…>` and a landscape fallback, with AVIF and WebP.
+3. In the built `about.html`, the `<picture>` has a portrait `<source media=…>` and a landscape fallback, with AVIF and WebP.
 4. Visual check at 375px and 1280px, if browser tooling is available: the hero CTA is visible without scrolling on mobile, and the layout matches the wireframes. Attach the screenshots' observations to the Report.
 
 ## Report

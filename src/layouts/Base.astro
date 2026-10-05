@@ -17,7 +17,8 @@ interface Props {
 }
 
 const { title, description, ogImage, jsonLd, noindex = false } = Astro.props;
-const canonical = new URL(Astro.url.pathname, Astro.site);
+// build.format is 'file': drop '.html' / 'index.html' so canonicals match the clean URLs we link to.
+const canonical = new URL(Astro.url.pathname.replace(/(?:index)?\.html$/, ''), Astro.site);
 const ogUrl = ogImage ? new URL(ogImage.src, Astro.site) : undefined;
 ---
 

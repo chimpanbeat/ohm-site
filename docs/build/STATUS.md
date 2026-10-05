@@ -7,7 +7,7 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 | ID | Model | Effort | Step | State | Commit | Notes |
 |---|---|---|---|---|---|---|
 | 0 | opus | high | Architecture, contracts, playbook | done | (see git log) | |
-| 1A | sonnet | medium | Scaffold: fonts, icons, global CSS, layout, stub pages, wording check, CI | done | (Phase 1 commit) | |
+| 1A | sonnet | medium | Scaffold: fonts, icons, global CSS, layout, stub pages, wording check, CI | done | 0188a05 | |
 | 1R | opus | medium | Review Phase 1, commit, push, Pages setup with Brian | in-progress | | |
 | 2A | sonnet | high | Booking router with placeholder zones (no Google) | todo | | |
 | 2R | opus | high | Review Phase 2, commit | todo | | |
@@ -33,3 +33,4 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 (Opus logs any mid-build change to ARCHITECTURE.md or step files here.)
 - 2026-10-05: added `site.mapViewerUrl`; MapEmbed adds an "Open the map in Google Maps" link (ARCHITECTURE §B3, §C).
 - 2026-10-05: added an `Effort` column to STATUS. Every handoff message names model and effort (HANDOFF §1, §3, §4).
+- 2026-10-05 (1R): `astro.config.mjs` `build.format` changed from `directory` to `file`. Pages answered `/services` with a 301 to `/services/`, so every nav click took an extra hop. `Base.astro` strips `.html` / `index.html` from the canonical. Updated the dist paths in the 2A and 4B checks. 5A's sitemap must use clean URLs.
