@@ -12,6 +12,7 @@
     "preview": "astro preview",
     "zones": "node scripts/kml-to-geojson.mjs",
     "check:wording": "node scripts/check-wording.mjs",
+    "check:contrast": "node scripts/check-contrast.mjs",
     "test": "node --test \"tests/**/*.test.ts\"",
     "icons": "node scripts/make-icons.mjs"
   },

@@ -17,8 +17,8 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 | 4A | opus | high | Copy deck | done | 30da510 | |
 | 4B | sonnet | medium | Content pages from copy deck | done | 30da510 | |
 | 4R | opus | medium | Wording, voice, and design review, commit | done | 30da510 | |
-| 5A | sonnet | medium | SEO, OG, sitemap/robots, contrast check, README draft | todo | | |
-| 5R | opus | high | Final review: Lighthouse, §12 checklist, README verification, commit, launch list | todo | | |
+| 5A | sonnet | medium | SEO, OG, sitemap/robots, contrast check, README draft | review | | |
+| 5R | opus | high | Final review: Lighthouse, §12 checklist, README verification, commit, launch list | in-progress | | |
 
 ## Open TODO(Brian)
 - [ ] Tested PocketSuite links: office, home, shared (keyword), north. Until then, buttons fall back to the general PS page.

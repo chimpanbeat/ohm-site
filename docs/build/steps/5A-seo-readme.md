@@ -119,5 +119,37 @@ Sources:
 ## Report
 (Sonnet)
 
+**Files changed:**
+- `src/layouts/Base.astro`: default 1200×630 OG image (`getImage`, cover crop of `about-landscape.jpg`, absolute URL), `og:image:width/height`, `twitter:card=summary_large_image`; JSON-LD built from `site` on every page.
+- `src/pages/robots.txt.ts`, `src/pages/sitemap.xml.ts`: new, driven by `indexable` and `href()`.
+- `scripts/check-contrast.mjs`: new; `package.json` gets the `check:contrast` script only.
+- `README.md`: new, all 11 sections; Google and DNS facts copied from Pinned facts.
+
+**Checks:**
+- `npm run build`: pass (10 pages).
+- `npm test`: 23 pass, 0 fail.
+- `npm run check:wording`: OK.
+- `npm run check:contrast`: pass (10.56, 8.10, 14.30, 4.89, 3.52).
+- `dist/robots.txt`: `User-agent: *` / `Disallow: /`. `dist/sitemap.xml`: 4 absolute URLs under `/ohm-site/`.
+- `dist/index.html` JSON-LD parses; no `address` key. `og:image` is absolute; the file measures 1200×630.
+
+**Deviations:**
+- Removed the unused `ogImage` and `jsonLd` props from `Base.astro`. No page passed them, and the layout now builds both itself.
+- `/book/[zone]` pages are not in the sitemap (spec lists 4 URLs).
+
+**TODO(Brian):**
+- Which licensure fields to publish in the JSON-LD on license day. Only a minimal `hasCredential` with the license number is emitted when licensed (comment in `Base.astro`).
+
+**Questions for Opus:**
+- Confirm `HealthAndBeautyBusiness` as the type (ARCHITECTURE §B7).
+- The JSON-LD `url` is the home URL with its trailing slash, and the sitemap home URL likewise.
+
 ## Review
-(Opus)
+(Opus, 5R) **Accepted.** Re-ran build (10 pages), `npm test` (23/23), `check:wording`, `check:contrast` (all five pairs pass). `dist/robots.txt` disallows all; the sitemap has 4 clean absolute URLs; the JSON-LD parses, has no `address`, and `priceRange` is `$90–$120` from the rates; `og:image` is an absolute 77 KB 1200×630 JPEG on all 10 pages. No raw hex values outside `tokens.css`, and no rate, day, link or zone literals outside `src/data/`. Spot-checked GitHub's custom-domain doc and Google's pricing page live: they match the Pinned facts.
+
+Answers:
+- `HealthAndBeautyBusiness` is confirmed (ARCHITECTURE §B7 updated).
+- The home `url` and sitemap entry with a trailing slash are right; they match the canonical.
+- Dropping the unused `ogImage`/`jsonLd` props is fine.
+
+Opus fix (README, license-day checklist): the `deploy` change (`site`, base `/`, `live`) moved from after the DNS cutover to straight after setting the custom domain in Pages. Once that domain is set, Pages serves at the root, so a base-`/ohm-site` build would have no assets. The key referrer moved earlier too.

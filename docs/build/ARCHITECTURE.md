@@ -320,7 +320,7 @@ Copy into `src/assets/`, renamed to kebab-case. Only these are committed:
 - **Per-page meta:** `title` and `description` come from the copy deck. The title format is `{Page} · Ohm Precision Bodywork`; the home page uses `Ohm Precision Bodywork · Neuromuscular therapy in Colorado Springs`.
 - **`robots.txt.ts`:** when `indexable` is false, it emits `User-agent: *\nDisallow: /`. When true, `Allow: /` plus a `Sitemap:` line.
 - **`sitemap.xml.ts`:** lists `/`, `/services`, `/about` and `/book` with absolute URLs from `Astro.site` and the base.
-- **JSON-LD:** a `HealthAndBeautyBusiness` (a `LocalBusiness` subtype). Opus confirms the type in 5R.
+- **JSON-LD:** a `HealthAndBeautyBusiness` (a `LocalBusiness` subtype). Confirmed in 5R: `MedicalBusiness` subtypes would frame the work as medical, which §7 rules out while unlicensed.
   - Fields: `name`, `url`, `telephone`, `email`, `areaServed` (City list from `site.areaServed`), `priceRange: "$90–$120"` (derived from rates, not hardcoded), and `image` (the OG image).
   - **No street address.**
   - Licensure fields appear only when licensed.
