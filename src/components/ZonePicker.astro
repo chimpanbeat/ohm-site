@@ -1,0 +1,43 @@
+---
+import { site, zoneOrder, type ZoneKey } from '../data/site.ts';
+import { href } from '../lib/url.ts';
+
+interface Props {
+  current?: ZoneKey;
+}
+
+const { current } = Astro.props;
+---
+
+<div class="zone-picker">
+  <h3>Not sure? Pick your area.</h3>
+  <ul>
+    {
+      zoneOrder.map((key) => (
+        <li>
+          <a class="btn btn--quiet" href={href(`/book/${key}`)} aria-current={key === current ? 'page' : undefined}>
+            {site.zones[key].name}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</div>
+
+<style>
+  .zone-picker {
+    margin-top: var(--s-8);
+  }
+  ul {
+    list-style: none;
+    padding: 0;
+    margin-top: var(--s-3);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-3);
+  }
+  a[aria-current='page'] {
+    background: var(--text-on-dark);
+    color: var(--bg-dark);
+  }
+</style>

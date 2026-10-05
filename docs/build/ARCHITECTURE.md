@@ -204,8 +204,8 @@ The contract files in the repo are authoritative; read them directly. Summary:
 | `Footer` | none | §A4 |
 | `BookCta` | `label?: string = 'Book a session'; variant?: 'primary' \| 'quiet'` | link to `href('/book')` |
 | `RateTable` | none | `<table>` from `site.rates` + travel-fee row from `site.travelFee`; caption; `$` + price; minutes |
-| `OfficeCard` | `headingLevel?: 2 \| 3` | office area, `site.office.days`, button → `bookingUrl('office')` labelled "Book at the office" |
-| `ZoneCard` | `zone: ZoneKey; headingLevel?: 2 \| 3` | Heading `You're in my {name} area.` (for `out`: `That's outside my regular service area.`), days line `I'm there {days}.`, travel fee note (not for `out`), primary button → `bookingUrl(zone.linkKey)` labelled "Book in this area". For `out`: `I sometimes travel there by request.` + `ContactButtons`, **no booking link**. The heading has `tabindex="-1"` so JS can focus it |
+| `OfficeCard` | `headingLevel?: 2 \| 3` | Heading "At my office" (`id="office-h"`), office area, `I'm there {site.office.days}.`, button → `bookingUrl('office')` labelled "Book at the office" |
+| `ZoneCard` | `zone: ZoneKey; headingLevel?: 2 \| 3` | Heading `You're in my {name} area.` (for `out`: `That's outside my regular service area.`), days line `I'm there {days}.`, travel fee line `Travel fee ${amount}. {note}` from `site.travelFee` (not for `out`), primary button → `bookingUrl(zone.linkKey)` labelled "Book in this area". For `out`: `I sometimes travel there by request.` + `ContactButtons`, **no booking link**. The heading has `tabindex="-1"` so JS can focus it |
 | `ContactButtons` | none | Call (`telHref`), Text (`smsHref`), Email (`mailHref`) as links styled as buttons |
 | `ZonePicker` | `current?: ZoneKey` | Heading "Not sure? Pick your area." + list of 4 plain links `href('/book/' + key)` labelled with `zone.name`; `aria-current="page"` on `current` |
 | `MapEmbed` | none | If `site.mapEmbedUrl` is non-empty: `<iframe loading="lazy" title="Service area map" src={site.mapEmbedUrl}>` at 4:3 (mobile) / 16:9 (desktop), followed by a plain link "Open the map in Google Maps" → `site.mapViewerUrl` (`target="_blank" rel="noopener"`). If empty, renders nothing |
@@ -237,7 +237,7 @@ The contract files in the repo are authoritative; read them directly. Summary:
 
 **`/book/[zone]`:** `getStaticPaths` → `home`, `shared`, `north`, `out`, `office`.
 - The page has an H1 "Book a session" and the card for that zone (`OfficeCard` for `office`), at heading level 2.
-- It also has `ZonePicker current=…` and links back to `/book` and to the office card.
+- It also has `ZonePicker current=…` and links "Back to booking options" → `/book` and "At my office" → `/book/office` (the latter omitted on the office page).
 - No client JS.
 
 **`book.ts` state machine:**
@@ -333,3 +333,4 @@ Record any change to this file here with the date and reason.
 - 2026-10-05 (Opus): initial version. `--terra-700` darkened from `#A35C3E` (4.51:1) to `#9C5739` (4.89:1) for margin. Fonts moved from `public/fonts` to `src/assets/fonts` so URLs follow the base path.
 - 2026-10-05 (Opus): Brian supplied the My Maps link. Added `site.mapViewerUrl` alongside `site.mapEmbedUrl`, since the viewer URL refuses framing and the `/embed` form is iframable. MapEmbed also renders an "Open the map in Google Maps" link.
 - 2026-10-05 (Opus, 1R): `astro.config.mjs` `build.format` is now `'file'` (was `'directory'`). GitHub Pages 301-redirected `/services` to `/services/`, so every internal link cost an extra hop. Pages serve as `services.html` at `/services` with no redirect. `Base.astro` strips `.html` / `index.html` from the canonical. Internal links and the sitemap use clean, slash-less URLs.
+- 2026-10-05 (Opus, 2R): recorded the copy Sonnet proposed in 2A and Opus approved: the OfficeCard heading, the ZoneCard travel-fee line, and the `/book/[zone]` back links (§B3, §B4).

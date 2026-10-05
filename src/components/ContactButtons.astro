@@ -1,0 +1,18 @@
+---
+import { telHref, smsHref, mailHref } from '../data/site.ts';
+---
+
+<p class="contact-buttons">
+  <a class="btn btn--quiet" href={telHref}>Call</a>
+  <a class="btn btn--quiet" href={smsHref}>Text</a>
+  <a class="btn btn--quiet" href={mailHref}>Email</a>
+</p>
+
+<style>
+  .contact-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-3);
+    margin-top: var(--s-4);
+  }
+</style>

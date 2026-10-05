@@ -1,0 +1,47 @@
+---
+import Base from '../../layouts/Base.astro';
+import OfficeCard from '../../components/OfficeCard.astro';
+import ZoneCard from '../../components/ZoneCard.astro';
+import ZonePicker from '../../components/ZonePicker.astro';
+import { site, zoneOrder, type ZoneKey } from '../../data/site.ts';
+import { href } from '../../lib/url.ts';
+
+export function getStaticPaths() {
+  return [...zoneOrder, 'office' as const].map((zone) => ({ params: { zone } }));
+}
+
+const { zone } = Astro.params as { zone: ZoneKey | 'office' };
+---
+
+<Base title={`Book a session · ${site.name}`} description={site.tagline}>
+  <section class="section">
+    <div class="container book">
+      <h1>Book a session</h1>
+
+      <div class="result">
+        {zone === 'office' ? <OfficeCard headingLevel={2} /> : <ZoneCard zone={zone} headingLevel={2} />}
+      </div>
+
+      <ZonePicker current={zone === 'office' ? undefined : zone} />
+
+      <p class="links">
+        <a href={href('/book')}>Back to booking options</a>
+        {zone !== 'office' && (
+          <>
+            {' · '}
+            <a href={href('/book/office')}>At my office</a>
+          </>
+        )}
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .result {
+    margin-top: var(--s-8);
+  }
+  .links {
+    margin-top: var(--s-8);
+  }
+</style>

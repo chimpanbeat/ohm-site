@@ -21,16 +21,21 @@ export interface ZoneCollection {
 
 /** Ray-cast test against one closed or open ring. Points on an edge may go either way. */
 export function pointInRing(pt: LngLat, ring: Ring): boolean {
-  void pt;
-  void ring;
-  throw new Error('not implemented (step 2A)');
+  const [x, y] = pt;
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i];
+    const [xj, yj] = ring[j];
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
 }
 
 /** rings[0] is the outer boundary; any further rings are holes. */
 export function pointInPolygon(pt: LngLat, rings: Ring[]): boolean {
-  void pt;
-  void rings;
-  throw new Error('not implemented (step 2A)');
+  const [outer, ...holes] = rings;
+  if (!outer || !pointInRing(pt, outer)) return false;
+  return !holes.some((hole) => pointInRing(pt, hole));
 }
 
 /**
@@ -38,9 +43,15 @@ export function pointInPolygon(pt: LngLat, rings: Ring[]): boolean {
  * (shared over home or north). A point in no polygon is 'out'.
  */
 export function zoneFor(lat: number, lng: number, fc: ZoneCollection): ZoneKey {
-  void lat;
-  void lng;
-  void fc;
-  void site.zonePrecedence;
-  throw new Error('not implemented (step 2A)');
+  const pt: LngLat = [lng, lat];
+  for (const zone of site.zonePrecedence) {
+    const hit = fc.features.some(({ properties, geometry }) => {
+      if (properties.zone !== zone) return false;
+      return geometry.type === 'Polygon'
+        ? pointInPolygon(pt, geometry.coordinates)
+        : geometry.coordinates.some((rings) => pointInPolygon(pt, rings));
+    });
+    if (hit) return zone;
+  }
+  return 'out';
 }

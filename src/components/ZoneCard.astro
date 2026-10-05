@@ -1,0 +1,53 @@
+---
+import { site, bookingUrl, type ZoneKey } from '../data/site.ts';
+import ContactButtons from './ContactButtons.astro';
+
+interface Props {
+  zone: ZoneKey;
+  headingLevel?: 2 | 3;
+}
+
+const { zone, headingLevel = 2 } = Astro.props;
+const Heading = `h${headingLevel}` as 'h2' | 'h3';
+const z = site.zones[zone];
+const book = z.linkKey ? bookingUrl(z.linkKey) : null;
+---
+
+<div class="card">
+  {
+    book ? (
+      <>
+        <Heading tabindex="-1">You're in my {z.name} area.</Heading>
+        <p>I'm there {z.days}.</p>
+        <p>
+          Travel fee ${site.travelFee.amount}. {site.travelFee.note}
+        </p>
+        <p class="action">
+          <a class="btn" href={book.href} data-placeholder={book.placeholder ? '' : undefined}>
+            Book in this area
+          </a>
+        </p>
+      </>
+    ) : (
+      <>
+        <Heading tabindex="-1">That's outside my regular service area.</Heading>
+        <p>I sometimes travel there by request.</p>
+        <ContactButtons />
+      </>
+    )
+  }
+</div>
+
+<style>
+  .card {
+    padding: var(--s-6);
+    border: 1px solid var(--line-dark);
+    border-radius: var(--radius);
+  }
+  .card p {
+    margin-top: var(--s-3);
+  }
+  .card .action {
+    margin-top: var(--s-6);
+  }
+</style>

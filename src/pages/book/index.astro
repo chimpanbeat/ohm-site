@@ -1,13 +1,92 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { site } from '../../data/site.ts';
+import OfficeCard from '../../components/OfficeCard.astro';
+import ZoneCard from '../../components/ZoneCard.astro';
+import ZonePicker from '../../components/ZonePicker.astro';
+import MapEmbed from '../../components/MapEmbed.astro';
+import { site, smsHref, zoneOrder } from '../../data/site.ts';
+
+const key = import.meta.env.PUBLIC_GOOGLE_MAPS_KEY ?? '';
 ---
 
 <Base title={`Book a session · ${site.name}`} description={site.tagline}>
   <section class="section">
-    <div class="container">
+    <div class="container book">
       <h1>Book a session</h1>
-      <p>{site.name}</p>
+
+      <fieldset id="where" hidden>
+        <legend>Where do you want your session?</legend>
+        <label><input type="radio" name="where" value="office" /> At my office</label>
+        <label><input type="radio" name="where" value="mobile" /> At your place</label>
+      </fieldset>
+
+      <section id="office" aria-labelledby="office-h">
+        <OfficeCard />
+      </section>
+
+      <section id="mobile" aria-labelledby="mobile-h" data-maps-key={key}>
+        <h2 id="mobile-h">At your place</h2>
+        <div id="address-slot"></div>
+        <div id="zone-result" aria-live="polite"></div>
+        <ZonePicker />
+        <MapEmbed />
+        <p class="boundary">
+          Near a boundary or can't find your address? <a href={smsHref}>Text me</a>. Boundaries are approximate.
+        </p>
+      </section>
+
+      {
+        zoneOrder.map((zone) => (
+          <template data-zone={zone}>
+            <ZoneCard zone={zone} headingLevel={3} />
+          </template>
+        ))
+      }
     </div>
   </section>
 </Base>
+
+<script>
+  import '../../scripts/book.ts';
+</script>
+
+<style>
+  [hidden] {
+    display: none !important;
+  }
+  .book > section,
+  .book > fieldset {
+    margin-top: var(--s-8);
+  }
+  fieldset {
+    border: 0;
+    padding: 0;
+    min-width: 0;
+  }
+  legend {
+    font-weight: 700;
+    padding: 0;
+    margin-bottom: var(--s-3);
+  }
+  label {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    min-height: 44px;
+    cursor: pointer;
+  }
+  input[type='radio'] {
+    width: 1.25rem;
+    height: 1.25rem;
+    accent-color: var(--accent);
+  }
+  #zone-result {
+    margin-top: var(--s-6);
+  }
+  #zone-result:empty {
+    margin-top: 0;
+  }
+  .boundary {
+    margin-top: var(--s-6);
+  }
+</style>
