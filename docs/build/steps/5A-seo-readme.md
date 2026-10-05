@@ -5,7 +5,71 @@ Brief: §3, §6 (README steps), §10, §11, §12, §14
 Architecture: §B7
 
 ## Pinned facts (written by Opus in 3A; use them verbatim in the README)
-> _3A has not run yet. If this section is still empty, stop and escalate._
+Checked 2026-10-05. Put the "checked on" date in the README next to the Google and DNS facts.
+
+### P1. Google SKUs the site uses
+| SKU | Triggered by | Free per month | Then (per 1,000) |
+|---|---|---|---|
+| Autocomplete Requests | The first 12 autocomplete requests of a session that ends in Place Details Essentials, plus every request in an abandoned session | 10,000 | $2.83 |
+| Autocomplete Session Usage | The 13th and later requests in a completed session | Unlimited | free |
+| Place Details Essentials | `fetchFields(['location','formattedAddress'])` when a visitor picks an address | 10,000 | $5.00 |
+| Dynamic Maps | **Not used.** It bills only when a map is instantiated. The service-area map is a My Maps `<iframe>`, not Maps JS. | 10,000 | $7.00 |
+
+Google now gives per-SKU free monthly caps rather than the old $200 credit.
+
+Sources:
+- https://developers.google.com/maps/documentation/javascript/session-pricing
+- https://developers.google.com/maps/billing-and-pricing/pricing
+- https://developers.google.com/maps/billing-and-pricing/sku-details
+
+### P2. Quota caps (Cloud Console → Google Maps Platform → Quotas → pick the API → select the quota → ⋮ / Edit → untick Unlimited → enter value → Submit)
+| API | Quota name | Cap | Why |
+|---|---|---|---|
+| Places API (New) | `AutocompletePlacesRequest per day` | 300 | 300 × 31 = 9,300, under the 10,000 free Autocomplete Requests |
+| Places API (New) | `GetPlaceRequest per day` | 100 | 3,100 a month, under the 10,000 free Place Details Essentials |
+| Maps JavaScript API | `Map loads per day` | 100 | Defensive only. The site never creates a map. |
+
+The quota names come from a Feb 2026 setup guide and match the brief. Google's docs don't list per-day names. **The README must tell Brian to confirm the exact names on the Quotas page.**
+
+### P3. Order of operations (brief §14)
+1. **Try to set the caps** in P2. While the free trial runs (ending about Jan 3, 2027; check the console), the console may refuse quota edits.
+2. **Upgrade** the billing account. If step 1 was refused, set the caps **in the same sitting, immediately after upgrading**.
+3. **Add a budget alert** (Billing → Budgets & alerts), for example at $1. Alerts only notify; the caps are what stop usage.
+4. If the trial lapses before the upgrade, the key stops working and `/book` falls back to the map and picker (§6). Nothing breaks.
+
+### P4. GitHub Pages custom domain (docs.github.com, checked 2026-10-05)
+- **Apex A records (all four):** `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`.
+- **Apex AAAA records (all four):** `2606:50c0:8000::153`, `2606:50c0:8001::153`, `2606:50c0:8002::153`, `2606:50c0:8003::153`.
+- **`www`:** a CNAME to `chimpanbeat.github.io` (no repo name). With both apex and `www` configured, GitHub redirects `www` → apex automatically.
+- **ALIAS:** an apex ALIAS/ANAME → `chimpanbeat.github.io` is GitHub's allowed alternative to the A/AAAA records. Prefer the A/AAAA records (explicit, documented IPs).
+- **No CNAME file.** The site publishes from a custom Actions workflow, so GitHub creates none and ignores any that exists. The domain is set in repo **Settings → Pages → Custom domain**.
+- **Order (GitHub):**
+  1. Verify the domain: profile **Settings → Pages → Add a domain**, then a TXT record `_github-pages-challenge-chimpanbeat` with the value GitHub shows. This guards against takeover.
+  2. Add the custom domain in the repo's Pages settings **before** changing DNS.
+  3. Change DNS.
+  4. Wait for the DNS check.
+  5. Tick **Enforce HTTPS**.
+- **Timing:** DNS can take up to 24 hours. HTTPS can take **up to an hour** after the domain is configured. If "Certificate not yet created" persists, click **Remove** next to the domain, re-enter it and **Save**.
+- **CAA:** if the domain has any CAA records, one must allow `letsencrypt.org`.
+- **Never** add a wildcard (`*`) record, because of the takeover risk.
+
+### P5. Porkbun steps
+1. Log in → **Domain Management** → `ohmprecisionbodywork.com` → **Details**.
+2. **Remove the URL forward.** In the URL Forwarding section, delete the current forward (the trash icon on the "Current Forwards" entry).
+3. **Delete the old records.** Open **DNS Records** (the edit icon, or hover the domain → **DNS**). Delete any records the forward used:
+   - the apex `ALIAS`
+   - any wildcard `*` CNAME
+   - old apex A/AAAA records
+
+   Porkbun's KB doesn't document exactly which records forwarding creates, so tell Brian to delete whatever apex/`*`/`www` web records remain. **Leave MX/TXT email records alone.**
+4. **Add the new records.** Either:
+   - **Quick DNS Config → "Github"** → OK, then enter Host `www` and answer `chimpanbeat.github.io` in the pop-up, or
+   - add them manually: four `A` and four `AAAA` records with Host blank (apex) using the P4 values, plus `CNAME` with Host `www` → `chimpanbeat.github.io`. Leave the TTL at its default.
+5. Check the result against P4. Quick Config should produce exactly those records; delete any duplicates.
+
+Sources:
+- https://kb.porkbun.com/article/64-how-to-connect-your-domain-to-github-pages (updated July 16 2026)
+- https://kb.porkbun.com/article/231-how-to-add-dns-records-on-porkbun
 
 ## Files to create or modify
 - `src/layouts/Base.astro`:

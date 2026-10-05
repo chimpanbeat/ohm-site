@@ -11,7 +11,7 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 | 1R | opus | medium | Review Phase 1, commit, push, Pages setup with Brian | done | 37e4a3f | |
 | 2A | sonnet | high | Booking router with placeholder zones (no Google) | done | fdb5bc0 |
 | 2R | opus | high | Review Phase 2, commit | done | fdb5bc0 |
-| 3A | opus | high | Research: Google Places (New) + GitHub Pages DNS; pin API spec; fixture coordinates | todo | | |
+| 3A | opus | high | Research: Google Places (New) + GitHub Pages DNS; pin API spec; fixture coordinates | done | (this commit) | |
 | 3B | sonnet | high | Real zones (KML script), autocomplete combobox, fallback, fixture tests | todo | | |
 | 3R | opus | high | Privacy and cost review, live test, commit | todo | | |
 | 4A | opus | high | Copy deck | todo | | |
@@ -35,3 +35,4 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 - 2026-10-05: added an `Effort` column to STATUS. Every handoff message names model and effort (HANDOFF §1, §3, §4).
 - 2026-10-05 (1R): `astro.config.mjs` `build.format` changed from `directory` to `file`. Pages answered `/services` with a 301 to `/services/`, so every nav click took an extra hop. `Base.astro` strips `.html` / `index.html` from the canonical. Updated the dist paths in the 2A and 4B checks. 5A's sitemap must use clean URLs.
 - 2026-10-05 (2R): ARCHITECTURE §B3/§B4 now record the 2A copy Opus approved (OfficeCard heading, travel-fee line, `/book/[zone]` back links).
+- 2026-10-05 (3A): Google loader → direct script tag; `zones.geojson` imported via `?raw` (ARCHITECTURE §B4, 3B step).

@@ -1,0 +1,70 @@
+[
+  {
+    "label": "Old Colorado City",
+    "query": "2400 W Colorado Ave, Colorado Springs, CO",
+    "lat": 38.8467,
+    "lng": -104.8606,
+    "expect": "home",
+    "approximate": true
+  },
+  {
+    "label": "Broadmoor Bluffs",
+    "query": "Broadmoor Bluffs, Colorado Springs, CO",
+    "lat": 38.772,
+    "lng": -104.845,
+    "expect": "home",
+    "approximate": true,
+    "note": "Interior point, about 1.1 km from the nearest zone edge. The home polygon's west edge runs near -104.86, so the far west of the neighbourhood is outside it."
+  },
+  {
+    "label": "Garden of the Gods Rd & Centennial Blvd",
+    "query": "Centennial Blvd & Vindicator Dr, Colorado Springs, CO",
+    "lat": 38.918,
+    "lng": -104.842,
+    "expect": "shared",
+    "approximate": true,
+    "note": "The intersection itself sits on the home/shared boundary, so the point is moved about 2.4 km north along Centennial Blvd."
+  },
+  {
+    "label": "Briargate",
+    "query": "Briargate, Colorado Springs, CO",
+    "lat": 38.955,
+    "lng": -104.77,
+    "expect": "north",
+    "approximate": true
+  },
+  {
+    "label": "Monument",
+    "query": "Monument, CO",
+    "lat": 39.0917,
+    "lng": -104.8728,
+    "expect": "out",
+    "approximate": true,
+    "note": "Out for now (Brian, Oct 5 2026); possible future expansion."
+  },
+  {
+    "label": "Falcon",
+    "query": "Falcon, CO",
+    "lat": 38.9333,
+    "lng": -104.6083,
+    "expect": "out",
+    "approximate": true
+  },
+  {
+    "label": "Fountain",
+    "query": "Fountain, CO",
+    "lat": 38.6822,
+    "lng": -104.7008,
+    "expect": "out",
+    "approximate": true
+  },
+  {
+    "label": "East of Academy (Academy Blvd & Platte Ave)",
+    "query": "E Platte Ave & N Murray Blvd, Colorado Springs, CO",
+    "lat": 38.8395,
+    "lng": -104.7414,
+    "expect": "out",
+    "approximate": true,
+    "note": "Academy & Platte itself sits on the home boundary, so the point is moved about 1.7 km east along Platte to Murray Blvd."
+  }
+]

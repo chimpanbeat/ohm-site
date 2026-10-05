@@ -254,8 +254,8 @@ select(zone): clone <template data-zone=zone>.content into #zone-result (replace
 - **Zone-picker links with JS on:** zone links keep their default navigation to `/book/<zone>`, which is simple and robust. JS doesn't intercept them.
 - **Keyboard:** native radios and links. The combobox follows the ARIA 1.2 combobox pattern (step 3B).
 - **Privacy:** the address input value is never written to storage, the URL, the console, or any request other than Google's.
-- **Google specifics:** the exact API is pinned in step 3A, after checking Google's current docs.
-  - Working assumption: Places API (New) via Maps JS, with `google.maps.importLibrary('places')`.
+- **Google specifics:** pinned in step 3A. The spec of record is `steps/3B-zones-autocomplete.md` § "Google spec".
+  - Places API (New) via Maps JS. Loaded with the **direct script tag** (`loading=async` + `callback`), not the inline bootstrap, which contains a `console.warn`. Then `google.maps.importLibrary('places')`.
   - Autocomplete: `AutocompleteSuggestion.fetchAutocompleteSuggestions` with an `AutocompleteSessionToken`, `includedRegionCodes: ['us']`, a location bias toward Colorado Springs, a minimum of 3 characters and a 300ms debounce.
   - On selection: `toPlace().fetchFields({ fields: ['location', 'formattedAddress'] })`.
   - Unavailable when any of these happens: the import rejects, a 6s timeout, `gm_authFailure`, or an error is thrown.
@@ -334,3 +334,4 @@ Record any change to this file here with the date and reason.
 - 2026-10-05 (Opus): Brian supplied the My Maps link. Added `site.mapViewerUrl` alongside `site.mapEmbedUrl`, since the viewer URL refuses framing and the `/embed` form is iframable. MapEmbed also renders an "Open the map in Google Maps" link.
 - 2026-10-05 (Opus, 1R): `astro.config.mjs` `build.format` is now `'file'` (was `'directory'`). GitHub Pages 301-redirected `/services` to `/services/`, so every internal link cost an extra hop. Pages serve as `services.html` at `/services` with no redirect. `Base.astro` strips `.html` / `index.html` from the canonical. Internal links and the sitemap use clean, slash-less URLs.
 - 2026-10-05 (Opus, 2R): recorded the copy Sonnet proposed in 2A and Opus approved: the OfficeCard heading, the ZoneCard travel-fee line, and the `/book/[zone]` back links (§B3, §B4).
+- 2026-10-05 (Opus, 3A): Google loader is the direct script tag, not the bootstrap snippet (it calls `console.warn`). The zones geojson is imported with `?raw` + `JSON.parse` (Vite does not treat `.geojson` as JSON). §B4 and the 3B step updated.
