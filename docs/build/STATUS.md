@@ -8,7 +8,7 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 |---|---|---|---|---|---|---|
 | 0 | opus | high | Architecture, contracts, playbook | done | (see git log) | |
 | 1A | sonnet | medium | Scaffold: fonts, icons, global CSS, layout, stub pages, wording check, CI | done | 0188a05 | |
-| 1R | opus | medium | Review Phase 1, commit, push, Pages setup with Brian | in-progress | | |
+| 1R | opus | medium | Review Phase 1, commit, push, Pages setup with Brian | done | 37e4a3f | |
 | 2A | sonnet | high | Booking router with placeholder zones (no Google) | todo | | |
 | 2R | opus | high | Review Phase 2, commit | todo | | |
 | 3A | opus | high | Research: Google Places (New) + GitHub Pages DNS; pin API spec; fixture coordinates | todo | | |
