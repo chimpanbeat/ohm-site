@@ -1,0 +1,8 @@
+---
+// TEMPORARY Phase 0 smoke test; step 1A replaces this file.
+import { site, bookingUrl } from '../data/site.ts';
+import { w } from '../data/wording.ts';
+import type { ZoneCollection } from '../lib/geo.ts';
+const fc: ZoneCollection = { type: 'FeatureCollection', features: [] };
+---
+<p>{site.name} · {w('heroLine')} · {bookingUrl('home').href} · {fc.features.length}</p>

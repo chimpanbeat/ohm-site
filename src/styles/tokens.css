@@ -1,0 +1,81 @@
+/* Design tokens (docs/build/ARCHITECTURE.md §A1, §A2). CONTRACT FILE.
+   Components use these variables; no raw hex values elsewhere. */
+
+@font-face {
+  font-family: 'DM Sans';
+  src: url('../assets/fonts/dm-sans-latin-var.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Saira Semi Condensed';
+  src: url('../assets/fonts/saira-semi-condensed-latin-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* Brand color */
+  --green-900: #0c3f35;
+  --green-700: #125245;
+  --green-300: #7fa396;
+  --terra-500: #c37a5b; /* decoration and large display text only */
+  --terra-700: #9c5739; /* CTA fill, small terracotta text; 4.89:1 with cream */
+  --cream: #f3f2f0;
+  --ink: #0b2620;
+  --line-dark: rgb(243 242 240 / 0.15);
+  --line-light: rgb(11 38 32 / 0.12);
+
+  /* Semantic */
+  --bg-dark: var(--green-900);
+  --bg-mid: var(--green-700);
+  --bg-light: var(--cream);
+  --text-on-dark: var(--cream);
+  --text-on-light: var(--ink);
+  --link-on-light: var(--green-700);
+  --accent: var(--terra-500);
+  --cta-bg: var(--terra-700);
+  --cta-text: var(--cream);
+  --focus: var(--terra-500);
+
+  /* Type */
+  --font-text: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Saira Semi Condensed', 'Arial Narrow', system-ui, sans-serif;
+  --fs-small: 0.875rem;
+  --fs-body: clamp(1.0625rem, 1rem + 0.25vw, 1.125rem); /* 17 -> 18px */
+  --fs-h3: 1.25rem;
+  --fs-h2: 1.6rem;
+  --fs-h1: clamp(2.4rem, 1.6rem + 3.4vw, 4rem);
+  --lh-body: 1.55;
+  --lh-display: 1.05;
+  --measure: 65ch;
+
+  /* Space (4px base) */
+  --s-1: 0.25rem;
+  --s-2: 0.5rem;
+  --s-3: 0.75rem;
+  --s-4: 1rem;
+  --s-6: 1.5rem;
+  --s-8: 2rem;
+  --s-12: 3rem;
+  --s-16: 4rem;
+  --s-24: 6rem;
+
+  /* Shape and motion */
+  --radius: 2px;
+  --focus-ring: 2px solid var(--focus);
+  --focus-offset: 3px;
+  --transition: 150ms ease;
+  --container: 72rem;
+  --gutter: var(--s-4);
+  --header-h: 4rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition: 0ms;
+  }
+}
