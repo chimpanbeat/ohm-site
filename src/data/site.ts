@@ -106,8 +106,13 @@ export const site = {
   serviceAreaSummary: 'Colorado Springs, Manitou Springs, and Monument; other areas by request',
   areaServed: ['Colorado Springs', 'Manitou Springs', 'Monument'],
 
-  // TODO(Brian): Google My Maps viewer/embed URL. Empty = map embed hidden.
-  mapEmbedUrl: '',
+  // Google My Maps "Ohm Service Map". The /embed form allows iframing; the
+  // /viewer form sends X-Frame-Options: SAMEORIGIN, so it's used only as a link.
+  // Empty mapEmbedUrl = map embed hidden.
+  mapEmbedUrl:
+    'https://www.google.com/maps/d/embed?mid=1kjLh6P3y-W-_wvvBdjYpT_CcSEnqSWc&ll=38.89985450733466%2C-104.8154571&z=12',
+  mapViewerUrl:
+    'https://www.google.com/maps/d/viewer?mid=1kjLh6P3y-W-_wvvBdjYpT_CcSEnqSWc&ll=38.89985450733466%2C-104.8154571&z=12',
 
   deploy: {
     site: 'https://chimpanbeat.github.io',

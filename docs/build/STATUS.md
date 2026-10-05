@@ -22,7 +22,7 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 
 ## Open TODO(Brian)
 - [ ] Tested PocketSuite links: office, home, shared (keyword), north. Until then, buttons fall back to the general PS page.
-- [ ] Google My Maps viewer/embed URL for `/book`.
+- [x] Google My Maps URL (supplied Oct 5; embed and viewer forms in `site.ts`).
 - [ ] Monument is outside the North polygon (stops at Baptist Rd), so it currently routes as "out". The zone name and footer still mention Monument.
 - [ ] North polygon also covers east of Academy (Austin Bluffs/Templeton Gap to Woodmen, west of Powers) plus Wolf Ranch and Cordera, and uses Hwy 83 as its west bound. The §6 descriptions don't say this.
 - [ ] Rate label "Initial assessment + treatment": "treatment" trips the medical-claims warning. Keep or reword?
@@ -31,3 +31,4 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 
 ## Architecture changes
 (Opus logs any mid-build change to ARCHITECTURE.md or step files here.)
+- 2026-10-05: added `site.mapViewerUrl`; MapEmbed adds an "Open the map in Google Maps" link (ARCHITECTURE §B3, §C).
