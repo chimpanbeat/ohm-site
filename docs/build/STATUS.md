@@ -12,8 +12,8 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 | 2A | sonnet | high | Booking router with placeholder zones (no Google) | done | fdb5bc0 |
 | 2R | opus | high | Review Phase 2, commit | done | fdb5bc0 |
 | 3A | opus | high | Research: Google Places (New) + GitHub Pages DNS; pin API spec; fixture coordinates | done | 4a1ecfc | |
-| 3B | sonnet | high | Real zones (KML script), autocomplete combobox, fallback, fixture tests | review | | |
-| 3R | opus | high | Privacy and cost review, live test, commit | in-progress | | |
+| 3B | sonnet | high | Real zones (KML script), autocomplete combobox, fallback, fixture tests | done | ebdb0ae | |
+| 3R | opus | high | Privacy and cost review, live test, commit | done | ebdb0ae | |
 | 4A | opus | high | Copy deck | todo | | |
 | 4B | sonnet | medium | Content pages from copy deck | todo | | |
 | 4R | opus | medium | Wording, voice, and design review, commit | todo | | |
