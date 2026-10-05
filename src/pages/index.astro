@@ -1,16 +1,136 @@
 ---
+import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import BookCta from '../components/BookCta.astro';
 import { site } from '../data/site.ts';
 import { w } from '../data/wording.ts';
+import graphic from '../assets/graphic-green.png';
+
+const minPrice = Math.min(...Object.values(site.rates).map((r) => r.price));
 ---
 
-<Base title={site.name} description={site.tagline}>
-  <section class="section">
-    <div class="container">
+<Base
+  title="Ohm Precision Bodywork · Neuromuscular therapy in Colorado Springs"
+  description="Neuromuscular therapy in Colorado Springs for climbers, athletes and desk workers. Trigger point therapy and sports recovery, at your place or my office."
+>
+  <section class="hero">
+    <Image
+      class="hero-art"
+      src={graphic}
+      alt=""
+      widths={[480, 800, 1200]}
+      sizes="(min-width: 48rem) 60vw, 70vw"
+      formats={['avif', 'webp']}
+      loading="eager"
+      fetchpriority="high"
+    />
+    <div class="container hero-text">
       <h1>{w('heroLine')}</h1>
-      <p>{site.name}</p>
-      <p><BookCta /></p>
+      <p class="subline">Neuromuscular therapy in Colorado Springs for climbers, athletes and desk-bound engineers.</p>
+      <div class="cta-row">
+        <BookCta />
+        <p class="price-hint">From ${minPrice} · at your place or my office</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section band-light">
+    <div class="container info">
+      <div>
+        <h2>Who it's for</h2>
+        <p>Climbers and outdoor athletes, endurance athletes, and people with chronic pain referred by their chiropractor or PT. Also engineers and other desk workers whose posture has started to cost them, and military service members and veterans. If you want to know why I'm working where I'm working, ask. I'll explain.</p>
+      </div>
+      <div>
+        <h2>What a session does</h2>
+        <p>Each session starts with a short assessment: where it hurts, how you move, and what you want to get back to. Then I work on the muscles and trigger points that limit that movement, using neuromuscular techniques, trigger point therapy and {w('deepTissue')}. The aim is to reduce resistance in the tissue and restore movement. You leave knowing what I found, with a few things to do on your own between sessions.</p>
+      </div>
+      <div>
+        <h2>Why "Ohm"</h2>
+        <p>An ohm is the unit of electrical resistance. I spent 12 years as an FPGA design engineer before changing careers, and resistance is still what I work on, now in muscle and fascia. The name also echoes Om, for the yoga and breathwork that brought me here. The tagline carries both meanings.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section cta-band">
+    <div class="container">
+      <h2>Book a session</h2>
+      <p>Choose my office or your place, and the next page sends you to the right booking link.</p>
+      <p class="cta-p"><BookCta /></p>
     </div>
   </section>
 </Base>
+
+<style>
+  .hero {
+    position: relative;
+    overflow: hidden;
+    background: var(--green-900);
+    color: var(--text-on-dark);
+    padding-block: var(--s-12);
+  }
+  .hero-art {
+    position: absolute;
+    top: 0;
+    right: calc(var(--s-12) * -1);
+    width: 70%;
+    max-width: none;
+    opacity: 0.3;
+    pointer-events: none;
+  }
+  .hero-text {
+    position: relative;
+  }
+  .subline {
+    margin-top: var(--s-6);
+    font-size: 1.15rem;
+  }
+  .cta-row {
+    margin-top: var(--s-6);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-4);
+  }
+  .price-hint {
+    font-size: var(--fs-small);
+  }
+  .info {
+    display: grid;
+    gap: var(--s-12);
+  }
+  .info h2 + p {
+    margin-top: var(--s-3);
+  }
+  .cta-band {
+    background: var(--green-900);
+    color: var(--text-on-dark);
+  }
+  .cta-band h2 + p {
+    margin-top: var(--s-3);
+  }
+  .cta-p {
+    margin-top: var(--s-6);
+  }
+  @media (min-width: 48rem) {
+    .hero {
+      padding-block: var(--s-24);
+    }
+    .hero-art {
+      top: 50%;
+      transform: translateY(-50%);
+      right: -8%;
+      width: 60%;
+      opacity: 1;
+      /* Fade the art's left edge into the hero so it doesn't read as a box. */
+      mask-image: linear-gradient(to right, transparent, black 30%);
+    }
+    .hero-text h1,
+    .hero-text .subline {
+      max-width: 40%;
+    }
+    .info {
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--s-8);
+    }
+  }
+</style>

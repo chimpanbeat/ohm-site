@@ -38,7 +38,8 @@ function visibleText(html) {
 
 const FORBIDDEN = /\bmassage\s+therap(?:ist|y)\b|\bLMT\b|\blicensed\b/i;
 const MEDICAL = /\b(?:treat|cure|diagnos|fix|heal)\w*/i;
-const ALLOW = /substitute for medical diagnosis/i;
+// The required scope note (brief §5). It is removed before the medical-word scan.
+const ALLOW = /not a substitute for medical diagnosis or treatment/gi;
 
 const context = (text, idx, len) => text.slice(Math.max(0, idx - 30), idx + len + 30).replace(/\s+/g, ' ');
 
@@ -56,9 +57,9 @@ for (const file of walk(DIST)) {
   }
 
   const g2 = new RegExp(MEDICAL.source, 'gi');
-  for (const m of text.matchAll(g2)) {
-    if (ALLOW.test(context(text, m.index, m[0].length + 20))) continue;
-    console.warn(`WARN ${rel}: medical-claim word "${m[0]}" ... ${context(text, m.index, m[0].length)}`);
+  const scan = text.replace(ALLOW, ' ');
+  for (const m of scan.matchAll(g2)) {
+    console.warn(`WARN ${rel}: medical-claim word "${m[0]}" ... ${context(scan, m.index, m[0].length)}`);
   }
 }
 

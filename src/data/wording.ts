@@ -16,6 +16,11 @@ export const wording = {
     'advanced neuromuscular program',
     'Advanced Neuromuscular Massage Therapy program',
   ],
+  /** About: training sentence. The school's name contains a licensed-only term. */
+  training: [
+    'In September 2026 I completed a 650-hour advanced neuromuscular program.',
+    'In September 2026 I graduated from the 650-hour Advanced Neuromuscular Massage Therapy program at the Colorado Institute of Massage Therapy.',
+  ],
   /** Home hero headline (HomeMock uses the licensed line). */
   heroLine: [site.tagline, 'Massage for action'],
 } as const satisfies Record<string, readonly [string, string]>;

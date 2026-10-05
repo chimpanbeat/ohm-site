@@ -13,7 +13,10 @@ export function getStaticPaths() {
 const { zone } = Astro.params as { zone: ZoneKey | 'office' };
 ---
 
-<Base title={`Book a session · ${site.name}`} description={site.tagline}>
+<Base
+  title="Book a session · Ohm Precision Bodywork"
+  description="Find the right booking link for an office or mobile session in Colorado Springs and Manitou Springs."
+>
   <section class="section">
     <div class="container book">
       <h1>Book a session</h1>

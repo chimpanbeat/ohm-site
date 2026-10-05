@@ -17,3 +17,7 @@ brief/*
 .DS_Store
 Thumbs.db
 .vscode/
+
+# local browser tooling output (screenshots, snapshots, Lighthouse reports)
+.playwright-mcp/
+lighthouse/

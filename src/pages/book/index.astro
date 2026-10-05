@@ -4,15 +4,19 @@ import OfficeCard from '../../components/OfficeCard.astro';
 import ZoneCard from '../../components/ZoneCard.astro';
 import ZonePicker from '../../components/ZonePicker.astro';
 import MapEmbed from '../../components/MapEmbed.astro';
-import { site, smsHref, zoneOrder } from '../../data/site.ts';
+import { smsHref, zoneOrder } from '../../data/site.ts';
 
 const key = import.meta.env.PUBLIC_GOOGLE_MAPS_KEY ?? '';
 ---
 
-<Base title={`Book a session · ${site.name}`} description={site.tagline}>
+<Base
+  title="Book a session · Ohm Precision Bodywork"
+  description="Find the right booking link for an office or mobile session in Colorado Springs and Manitou Springs."
+>
   <section class="section">
     <div class="container book">
       <h1>Book a session</h1>
+      <p>Tell me where you want your session and I'll point you to the right booking page. Scheduling, intake forms and payment are all handled on PocketSuite.</p>
 
       <fieldset id="where" hidden>
         <legend>Where do you want your session?</legend>

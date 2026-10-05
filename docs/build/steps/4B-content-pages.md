@@ -40,5 +40,35 @@ Replace the Home, Services, About and 404 stubs with the real pages, following t
 ## Report
 (Sonnet)
 
+**Files changed**
+- `src/pages/index.astro`: hero (`<Image>` eager, high priority, AVIF/WebP, widths 480/800/1200, decorative), H1, subline, CTA, price hint from `Math.min` of rates, three cream blocks, green CTA band.
+- `src/pages/services.astro`: header, four session types, `RateTable`, travel note, office-vs-mobile, scope note, `BookCta`.
+- `src/pages/about.astro`: art-directed `<picture>` built with `getImage` (portrait AVIF/WebP sources under 47.99rem, landscape AVIF/WebP sources, JPEG fallback `<img>`), five paragraphs, TODO comment, `BookCta`.
+- `src/pages/404.astro`, `src/pages/book/index.astro`: deck meta and copy; Book intro paragraph added. Removed the now-unused `site` import in `book/index.astro`.
+- `src/pages/book/[zone].astro`: title/description only, per the deck ("zone pages use the same title and description").
+
+**Checks**
+- `npm run build`: pass, 10 pages, no warnings.
+- `npm test`: 23 pass, 0 fail.
+- `npm run check:wording`: OK.
+- Literal grep (`$[0-9]|Tue|Wed|Fri|Sat|Central|Mid-north|North Springs` in `src/pages src/components`): prints nothing.
+- Built `about.html`: portrait `<source media="(max-width: 47.99rem)">` for AVIF and WebP, landscape AVIF and WebP sources, JPEG fallback `<img>`. Pass.
+- Visual check at 375 and 1280: **not done**. Playwright isn't installed in the project, so there was no browser tooling. Opus should check the hero in 4R: on mobile the art sits behind the text at 30% opacity; on desktop it is 60% wide and bleeds off the right edge, with H1 and subline capped at 40% width.
+
+**Deviations**
+- `[zone].astro` is not in the file list; edited for meta only, as the deck requires.
+- About fallback `<img>` is JPEG (landscape); the step only said AVIF/WebP sources.
+
+**TODO(Brian):** About draft review and first-time-assessment question; both are already in the page source and STATUS.
+
+**Questions for Opus:** none. Hero opacity and art position are my design call within the wireframe; adjust in 4R if it reads wrong.
+
 ## Review
 (Opus)
+
+**Accepted (4R, 2026-10-05).**
+- Copy: every page matches the deck word for word, including meta. `check:wording` is OK with no warnings. No invented facts.
+- Checks re-run: build (10 pages), tests 23/23, wording OK, the literal grep prints nothing, no raw hex outside `tokens.css`, zero `<script>` on Home, Services and About.
+- Visual check (Playwright, 375×667 and 1280×800): the hero H1, CTA and header Book are above the fold at 375, with no horizontal overflow. The About `<picture>` serves the portrait AVIF on mobile. Design: green-dominant; the anatomy art is the one memorable element; terracotta only on the CTAs and the H1 rule; focus ring and reduced-motion rules come from `global.css`.
+- Opus fixes: (1) on desktop the hero art's left edge showed as a hard rectangle against `--green-900`, so a `mask-image` gradient now fades it in; (2) `.gitignore` now ignores `.playwright-mcp/` and `lighthouse/`.
+- For 5R: headless Chromium logs "preloaded but not used" for both fonts. The preload tags are correct (`as="font"`, `crossorigin`) and fonts render, so confirm under Lighthouse.

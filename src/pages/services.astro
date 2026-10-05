@@ -1,18 +1,79 @@
 ---
 import Base from '../layouts/Base.astro';
+import BookCta from '../components/BookCta.astro';
 import RateTable from '../components/RateTable.astro';
 import { site } from '../data/site.ts';
+import { w } from '../data/wording.ts';
 ---
 
-<Base title={`Services and pricing · ${site.name}`} description={site.tagline}>
+<Base
+  title="Services and pricing · Ohm Precision Bodywork"
+  description={`Neuromuscular therapy, sports recovery for climbers, and myofascial and ${w('deepTissue')} in Colorado Springs. Rates, the travel fee, and office or mobile sessions.`}
+>
   <section class="section">
     <div class="container">
       <h1>Services and pricing</h1>
+      <p class="intro">I work on the muscles and fascia that limit how you move. Every session starts with an assessment, and I explain what I find and why I'm working where I am.</p>
     </div>
   </section>
+
   <section class="section band-light">
-    <div class="container">
+    <div class="container stack">
+      <h2>Session types</h2>
+      <div>
+        <h3>Neuromuscular therapy</h3>
+        <p>Trigger point release, ischemic compression and PNF stretching, aimed at the specific muscles that refer pain or limit your range. Precise, pressure-specific work, with the reasoning explained as we go.</p>
+      </div>
+      <div>
+        <h3>Sports and athletic recovery</h3>
+        <p>Sports recovery for climbers, endurance athletes and anyone training hard. I focus on the areas that take the load, like a climber's forearms and shoulders, and fit sessions around your training.</p>
+      </div>
+      <div>
+        <h3>Myofascial and {w('deepTissue')}</h3>
+        <p>Slow, sustained pressure on muscle and fascia where tension has built up over time. A good fit for long-standing tightness from desk work, repetitive training or old injuries.</p>
+      </div>
+      <div>
+        <h3>Chronic pain and injury support</h3>
+        <p>Ongoing work for chronic pain and for recovery after an injury, in collaboration with your chiropractor or PT. I work alongside their plan, not in place of it.</p>
+      </div>
+
+      <h2 class="gap">Pricing</h2>
       <RateTable />
+      <p>{site.travelFee.note}</p>
+      <!-- TODO(Brian): is the initial assessment + session required for first-time clients? If yes, Opus adds one line here. -->
+
+      <h2 class="gap">At my office or at your place</h2>
+      <p>Sessions are at my home office or at your place. The office is in {site.officeArea}, and I'm there {site.office.days}. For mobile sessions I come to you, with a ${site.travelFee.amount} travel fee, and the days depend on your part of town. The booking page works out which area you're in and sends you to the right booking link.</p>
+
+      <p class="scope">Sessions are not a substitute for medical diagnosis or treatment.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <BookCta />
     </div>
   </section>
 </Base>
+
+<style>
+  .intro {
+    margin-top: var(--s-6);
+  }
+  .stack > * + * {
+    margin-top: var(--s-4);
+  }
+  .stack > div + div {
+    margin-top: var(--s-6);
+  }
+  .stack h3 + p {
+    margin-top: var(--s-2);
+  }
+  .stack .gap {
+    margin-top: var(--s-12);
+  }
+  .scope {
+    font-size: var(--fs-small);
+    margin-top: var(--s-8);
+  }
+</style>
