@@ -127,7 +127,7 @@ The OG image (5A) reuses the About alt text for `og:image:alt`.
 1. `My path into {w:practice} started with my own shoulder surgery and rehab. Yoga and breathwork came next, and with them a lasting interest in how bodies move and recover.`
 2. `Before that, I spent 12 years as an FPGA design engineer. Debugging hardware is systematic: observe, form a hypothesis, test, write it down. I assess the body the same way, and I keep clear notes so each session builds on the last.`
 3. `{w:training} Its core is neuromuscular therapy: trigger point release, ischemic compression and PNF.`
-   **Glossary** (directly after paragraph 3, 6A): `<Glossary keys={['ischemicCompression', 'pnf']} />`
+   No glossary on About (Brian, Oct 5 2026: the terms are defined on Services).
 4. `I've been climbing for more than five years, and I volunteer with adaptive climbing groups at CityRock. I know what a hard season does to forearms, shoulders and hips.`
 5. `My approach is evidence-informed and precise, and it starts from your goals. I'll explain what I find and why I'm working where I am. You should leave understanding your body a little better, with tools for your own recovery.`
 

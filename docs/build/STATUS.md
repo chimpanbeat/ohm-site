@@ -62,3 +62,4 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 - 2026-10-05 (3R): a bad key doesn't fire `gm_authFailure` (no map on the page). The field disappears on the first query instead. Amended 3B §G4 and Done-when 7, and ARCHITECTURE §B4.
 - 2026-10-05 (3R): key referrers must be origin-wide (Places sends origin-only Referer). Added 5A §P3a and corrected the 3B G1 note.
 - 2026-10-05 (4A): new wording key `training` (About training sentence; the school's name contains "Massage Therapy", so it appears only in the licensed variant). `check:wording` now strips the exact scope-note sentence before the medical-word scan. Before, "treatment" in that sentence fell outside the allowlist window and warned.
+- 2026-10-05 (after 6R): the glossary was removed from About at Brian's request. It stays on Services only (copy deck → About).
