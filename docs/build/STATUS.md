@@ -25,9 +25,9 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 | 7A | opus | high | Brian's Oct 6 review: contracts, map architecture, copy, 7B step file | done | | Contract edits leave the build broken until 7B. Commit with Phase 7 |
 | 7B | sonnet | high | SVG service map, booking flow, pricing page, contact swap, copy | done | e5d8eaa | Deviations accepted in 7R (step Review). Screenshots in `docs/build/screens/` (gitignored) |
 | 7R | opus | high | Review Phase 7, live map check with Brian (SVG map go/no-go), commit, push | done | e5d8eaa | Brian: **go** on the SVG map (Oct 6). Review fixes: swatch colours, OSM stub filter, stale comment |
-| 8A | opus | high | Brian's review of Phase 7: contracts, design (resistor divider, map-tinted buttons, deselect, office map), copy, 8B step file | done | | Items 1–12 (incl. Home "Who it's for", hero subline, and the About bio, Brian's text). Brian: "that's it for changes". Uncommitted; commit with Phase 8. Don't deploy before 8B (OfficeCard address line) |
-| 8B | sonnet | high | Map polish (tinted buttons, deselect, linked hover, Google Maps button), office map, resistor divider + spacing, copy | review | | Report in the step file. 3 questions for Opus (tokens.css comment, focus after Enter, office label nudge) |
-| 8R | opus | high | Review Phase 8, commit, push | in-progress | | |
+| 8A | opus | high | Brian's review of Phase 7: contracts, design (resistor divider, map-tinted buttons, deselect, office map), copy, 8B step file | done | 1d5045a | Items 1–12 (incl. Home "Who it's for", hero subline, and the About bio, Brian's text). Brian: "that's it for changes" |
+| 8B | sonnet | high | Map polish (tinted buttons, deselect, linked hover, Google Maps button), office map, resistor divider + spacing, copy | done | 1d5045a | Deviations accepted in 8R (step Review) |
+| 8R | opus | high | Review Phase 8, commit, push | done | 1d5045a | Opus fixed: tokens comment, office-map label nudges and clipped place label. Focus stays on the card heading |
 
 ## §12 acceptance (5R, 2026-10-05)
 | Criterion | Result | Evidence |
