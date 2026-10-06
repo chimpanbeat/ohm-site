@@ -124,7 +124,7 @@ a:hover {
 }
 
 .section {
-  padding-block: var(--s-10);
+  padding-block: var(--s-8);
 }
 
 /* The first section on a page sits closer to the header; Home's hero has its own padding. */
@@ -134,12 +134,17 @@ main > .section:first-child {
 
 @media (min-width: 48rem) {
   .section {
-    padding-block: var(--s-16);
+    padding-block: var(--s-12);
   }
 
   main > .section:first-child {
     padding-top: var(--s-10);
   }
+}
+
+/* The closing section that holds only the book button: tighter than a content section, at every width. */
+.section--end {
+  padding-block: var(--s-8);
 }
 
 .band-light {

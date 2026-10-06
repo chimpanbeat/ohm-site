@@ -82,7 +82,8 @@ No splash on Home (9A batch 5: it's on `/hello`, below).
    **P:** `Each session starts with a short assessment: where it hurts, how you move, and what you want to get back to. Then I work on the muscles and trigger points that limit that movement, using neuromuscular techniques, trigger point therapy and {w:deepTissue}. The aim is to reduce resistance in the tissue and restore movement. You leave knowing what I found, with a few things to do on your own between sessions.`
 
 3. **H2:** `Why "Ohm"`
-   **P** (8A; 9A adds the second sentence; 10A drops "the shape in my logo"): `An ohm is the unit of electrical resistance. Its symbol is the Greek letter omega (Ω). I spent 12 years as an electrical engineer before changing careers, and resistance is still what I work on, now in muscle and fascia. Say the name out loud and you also hear Om, the sacred sound of yoga and meditation. Yoga is a big part of how I got here. The tagline carries both meanings.`
+   **P1** (8A; 9A adds the second sentence; 10A drops "the shape in my logo"; 11A splits the paragraph): `An ohm is the unit of electrical resistance. Its symbol is the Greek letter omega (Ω).`
+   **P2** (11A: drops "The tagline carries both meanings."; "how I got here" links to `/about`): `I spent 12 years as an electrical engineer before changing careers, and resistance is still what I work on, now in muscle and fascia. Say the name out loud and you also hear Om, the sacred sound of yoga and meditation. Yoga is a big part of [how I got here](/about).`
 
 **Green CTA band**
 - **H2:** `Book a session`

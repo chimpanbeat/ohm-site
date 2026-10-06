@@ -35,6 +35,9 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 | 10A | opus | high | Brian's review of Phase 9: `/hello` motion and line, office mark and map buttons, hover dimming, spacing; 10B step file | done | 517a029 | Batches 1–2 + line pick (C, Ω width). Brian: "go" (Oct 6). |
 | 10B | sonnet | high | `/hello` light/line/glow/click pause, Ω start rotation, office mark + map buttons, hover dimming, site-wide spacing | done | 517a029 | Step file `10B-hello-map-spacing.md` Deviations accepted in 10R |
 | 10R | opus | high | Review Phase 10 (`/hello` motion with Brian), commit, push | done | 517a029 | Opus fixed: `/hello` hover glow scoped to the Ω (the page is one link) |
+| 11A | opus | high | Brian's review of Phase 10: `/hello` speed (and the mobile speed bug), spacing, About photo, Why Ohm copy; 11B step file | done | | Batches 1–2. Cause of the fast phone light: `non-scaling-stroke` + `pathLength`. Why Ohm copy done by Opus. Uncommitted; commit with Phase 11 |
+| 11B | sonnet | medium | `/hello` light fix (no non-scaling stroke) and 3s lap, tighter spacing, About photo at text width | done | PENDING | Step file `11B-light-fix-spacing-about.md`. Accepted in 11R; Home +16px at 375 is the Why Ohm paragraph split |
+| 11R | opus | medium | Review Phase 11, commit, push | done | PENDING | No changes needed |
 
 ## §12 acceptance (5R, 2026-10-05)
 | Criterion | Result | Evidence |
@@ -75,6 +78,7 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 
 ## Architecture changes
 (Opus logs any mid-build change to ARCHITECTURE.md or step files here.)
+- 2026-10-06 (11A): Phase 11 added for Brian's review of Phase 10. `/hello` light without `non-scaling-stroke` (it broke `pathLength` dashes: 1.23× fast on desktop, 2.5× on phones), 3s lap; sections 32/48, `.section--end`, hero and footer padding; About photo at the text measure, 16:9; Why Ohm split and linked (ARCHITECTURE §C 11A).
 - 2026-10-06 (10R): `/hello` hover glow is `.hello-omega:hover`, not `.hello:hover` (ARCHITECTURE §B8).
 - 2026-10-06 (10A): Phase 10 added for Brian's review of Phase 9. Spacing (`--s-10`), office mark position and size, `Show mobile service areas`, hover dimming, dark map buttons, `/hello` motion and line, one inline script on `/hello` (`check:dist` rule 7 relaxed) (ARCHITECTURE §C 10A).
 - 2026-10-06 (9R): `--zone-muted` and `office.mapArea.radiusKm` deleted (ARCHITECTURE §B1, §B3). `make-terrain.mjs`: take one channel back after the blur (sharp returns three), blur 1, `alphaQuality` 50. `/hello` turns the scrollbar gutter off for itself.

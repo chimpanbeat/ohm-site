@@ -4,6 +4,7 @@ import Base from '../layouts/Base.astro';
 import BookCta from '../components/BookCta.astro';
 import { site } from '../data/site.ts';
 import { w } from '../data/wording.ts';
+import { href } from '../lib/url.ts';
 import graphic from '../assets/graphic-green.png';
 
 const minPrice = Math.min(...Object.values(site.rates).map((r) => r.price));
@@ -46,7 +47,8 @@ const minPrice = Math.min(...Object.values(site.rates).map((r) => r.price));
       </div>
       <div>
         <h2>Why "Ohm"</h2>
-        <p>An ohm is the unit of electrical resistance. Its symbol is the Greek letter omega (Ω). I spent 12 years as an electrical engineer before changing careers, and resistance is still what I work on, now in muscle and fascia. Say the name out loud and you also hear Om, the sacred sound of yoga and meditation. Yoga is a big part of how I got here. The tagline carries both meanings.</p>
+        <p>An ohm is the unit of electrical resistance. Its symbol is the Greek letter omega (Ω).</p>
+        <p>I spent 12 years as an electrical engineer before changing careers, and resistance is still what I work on, now in muscle and fascia. Say the name out loud and you also hear Om, the sacred sound of yoga and meditation. Yoga is a big part of <a href={href('/about')}>how I got here</a>.</p>
       </div>
     </div>
   </section>
@@ -66,7 +68,7 @@ const minPrice = Math.min(...Object.values(site.rates).map((r) => r.price));
     overflow: hidden;
     background: var(--green-900);
     color: var(--text-on-dark);
-    padding-block: var(--s-12);
+    padding-block: var(--s-10);
   }
   .hero-art {
     position: absolute;
@@ -112,7 +114,7 @@ const minPrice = Math.min(...Object.values(site.rates).map((r) => r.price));
   }
   @media (min-width: 48rem) {
     .hero {
-      padding-block: var(--s-16);
+      padding-block: var(--s-12);
     }
     .hero-art {
       top: 50%;

@@ -81,8 +81,8 @@ PocketSuite links that still start with `TODO_` are placeholders. Buttons using 
 
 `/hello` is a full-screen welcome page: the Ω lit by a slow light, the body graphic, and the line "Take the path of least resistance". It is one big link to Home.
 
-- **The light** is one dash that runs once clockwise round the Ω's outline from the right foot's inner corner (a 4.5 s lap, starting 0.4 s in), then repeats every 11 s. It's pure CSS (`ohm-lap`).
-- **The line** fades in at 4.9 s, as the first lap ends, and stays. It is upper case, sized so it spans exactly the Ω's width (`--omega-w`, `--line-fs`, `--line-ls` on `.hello`; the constants are DM Sans metrics for this exact string, so re-measure them if the line or the font changes).
+- **The light** is one dash that runs once clockwise round the Ω's outline from the right foot's inner corner (a 3 s lap, starting 0.4 s in), then repeats every 11 s. It's pure CSS (`ohm-lap`). Its stroke widths are in viewBox units, not pixels: `vector-effect: non-scaling-stroke` breaks `pathLength` dashes, so the light ran too fast on desktop and far too fast on phones.
+- **The line** fades in at 3.4 s, as the first lap ends, and stays. It is upper case, sized so it spans exactly the Ω's width (`--omega-w`, `--line-fs`, `--line-ls` on `.hello`; the constants are DM Sans metrics for this exact string, so re-measure them if the line or the font changes).
 - **The glow** is off at rest. Hover (fine pointers), keyboard focus and a click turn it on.
 - **The click pause:** one small inline script holds a plain click or Enter for 0.5 s so the glow shows before the page goes to Home. Modified clicks (Ctrl, Cmd, Shift, Alt, middle button) and reduced motion skip it. Without JavaScript the link simply navigates at once, and the light and the line still work.
 

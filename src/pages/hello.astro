@@ -102,19 +102,20 @@ const [, , vbW, vbH] = omega.viewBox.split(' ').map(Number);
     stroke: var(--text-on-dark);
     stroke-linejoin: round;
     stroke-linecap: round;
-    vector-effect: non-scaling-stroke;
   }
   /* One dash, longer period than the path (pathLength 1), so it never shows twice: at 0.14 it sits just
-     before the start, at -1 it has run off the end. The lap starts and ends at the right foot's inner corner. */
+     before the start, at -1 it has run off the end. The lap starts and ends at the right foot's inner corner.
+     Stroke widths are viewBox units: a screen-pixel stroke breaks pathLength dashes (the dash length is then
+     measured in screen px, which runs the light too fast, 1.23x on desktop and 2.5x on phones). */
   .omega-light {
-    stroke-width: 3px;
+    stroke-width: 5;
     opacity: 1;
     stroke-dasharray: 0.14 1;
     stroke-dashoffset: 0.14;
     animation: ohm-lap 11s 0.4s infinite;
   }
   .omega-glow {
-    stroke-width: 6px;
+    stroke-width: 8;
     filter: blur(6px);
   }
   /* No glow at rest: hover, keyboard focus and a click (before the page goes to Home) turn it on. */
@@ -126,7 +127,7 @@ const [, , vbW, vbH] = omega.viewBox.split(' ').map(Number);
   .hello:focus-visible .omega-glow-wrap {
     opacity: 1;
   }
-  /* The line fades in as the first lap ends (0.4s + 4.5s) and stays. Nothing else ever changes its opacity. */
+  /* The line fades in as the first lap ends (0.4s + 3s) and stays. Nothing else ever changes its opacity. */
   .hello-line {
     position: relative;
     text-align: center;
@@ -140,12 +141,12 @@ const [, , vbW, vbH] = omega.viewBox.split(' ').map(Number);
     text-shadow: none;
     padding-inline: 0;
     opacity: 0;
-    animation: ohm-reveal 1s ease-out 4.9s forwards;
+    animation: ohm-reveal 1s ease-out 3.4s forwards;
   }
 
   @keyframes ohm-lap {
     0% { stroke-dashoffset: 0.14; animation-timing-function: ease-in-out; }
-    41% { stroke-dashoffset: -1; } /* 4.5 s of 11 s: the lap */
+    27.3% { stroke-dashoffset: -1; } /* 3 s of 11 s: the lap */
     100% { stroke-dashoffset: -1; } /* rest, then the next lap */
   }
   @keyframes ohm-reveal {

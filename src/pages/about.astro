@@ -71,9 +71,16 @@ const desktopSizes = '(min-width: 72rem) 72rem, 100vw';
     width: 100%;
     height: auto;
     object-fit: cover;
-    aspect-ratio: 21 / 9;
-    object-position: 50% 60%;
+    aspect-ratio: 16 / 9;
+    object-position: 50% 55%;
     border-radius: var(--radius);
+  }
+  /* Desktop: the photo is as wide as the paragraphs under it. */
+  @media (min-width: 48rem) {
+    picture {
+      display: block;
+      max-width: var(--measure);
+    }
   }
   @media (max-width: 47.99rem) {
     picture img {
