@@ -32,9 +32,9 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 | 9B | sonnet | high | Office badge, terrain + minor roads, clickable outside, dimming, layout fixes, copy | done | 726290a | Deviations accepted in 9R. Terrain image was broken (3-channel blur buffer); Opus fixed `make-terrain.mjs` and regenerated |
 | 9C | sonnet | high | `/hello` entrance page (no JS, noindex), traced Ω (`npm run omega`), `check:dist` in CI, trailing-slash redirect; Part 2: map office mark = bare Ω + "Ohm Office" | done | 726290a | After 9B. Step file `9C-hello.md`. Part 2 added after Brian saw 9B's badge |
 | 9R | opus | high | Review Phase 9 (9B + 9C; terrain strength and the splash with Brian), delete `--zone-muted` and `radiusKm`, commit, push | done | 726290a | Opus fixed: terrain bug, `/hello` scrollbar gutter. Terrain opacity 0.6 pending Brian's look |
-| 10A | opus | high | Brian's review of Phase 9: `/hello` motion and line, office mark and map buttons, hover dimming, spacing; 10B step file | done | PHASE10 | Batches 1–2 + line pick (C, Ω width). Brian: "go" (Oct 6). |
-| 10B | sonnet | high | `/hello` light/line/glow/click pause, Ω start rotation, office mark + map buttons, hover dimming, site-wide spacing | done | PHASE10 | Step file `10B-hello-map-spacing.md` Deviations accepted in 10R |
-| 10R | opus | high | Review Phase 10 (`/hello` motion with Brian), commit, push | done | PHASE10 | Opus fixed: `/hello` hover glow scoped to the Ω (the page is one link) |
+| 10A | opus | high | Brian's review of Phase 9: `/hello` motion and line, office mark and map buttons, hover dimming, spacing; 10B step file | done | 517a029 | Batches 1–2 + line pick (C, Ω width). Brian: "go" (Oct 6). |
+| 10B | sonnet | high | `/hello` light/line/glow/click pause, Ω start rotation, office mark + map buttons, hover dimming, site-wide spacing | done | 517a029 | Step file `10B-hello-map-spacing.md` Deviations accepted in 10R |
+| 10R | opus | high | Review Phase 10 (`/hello` motion with Brian), commit, push | done | 517a029 | Opus fixed: `/hello` hover glow scoped to the Ω (the page is one link) |
 
 ## §12 acceptance (5R, 2026-10-05)
 | Criterion | Result | Evidence |
