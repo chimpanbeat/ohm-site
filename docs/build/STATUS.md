@@ -78,6 +78,7 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 
 ## Architecture changes
 (Opus logs any mid-build change to ARCHITECTURE.md or step files here.)
+- 2026-10-06 (after 11R, Brian's quick fix): no hover tooltips on the maps. The map's name moves from the svg `<title>` to a `hidden` `<span>` that `aria-labelledby` still reads; the office mark's `<title>` is gone (the link is `aria-hidden` and the visible label says "Ohm Office") (ARCHITECTURE §B4).
 - 2026-10-06 (11A): Phase 11 added for Brian's review of Phase 10. `/hello` light without `non-scaling-stroke` (it broke `pathLength` dashes: 1.23× fast on desktop, 2.5× on phones), 3s lap; sections 32/48, `.section--end`, hero and footer padding; About photo at the text measure, 16:9; Why Ohm split and linked (ARCHITECTURE §C 11A).
 - 2026-10-06 (10R): `/hello` hover glow is `.hello-omega:hover`, not `.hello:hover` (ARCHITECTURE §B8).
 - 2026-10-06 (10A): Phase 10 added for Brian's review of Phase 9. Spacing (`--s-10`), office mark position and size, `Show mobile service areas`, hover dimming, dark map buttons, `/hello` motion and line, one inline script on `/hello` (`check:dist` rule 7 relaxed) (ARCHITECTURE §C 10A).

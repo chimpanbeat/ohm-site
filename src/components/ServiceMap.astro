@@ -15,7 +15,7 @@ import omega from '../data/omega.json';
 interface Props {
   /** A zone to render zoomed with the others dimmed ('out' tints the outside area), or 'office' for the office map (no zones). */
   focus?: ZoneKey | 'office';
-  /** Prefixes the <title>/<desc> ids, so two maps can share a page. */
+  /** Prefixes the title/<desc> ids, so two maps can share a page. */
   id?: string;
 }
 
@@ -270,6 +270,9 @@ const markProps = office ? {} : { href: href('/book/office'), tabindex: '-1', 'a
 
 <div class:list={['service-map', { 'service-map--office': office }]}>
   <div class="map-frame">
+  {/* The name lives outside the svg: an svg <title> shows as a hover tooltip over the whole map.
+      aria-labelledby still reads a hidden element. */}
+  <span id={`${id}-title`} hidden>{title}</span>
   <svg
     viewBox={viewBoxAttr(view)}
     data-full={viewBoxAttr(full)}
@@ -278,7 +281,6 @@ const markProps = office ? {} : { href: href('/book/office'), tabindex: '-1', 'a
     aria-labelledby={`${id}-title ${id}-desc`}
     preserveAspectRatio="xMidYMid meet"
   >
-    <title id={`${id}-title`}>{title}</title>
     <desc id={`${id}-desc`}>{desc}</desc>
 
     {!office && <path class:list={['zone', 'zone--out', { 'is-focused': focus === 'out' }]} data-zone="out" fill-rule="evenodd" d={outD} />}
@@ -343,7 +345,6 @@ const markProps = office ? {} : { href: href('/book/office'), tabindex: '-1', 'a
     }
 
     <Mark class="map-office" {...markProps}>
-      {!office && <title>Ohm Office</title>}
       <g transform={`translate(${officeX} ${officeY})`}>
         <g class="office-mark-scale">
           <rect class="office-hit" x={-markW / 2} y={-markH / 2} width={markW} height={markH}></rect>
