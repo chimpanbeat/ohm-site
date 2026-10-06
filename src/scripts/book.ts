@@ -83,17 +83,20 @@ function setPin(loc: { lat: number; lng: number } | null): void {
   el.removeAttribute('hidden');
 }
 
-/** Zoom to the zone and grey out the others; for "out", show everything (widened to include the pin). */
+/**
+ * Zoom to the zone and dim the others; for "out", show everything (widened to include the pin), tint
+ * the outside area and dim all three zones.
+ */
 function focusZone(zone: ZoneKey): void {
   if (!svg || !frame) return;
   let view: View = frame.full;
-  const box = zone === 'out' ? null : bboxOf(zones, zone);
+  const box = isRegion(zone) ? bboxOf(zones, zone) : null;
   if (box) view = frame.viewFor(box);
   else if (pin) view = frame.include(view, pin[0], pin[1], PIN_MARGIN);
   for (const el of svg.querySelectorAll<SVGElement>('[data-zone]')) {
     const key = el.dataset.zone;
-    el.classList.toggle('is-focused', !!box && key === zone);
-    el.classList.toggle('is-muted', !!box && key !== zone);
+    el.classList.toggle('is-focused', key === zone);
+    el.classList.toggle('is-muted', key !== zone && key !== 'out');
   }
   svg.setAttribute('viewBox', viewBoxAttr(view));
   svg.style.setProperty('--map-scale', String(frame.full.w / view.w));
@@ -116,7 +119,7 @@ function select(zone: ZoneKey, via: 'address' | 'pick', loc?: { lat: number; lng
   }
   setPin(loc ?? null);
   focusZone(zone);
-  if (reset) reset.hidden = !isRegion(zone);
+  if (reset) reset.hidden = false;
   if (via === 'pick') clearAddress?.();
 }
 
@@ -149,14 +152,30 @@ const isRegion = (zone: ZoneKey | null | undefined): zone is 'home' | 'shared' |
   zone === 'home' || zone === 'shared' || zone === 'north';
 
 /**
- * Linked hover: the area button and its map area light up together (is-hot). Purely visual. Only
- * the three real areas; "out" has none.
+ * Linked hover: the area button and its map area light up together (is-hot). Purely visual. "out"
+ * is an area like the others: its map area is everything outside the zones, and has no outline.
  */
 function hot(zone: ZoneKey | null | undefined): void {
   for (const el of mobile?.querySelectorAll('.is-hot') ?? []) el.classList.remove('is-hot');
-  if (!isRegion(zone)) return;
+  if (!zone) return;
   mobile?.querySelector(`.zone-picker a[data-zone="${zone}"]`)?.classList.add('is-hot');
-  svg?.querySelector(`[data-zone="${zone}"].zone-line`)?.classList.add('is-hot');
+  svg?.querySelector(zone === 'out' ? '.zone--out' : `[data-zone="${zone}"].zone-line`)?.classList.add('is-hot');
+}
+
+/**
+ * The map's office badge: switch to "At my office", scroll its section into view and focus its
+ * heading. The mobile section's state (chosen area, address) is left as it is.
+ */
+function goOffice(): void {
+  const radio = whereSet?.querySelector<HTMLInputElement>('input[name="where"][value="office"]');
+  if (!radio || !office) return;
+  radio.checked = true;
+  choose('office');
+  office.scrollIntoView({ block: 'start' });
+  const heading = $('office-h');
+  if (!heading) return;
+  if (!heading.hasAttribute('tabindex')) heading.setAttribute('tabindex', '-1');
+  heading.focus();
 }
 
 const slot = $('address-slot');
@@ -214,7 +233,7 @@ function mountCombobox(places: PlacesLib): void {
 
   const label = document.createElement('label');
   label.htmlFor = 'addr';
-  label.textContent = 'Not sure? Enter your address';
+  label.textContent = 'Not sure? Enter your address:';
 
   const input = document.createElement('input');
   input.id = 'addr';
@@ -397,6 +416,12 @@ function init(): void {
     const target = e.target as Element;
     if (target.closest('.map-reset')) {
       deselect();
+      return;
+    }
+    if (target.closest('.map-office')) {
+      if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return; // let the browser open a tab
+      e.preventDefault();
+      goOffice();
       return;
     }
     const link = target.closest<HTMLAnchorElement>('.zone-picker a[data-zone]');

@@ -55,11 +55,11 @@ export const site = {
     days: 'Tuesdays, Wednesday evenings, Fridays, and Saturdays',
     linkKey: 'office' as LinkKey,
     /**
-     * The office on the /book map: a circle, deliberately vague. NOT the address. Two decimals
+     * Where the Ω office mark sits on the maps: deliberately vague, NOT the address. Two decimals
      * (~1 km) on purpose; tests enforce it. Between North Cheyenne Cañon and the Broadmoor (8A).
-     * TODO(Brian): confirm the circle reads as the right neighbourhood.
+     * TODO(Brian): confirm the mark sits in the right neighbourhood.
      */
-    mapArea: { lat: 38.79, lng: -104.86, radiusKm: 1.5 },
+    mapArea: { lat: 38.79, lng: -104.86 },
   },
 
   rates: {

@@ -4,8 +4,6 @@ import BookCta from '../components/BookCta.astro';
 import { site } from '../data/site.ts';
 import { w } from '../data/wording.ts';
 import { href } from '../lib/url.ts';
-
-const minPrice = Math.min(...Object.values(site.rates).map((r) => r.price));
 ---
 
 <Base
@@ -21,10 +19,15 @@ const minPrice = Math.min(...Object.values(site.rates).map((r) => r.price));
 
   <section class="section band-light">
     <div class="container stack">
-      <h2>Session types</h2>
+      <h2>At my office or at your place</h2>
+      <p>Sessions are at my home office or at your place. The office is in {site.officeArea}, and I'm there {site.office.days}. For mobile sessions I come to you, with a ${site.travelFee.amount} travel fee<span aria-hidden="true">*</span>, and the days depend on your part of town. The booking page works out which area you're in and sends you to the right booking link.</p>
+      <p class="footnote">* See <a href={href('/pricing')}>rates and the travel fee</a>.</p>
+
+      <h2 class="gap">Specialties</h2>
+      <p>Every session is the same price, and you don't have to pick just one. I blend these specialties based on your goals and what I find, and we plan each appointment together.</p>
       <div>
         <h3>Neuromuscular therapy</h3>
-        <p>Neuromuscular therapy works with your nervous system, not against it. Your nervous system sets how tight a muscle stays and how sensitive an area feels, and after an injury or a long stretch of pain it can keep muscles guarded when they no longer need to be. I use focused pressure, stretches you take an active part in, and other targeted techniques to give it a reason to let go. The aim is less pain and more freedom to move.</p>
+        <p>Neuromuscular therapy works with your nervous system, not against it. Your nervous system plays a big role in how tight a muscle stays and how sensitive an area feels, and after an injury or a long stretch of pain it can keep muscles guarded when they no longer need to be. I use focused pressure, stretches you take an active part in, and other targeted techniques to give it a reason to let go. The aim is less pain and more freedom to move.</p>
         <p>A big part of this is trigger points: tight, tender spots in a muscle that can send pain somewhere else. Knots in your upper shoulders, for example, can show up as a headache. Knowing these referred pain patterns means I look for where your pain starts, not just where you feel it.</p>
       </div>
       <div>
@@ -39,12 +42,6 @@ const minPrice = Math.min(...Object.values(site.rates).map((r) => r.price));
         <h3>Chronic pain and injury support</h3>
         <p>Ongoing work for chronic pain and for recovery after an injury, in collaboration with your chiropractor or PT. I work alongside their plan, not in place of it.</p>
       </div>
-
-      <h2 class="gap">Pricing</h2>
-      <p>Sessions start at ${minPrice}, at my office or at your place. See <a href={href('/pricing')}>rates and the travel fee</a>.</p>
-
-      <h2 class="gap">At my office or at your place</h2>
-      <p>Sessions are at my home office or at your place. The office is in {site.officeArea}, and I'm there {site.office.days}. For mobile sessions I come to you, with a ${site.travelFee.amount} travel fee, and the days depend on your part of town. The booking page works out which area you're in and sends you to the right booking link.</p>
 
       <p class="scope">Sessions are not a substitute for medical diagnosis or treatment.</p>
     </div>
@@ -69,6 +66,10 @@ const minPrice = Math.min(...Object.values(site.rates).map((r) => r.price));
   }
   .stack .gap {
     margin-top: var(--s-12);
+  }
+  .stack .footnote {
+    font-size: var(--fs-small);
+    margin-top: var(--s-2);
   }
   .scope {
     font-size: var(--fs-small);

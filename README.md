@@ -25,11 +25,14 @@ The port is fixed at **4321** because the Google key allows the referrer `http:/
 | `npm run check:contrast` | Checks the brand colour pairs against WCAG contrast minimums |
 | `npm run zones` | Converts the My Maps KML into `src/data/zones.geojson` |
 | `npm run osm` | Fetches the roads and towns for the service-area map from OpenStreetMap into `src/data/osm.geojson` (by hand, rarely) |
+| `npm run terrain` | Builds the hillshade for the service-area map from USGS elevation into `src/assets/terrain.webp` (by hand, rarely) |
+| `npm run omega` | Traces the Ω from `src/assets/icon.png` into `src/data/omega.json` (by hand, rarely) |
+| `npm run check:dist` | Checks `dist/` keeps `/hello` noindex, unlinked, out of the sitemap and script-free (run after `build`) |
 | `npm run icons` | Regenerates the favicon and touch icons |
 
 ## Deploy
 
-`.github/workflows/deploy.yml` runs on every push to `main`: `npm ci`, `npm test`, `npm run build`, `npm run check:wording`, then publishes `dist/` to GitHub Pages.
+`.github/workflows/deploy.yml` runs on every push to `main`: `npm ci`, `npm test`, `npm run build`, `npm run check:wording`, `npm run check:dist`, then publishes `dist/` to GitHub Pages.
 
 One-time setup:
 1. Repo **Settings → Pages → Source: GitHub Actions**.
@@ -41,7 +44,7 @@ The preview is https://chimpanbeat.github.io/ohm-site/. It is `noindex` until th
 
 Everything a visitor sees about the business is in **`src/data/site.ts`**: rates, travel fee, office and zone days, zone names, email, `contact` (the PocketSuite lead form and chat, used when someone is outside the service area), PocketSuite booking links, the My Maps viewer URL and the deploy settings. There is no phone number on the site. Pages read from it; don't type a rate, day or link into a page.
 
-The office circle on the `/book` map is `site.office.mapArea` (`lat`, `lng`, `radiusKm`). It is approximate on purpose: keep the coordinates to 2 decimals (a test enforces it), and never put the real address there.
+The office badge (the Ω) on the maps sits on `site.office.mapArea` (`lat`, `lng`). It is approximate on purpose: keep the coordinates to 2 decimals (a test enforces it), and never put the real address there.
 
 PocketSuite links that still start with `TODO_` are placeholders. Buttons using one fall back to the general PocketSuite page and carry a `data-placeholder` attribute, so you can find them in the page source. Replace the value with the tested link and the attribute goes away.
 
@@ -67,10 +70,22 @@ PocketSuite links that still start with `TODO_` are placeholders. Buttons using 
 
 - It is built from `src/data/zones.geojson` (the three zones) and `src/data/osm.geojson` (major roads and towns). Re-exporting the zones (see above) updates it on the next build.
 - Zone colours are the `--zone-*` tokens in `tokens.css`; the area buttons use the same ones for their swatches.
-- `npm run osm` refreshes `osm.geojson` from OpenStreetMap. Run it by hand, rarely (the roads don't change), and commit the result. It exits 1 if a road or town is missing.
+- `npm run osm` refreshes `osm.geojson` from OpenStreetMap. Run it by hand, rarely (the roads don't change), and commit the result. It exits 1 if a road or town is missing. It also writes the unlabelled minor roads (every other primary and secondary road in the box) as one feature, drawn thin and faint under the named roads.
 - `osm.geojson` is © OpenStreetMap contributors, under the [ODbL](https://www.openstreetmap.org/copyright). The map shows the credit line.
+- `npm run terrain` builds the shaded relief under the roads: it downloads AWS Terrain Tiles (USGS 3DEP elevation, about 60 tiles on the first run), caches them in `.cache/terrain/` (gitignored, reused on later runs) and writes `src/assets/terrain.webp` and `src/data/terrain.json`. Run it by hand, rarely, and commit both. The image covers the same box as `npm run osm`, so it doesn't change when the zones do. Credit: 3DEP data courtesy of the U.S. Geological Survey.
 - Label positions are worked out at build time; `labelNudge` at the top of `src/components/ServiceMap.astro` holds the hand fixes.
+- The office is marked with the bare Ω (`omega.json`'s `dMap`, a simplified outline) and the label "Ohm Office", at the point in `site.office.mapArea`. It is the same size at every zoom, and on the zone maps it links to the office.
 - "Open the map in Google Maps" opens the My Maps viewer. The URL is built from `site.map` in `site.ts` (`mid`, `center`, `zoom`, now 11 so all three zones show). If the My Maps map is recreated (new ID), change `mid`.
+
+## `/hello` entrance page
+
+`/hello` is a full-screen welcome page: the Ω lit by a slow light, the body graphic, and the line "Take the path of least resistance". It is one big link to Home. It has no JavaScript.
+
+- **Where to use it:** print (business cards), QR codes, social bios and referrals link to `/hello`. Search, Google Maps and the Google Business Profile link to `/`, so those visitors go straight to prices and booking.
+- **Use the exact lowercase URL with no trailing slash.** `/hello/` works (it redirects through `public/hello/index.html`), but the slash form costs a hop and a flash. Generate QR codes after the custom domain is live, not from the `github.io` address.
+- **Why it's `noindex`, unlinked and out of the sitemap:** a full-screen splash for people arriving from search can count against the site in Google's ranking, and search visitors don't want one. `/hello` is only for people who chose to come. It can't be blocked in `robots.txt`, because Google has to crawl it to see the `noindex`.
+- `npm run check:dist` enforces all of this after the build (CI runs it before publishing): the `noindex` meta, a self canonical, no `<script>` (the JSON-LD data block aside), no mention in the sitemap or `robots.txt`, no link to it from any other page, and no splash on Home.
+- `npm run omega` traces the Ω from `src/assets/icon.png` into `src/data/omega.json`, until JohnMark's SVG replaces it. To switch, put the SVG's outline path (one closed `d`) and `viewBox` in `omega.json`, with a simplified `dMap` for the maps.
 
 ## Test addresses
 

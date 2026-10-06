@@ -15,6 +15,12 @@ Written by Opus in step 4A (2026-10-05). **This is the only source of visible te
 ## Global
 Header, Footer, OfficeCard, ZonePicker and ZoneCard keep their current text (ARCHITECTURE §B3) except for the changes below.
 
+**Changes in step 9A (Oct 6, Brian's review of Phase 8):**
+- **Office map:** the circle is gone; the Ω marks the area. **Label (after 9B, Brian): `Ohm Office`**, the same on every map view (was `My office is in this area`). `<title>`: `Office area map`. `<desc>`: `Map of southwest Colorado Springs with my logo marking the area my office is in, near Cheyenne Canyon and the Broadmoor. The exact address is sent after you book.`
+- **Office mark on the service maps:** visible label `Ohm Office`; `<title>Ohm Office</title>` (tooltip; the link is hidden from assistive tech, the radio is the accessible path).
+- **Credit line** (both maps): `Roads and places © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright). Terrain: USGS 3DEP.`
+- **Book:** address label, map hint and boundary line: see Book → Mobile section.
+
 **Changes in step 8A (Oct 6, Brian's review of Phase 7):**
 - **"FPGA design engineer" → "electrical engineer"** everywhere (Home "Why Ohm", About meta description and paragraph 2). Brian: too specific.
 - **OfficeCard:** `{site.officeArea}` now reads "Southwest Colorado Springs, in the Cheyenne Canyon / Broadmoor area". The address note moves to its own line, directly after the area: `I send the exact address after you book.`
@@ -55,6 +61,8 @@ The OG image (5A) reuses the About alt text for `og:image:alt`.
 
 ## Home (`src/pages/index.astro`)
 
+No splash on Home (9A batch 5: it's on `/hello`, below).
+
 **Meta**
 - `title`: `Ohm Precision Bodywork · Neuromuscular therapy in Colorado Springs` (ARCHITECTURE §B7. Pass it whole; no suffix.)
 - `description` (8A): `Neuromuscular therapy in Colorado Springs for climbers, runners and active people. Trigger point therapy and sports recovery, at your place or my office.`
@@ -74,7 +82,7 @@ The OG image (5A) reuses the About alt text for `og:image:alt`.
    **P:** `Each session starts with a short assessment: where it hurts, how you move, and what you want to get back to. Then I work on the muscles and trigger points that limit that movement, using neuromuscular techniques, trigger point therapy and {w:deepTissue}. The aim is to reduce resistance in the tissue and restore movement. You leave knowing what I found, with a few things to do on your own between sessions.`
 
 3. **H2:** `Why "Ohm"`
-   **P** (8A): `An ohm is the unit of electrical resistance. I spent 12 years as an electrical engineer before changing careers, and resistance is still what I work on, now in muscle and fascia. Say the name out loud and you also hear Om, the sacred sound of yoga and meditation. Yoga is a big part of how I got here. The tagline carries both meanings.`
+   **P** (8A; 9A adds the second sentence): `An ohm is the unit of electrical resistance. Its symbol is the Greek letter omega (Ω), the shape in my logo. I spent 12 years as an electrical engineer before changing careers, and resistance is still what I work on, now in muscle and fascia. Say the name out loud and you also hear Om, the sacred sound of yoga and meditation. Yoga is a big part of how I got here. The tagline carries both meanings.`
 
 **Green CTA band**
 - **H2:** `Book a session`
@@ -94,13 +102,21 @@ The OG image (5A) reuses the About alt text for `og:image:alt`.
 - **Intro P** (8A): `{w:notSpa} I take a clinical approach that meets you where you are. Every session starts with an assessment, and I explain what I find and why I'm working where I am.`
   (Unlicensed, `notSpa` reads "This isn't a generic spa session, and it isn't no-pain, no-gain deep tissue torture." Licensed, "spa session" becomes "spa massage".)
 
-**Cream band: session types**
-- **H2:** `Session types`
+**Cream band order (9A):** office vs mobile → footnote link → Specialties → scope note. The Pricing H2 and its paragraph are removed.
+
+**Cream band: office vs mobile** (9A: now first)
+- **H2:** `At my office or at your place`
+- **P:** `Sessions are at my home office or at your place. The office is in {site.officeArea}, and I'm there {site.office.days}. For mobile sessions I come to you, with a ${site.travelFee.amount} travel fee*, and the days depend on your part of town. The booking page works out which area you're in and sends you to the right booking link.` (The `*` is `<span aria-hidden="true">*</span>`.)
+- **Footnote P** (small text, directly after): `* See [rates and the travel fee](/pricing).`
+
+**Cream band: specialties** (9A: was "Session types")
+- **H2:** `Specialties`
+- **Intro P** (9A, Brian's text): `Every session is the same price, and you don't have to pick just one. I blend these specialties based on your goals and what I find, and we plan each appointment together.`
 - Four `<h3>` + `<p>` pairs, in this order:
 
 1. **H3:** `Neuromuscular therapy`
    Two `<p>` (7A; replaces the technique list and the glossary):
-   **P1:** `Neuromuscular therapy works with your nervous system, not against it. Your nervous system sets how tight a muscle stays and how sensitive an area feels, and after an injury or a long stretch of pain it can keep muscles guarded when they no longer need to be. I use focused pressure, stretches you take an active part in, and other targeted techniques to give it a reason to let go. The aim is less pain and more freedom to move.`
+   **P1** (9A: "sets" → "plays a big role in"): `Neuromuscular therapy works with your nervous system, not against it. Your nervous system plays a big role in how tight a muscle stays and how sensitive an area feels, and after an injury or a long stretch of pain it can keep muscles guarded when they no longer need to be. I use focused pressure, stretches you take an active part in, and other targeted techniques to give it a reason to let go. The aim is less pain and more freedom to move.`
    **P2:** `A big part of this is trigger points: tight, tender spots in a muscle that can send pain somewhere else. Knots in your upper shoulders, for example, can show up as a headache. Knowing these referred pain patterns means I look for where your pain starts, not just where you feel it.`
 
 2. **H3:** `Sports and athletic recovery`
@@ -112,14 +128,7 @@ The OG image (5A) reuses the About alt text for `og:image:alt`.
 4. **H3:** `Chronic pain and injury support`
    **P:** `Ongoing work for chronic pain and for recovery after an injury, in collaboration with your chiropractor or PT. I work alongside their plan, not in place of it.`
 
-**Cream band (continued): pricing** (7A: the table moved to `/pricing`)
-- **H2:** `Pricing`
-- **P:** `Sessions start at ${minPrice}, at my office or at your place. See [rates and the travel fee](/pricing).`
-- The initial-assessment TODO comment is deleted (the rate is gone).
-
-**Cream band (continued): office vs mobile**
-- **H2:** `At my office or at your place`
-- **P:** `Sessions are at my home office or at your place. The office is in {site.officeArea}, and I'm there {site.office.days}. For mobile sessions I come to you, with a ${site.travelFee.amount} travel fee, and the days depend on your part of town. The booking page works out which area you're in and sends you to the right booking link.`
+~~**Pricing** H2 + `Sessions start at ${minPrice}…`~~ removed in 9A (the footnote link above replaces it).
 
 **Scope note** (`<p>`, small text, last in the cream band)
 - `Sessions are not a substitute for medical diagnosis or treatment.`
@@ -140,7 +149,7 @@ The OG image (5A) reuses the About alt text for `og:image:alt`.
 - **Intro P** (8A): `Same session rates at my office or at your place. Mobile sessions add a flat ${site.travelFee.amount} travel fee.`
 
 **Cream band**
-- `<PriceTable />`. Its text: caption `Session rates`; column headers `Session`, `At my office`, `At your place` with the small second line `includes ${site.travelFee.amount} travel`; row labels from `{site.rates.*.label}`; prices `${price}` and `${price + site.travelFee.amount}`, computed. Today: 60-minute session $90 / $115; 90-minute session $120 / $145.
+- `<PriceTable />` (9A: header labels at body size, top-aligned on one line). Its text: caption `Session rates`; column headers `Session`, `At my office`, `At your place` with the small second line `includes ${site.travelFee.amount} travel`; row labels from `{site.rates.*.label}`; prices `${price}` and `${price + site.travelFee.amount}`, computed. Today: 60-minute session $90 / $115; 90-minute session $120 / $145.
 - **H2:** `Travel fee`
 - **P:** `${site.travelFee.amount}. {site.travelFee.note}`
 - **P:** `Where you are decides which days I can come to you. The [booking page](/book) works it out from your address.`
@@ -188,18 +197,34 @@ The OG image (5A) reuses the About alt text for `og:image:alt`.
 
 **Mobile section** (7A, ARCHITECTURE §B4):
 - **H2** (`#mobile-h`): `Where are you located?`
-- **Address label** (built in `book.ts`): `Not sure? Enter your address`
-- **Map hint** (`.map-hint`, un-hidden by book.ts) (8A): `Tap an area on the map or a button above to choose it. Tap it again to see all areas.`
-- **Reset button** (8A, over the map's top-right corner, shown only while zoomed to an area): `Show all areas`
+- **Address label** (built in `book.ts`) (9A: colon added): `Not sure? Enter your address:`
+- **Map hint** (`.map-hint`, un-hidden by book.ts) (9A): `Tap an area on the map or a button above to choose it. Tap it again to see all areas. The Ohm symbol marks my office; tap it for office sessions.`
+- **Reset button** (8A, over the map's top-right corner, shown while any area is chosen, including outside (9A)): `Show all areas`
 - **Google Maps button** (8A, replaces the small link; directly under the map): `Open in Google Maps`, with an external-link icon and visually hidden ` (opens in a new tab)`.
 - **Map `<title>`:** `Service area map`. **`<desc>`:** `Map of Colorado Springs showing my three service areas, Central & Southwest Springs, Mid-north Springs and North Springs, with the major roads that border them.` Build the zone names from `site.zones` (don't type them).
 - **Map labels:** zone names from `site.zones[key].name`; road short names and place names as listed in ARCHITECTURE §B4.
-- **Credit line** (small, under the map): `Roads and places © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright)`
+- **Credit line** (small, under the map) (9A): `Roads and places © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright). Terrain: USGS 3DEP.`
 - ~~**Link:** `Open the map in Google Maps`~~ → replaced by the Google Maps button above (8A), still → `{site.mapViewerUrl}`
-- **Boundary line:** `Near a boundary or can't find your address? [Chat with me]({site.contact.chat}). Boundaries are approximate.`
+- **Boundary line** (9A): `Near a boundary or can't find your address? [Chat with me]({site.contact.chat}) or [send me an email]({mailHref}). Boundaries are approximate.`
 - `/book/[zone]` (not office) shows the same map, focused on that zone. The hint isn't shown there (no JS).
 
 The rest of the router text is fixed by ARCHITECTURE §B3 and §B4.
+
+---
+
+## Hello (`src/pages/hello.astro`, 9A)
+
+The entrance page for cards, QR codes and social bios (ARCHITECTURE §B8). `noindex`, but it's what a shared link previews, so the meta is real.
+
+**Meta**
+- `title`: `Ohm Precision Bodywork · Take the path of least resistance`
+- `description`: same as Home: `Neuromuscular therapy in Colorado Springs for climbers, runners and active people. Trigger point therapy and sports recovery, at your place or my office.`
+
+**Page**
+- Visible line (fades in at 3s): `Take the path of least resistance` (Brian). It's the same in both licensure states, so there's no `wording.ts` key.
+- Visually hidden, before it (part of the link's accessible name): `Enter Ohm Precision Bodywork. `
+- The images are decorative (`alt=""`, and the SVG is `aria-hidden`).
+- Trailing-slash redirect page (`public/hello/index.html`): `<title>Ohm Precision Bodywork</title>`, link text `Continue`.
 
 ---
 

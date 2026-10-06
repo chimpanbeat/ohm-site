@@ -28,6 +28,10 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 | 8A | opus | high | Brian's review of Phase 7: contracts, design (resistor divider, map-tinted buttons, deselect, office map), copy, 8B step file | done | 1d5045a | Items 1–12 (incl. Home "Who it's for", hero subline, and the About bio, Brian's text). Brian: "that's it for changes" |
 | 8B | sonnet | high | Map polish (tinted buttons, deselect, linked hover, Google Maps button), office map, resistor divider + spacing, copy | done | 1d5045a | Deviations accepted in 8R (step Review) |
 | 8R | opus | high | Review Phase 8, commit, push | done | 1d5045a | Opus fixed: tokens comment, office-map label nudges and clipped place label. Focus stays on the card heading |
+| 9A | opus | high | Brian's review of Phase 8: office badge + zoom, terrain, minor roads, clickable outside, dimming, title spacing, About order, scrollbar shift, copy; 9B step file | done | PHASE9 | Batches 1–5 (items 1–11; batch 4's Home splash superseded by batch 5: `/hello` page → 9C). Brian: "go" (Oct 6) |
+| 9B | sonnet | high | Office badge, terrain + minor roads, clickable outside, dimming, layout fixes, copy | done | PHASE9 | Deviations accepted in 9R. Terrain image was broken (3-channel blur buffer); Opus fixed `make-terrain.mjs` and regenerated |
+| 9C | sonnet | high | `/hello` entrance page (no JS, noindex), traced Ω (`npm run omega`), `check:dist` in CI, trailing-slash redirect; Part 2: map office mark = bare Ω + "Ohm Office" | done | PHASE9 | After 9B. Step file `9C-hello.md`. Part 2 added after Brian saw 9B's badge |
+| 9R | opus | high | Review Phase 9 (9B + 9C; terrain strength and the splash with Brian), delete `--zone-muted` and `radiusKm`, commit, push | done | PHASE9 | Opus fixed: terrain bug, `/hello` scrollbar gutter. Terrain opacity 0.6 pending Brian's look |
 
 ## §12 acceptance (5R, 2026-10-05)
 | Criterion | Result | Evidence |
@@ -49,7 +53,11 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 - [x] Google key referrer (fixed by Brian, verified live Oct 5): change `https://chimpanbeat.github.io/ohm-site/*` to `https://chimpanbeat.github.io/*`. Places calls send only the origin, so on the live preview the field is blocked and falls back to the picker (found in 3R; 5A §P3a).
 - [x] About bio: Brian wrote his own (Oct 6, 8A).
 - [x] Initial assessment: removed from the site (Oct 6).
-- [ ] SVG logo, if one exists (PNGs work, but an SVG would be crisper).
+- [ ] **Get updated graphics and SVGs from JohnMark** (Oct 6, 9A): the Ω (replaces the traced `omega.json` on `/hello`), the header logo, the icon, and the body graphic. Until then `/hello` uses a path traced from `icon.png`. (Replaces "SVG logo, if one exists".)
+- [ ] `/hello` defaults Opus chose (9A, unanswered questions): body graphic `graphic-green.png`; Ω filled terracotta with a cream light on its edge. Confirm or change.
+- [ ] `/hello` title and description (copy deck → Hello): "Ohm Precision Bodywork · Take the path of least resistance" + the Home description. It's what social-bio links preview.
+- [ ] Cards, QR codes and social bios: use the exact lowercase `…/hello` (no trailing slash; the slash form redirects). Generate QR codes after the custom domain is live, not from the `github.io` preview URL. Search, Maps and the Google Business Profile use `/`.
+- [ ] Home hero with the Ω and body graphic: proposal in `steps/9C-hello.md` (not built). Decide after JohnMark's SVGs.
 - [ ] License number (license day).
 - [ ] §6 boundary descriptions vs the KML polygons: six differences listed in `steps/6A-review-fixes-contracts.md` (North vs Hwy 83, North west edge past I-25, Baptist Rd edge, Cordera NE edge, North east of Powers, Broadmoor Bluffs west side). Descriptions not edited.
 - [ ] Cordera and Wolf Ranch fixtures: replace the rough coordinates with geocoded addresses, then remove their `todo` field (6B).
@@ -57,12 +65,18 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 - [x] Brief §4 travel-fee note updated to the Oct 6 waiver (neither back-to-back session pays the fee).
 - [x] Phone number in git history: it's a business line, so leave it (Oct 6).
 - [x] SVG map go/no-go: **go** (Brian, Oct 6, 7R).
-- [ ] Office circle on the map (`site.office.mapArea`, 38.79, −104.86, 1.5 km): confirm it's the right neighbourhood (8A).
+- [ ] Office mark on the map (`site.office.mapArea`, 38.79, −104.86): confirm the Ω sits in the right neighbourhood (8A; the circle became the Ω in 9C).
+- [ ] Terrain strength on the map: opacity 0.6 (9R screenshots `9R-terrain-{full,central,office}.png`). Stronger, lighter, or keep?
 - [ ] Office map context (8R): only the zone-border roads and town names show around the circle; nothing names Cheyenne Cañon or the Broadmoor. Want local roads and landmark labels (a `fetch-osm.mjs` change)?
 - [x] Monument: out of the service area (decided Oct 5, 2026). Brief §6 and §14 updated (6A).
 
 ## Architecture changes
 (Opus logs any mid-build change to ARCHITECTURE.md or step files here.)
+- 2026-10-06 (9R): `--zone-muted` and `office.mapArea.radiusKm` deleted (ARCHITECTURE §B1, §B3). `make-terrain.mjs`: take one channel back after the blur (sharp returns three), blur 1, `alphaQuality` 50. `/hello` turns the scrollbar gutter off for itself.
+- 2026-10-06 (after 9B): Brian wants the map office marker as just the Ω, larger, labelled "Ohm Office" on all views. Added to 9C as Part 2 (uses the traced path; `omega.json` gains `dMap`). ARCHITECTURE §B4 "Office mark".
+- 2026-10-06 (9A, batch 5): the splash moves off Home to its own page, `/hello` (noindex, unlinked, no JS), for card, QR and social traffic; reason: Google's intrusive-interstitial signal and search visitors' friction. Step 9C rewritten as `steps/9C-hello.md` (the batch-4 `9C-splash.md` was never run and is deleted). ARCHITECTURE §B8 rewritten; `check:dist` added to CI.
+- 2026-10-06 (9A, batch 4): Home splash added as step 9C. 9R reviews 9B and 9C together.
+- 2026-10-06 (9A): Phase 9 added for Brian's review of Phase 8. Office badge (Ω) replaces the circle and links to the office from the service maps; office map at the Central & SW zoom; terrain (`npm run terrain`, USGS 3DEP) and minor roads; `out` map area + `--zone-out-tint`; dim instead of grey; first-section padding halved; `scrollbar-gutter: stable`; About H1 first; boundary line + email; label colon (ARCHITECTURE §C 9A).
 - 2026-10-06 (8R): ServiceMap office mode uses its own `officeNudge` table (full-map nudges are in full-map units), and drops places whose anchor is outside the view. 8B Done-when 6k amended: focus stays on the card heading after a pick (§B4).
 - 2026-10-06 (8A): Phase 8 added for Brian's review of Phase 7. Resistor zigzag H1 divider, map-tinted area buttons (`--zone-*-tint`), deselect + linked hover, office map (`site.office.mapArea`, `ServiceMap focus="office"`, `mapview.viewAround`/`unitsPerKm`), Google Maps button, copy (`wording.notSpa`, "electrical engineer", Om) (ARCHITECTURE §C 8A).
 - 2026-10-06 (7R): `fetch-osm.mjs` drops isolated road stubs (pieces of one road within 0.3 km form a cluster; clusters under 2 km are dropped). Zone swatches use `color-mix(… 35%, var(--bg-light))`, the colour each zone shows on the map.

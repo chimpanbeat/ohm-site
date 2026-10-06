@@ -4,7 +4,7 @@ import OfficeCard from '../../components/OfficeCard.astro';
 import ZoneCard from '../../components/ZoneCard.astro';
 import ZonePicker from '../../components/ZonePicker.astro';
 import ServiceMap from '../../components/ServiceMap.astro';
-import { site, zoneOrder } from '../../data/site.ts';
+import { site, zoneOrder, mailHref } from '../../data/site.ts';
 
 const key = import.meta.env.PUBLIC_GOOGLE_MAPS_KEY ?? '';
 ---
@@ -36,7 +36,7 @@ const key = import.meta.env.PUBLIC_GOOGLE_MAPS_KEY ?? '';
         <div id="zone-result" aria-live="polite"></div>
         <ServiceMap />
         <p class="boundary">
-          Near a boundary or can't find your address? <a href={site.contact.chat}>Chat with me</a>. Boundaries are approximate.
+          Near a boundary or can't find your address? <a href={site.contact.chat}>Chat with me</a> or <a href={mailHref}>send me an email</a>. Boundaries are approximate.
         </p>
       </section>
 

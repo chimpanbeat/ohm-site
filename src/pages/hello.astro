@@ -1,0 +1,183 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import { href } from '../lib/url.ts';
+import graphic from '../assets/graphic-green.png';
+import omega from '../data/omega.json';
+
+const [, , vbW, vbH] = omega.viewBox.split(' ').map(Number);
+---
+
+<Base
+  title="Ohm Precision Bodywork · Take the path of least resistance"
+  description="Neuromuscular therapy in Colorado Springs for climbers, runners and active people. Trigger point therapy and sports recovery, at your place or my office."
+  noindex
+  bare
+>
+  <a class="hello" href={href('/')}>
+    <span class="visually-hidden">Enter Ohm Precision Bodywork. </span>
+    <Image
+      class="hello-art"
+      src={graphic}
+      alt=""
+      widths={[480, 800, 1200]}
+      sizes="100vw"
+      formats={['avif', 'webp']}
+      loading="eager"
+      fetchpriority="high"
+    />
+    <svg class="hello-omega" viewBox={omega.viewBox} style={`aspect-ratio: ${vbW} / ${vbH}`} aria-hidden="true" focusable="false">
+      <path class="omega-fill" d={omega.d}></path>
+      <g class="omega-glow-wrap"><path class="omega-glow" d={omega.d} pathLength="1"></path></g>
+      <path class="omega-idle" d={omega.d} pathLength="1"></path>
+      <path class="omega-light" d={omega.d} pathLength="1"></path>
+    </svg>
+    <span class="hello-line">Take the path of least resistance</span>
+  </a>
+</Base>
+
+<style>
+  /* /hello never scrolls, so the global reserved scrollbar gutter would only cut the art off at the right. */
+  :global(html:has(.hello)) {
+    scrollbar-gutter: auto;
+  }
+  .hello {
+    position: relative;
+    display: grid;
+    place-items: center;
+    place-content: center;
+    gap: var(--s-6);
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow: hidden;
+    background: var(--bg-dark);
+    color: var(--text-on-dark);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .hello-art {
+    position: absolute;
+    top: 0;
+    right: -8%;
+    height: 100%;
+    width: auto;
+    max-width: none;
+    opacity: 0.9;
+    pointer-events: none;
+  }
+  @media (min-width: 48rem) {
+    .hello-art {
+      /* Fade the art's left edge into the green, as on the Home hero, so it doesn't read as a box. */
+      mask-image: linear-gradient(to right, transparent, black 30%);
+    }
+  }
+  .hello-omega {
+    position: relative;
+    width: min(50vmin, 28rem);
+    height: auto;
+    overflow: visible;
+  }
+  .omega-fill {
+    fill: var(--accent);
+  }
+  .omega-idle,
+  .omega-light,
+  .omega-glow {
+    fill: none;
+    stroke: var(--text-on-dark);
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+  }
+  .omega-idle {
+    stroke-width: 2px;
+    stroke-dasharray: 0.08 0.92;
+    opacity: 0.35;
+    animation: ohm-current 7s linear infinite;
+  }
+  .omega-light {
+    stroke-width: 3px;
+    stroke-dasharray: 0.14 0.86;
+    stroke-dashoffset: 1;
+    opacity: 0;
+    animation: ohm-signature 2.4s ease-in-out 0.3s 1 forwards;
+  }
+  .omega-glow {
+    stroke-width: 6px;
+    filter: blur(6px);
+    animation: ohm-pulse 3.5s ease-in-out infinite alternate;
+  }
+  .omega-glow-wrap {
+    opacity: 0.45;
+    animation: ohm-settle 0.8s ease-out 3s forwards;
+  }
+  .hello-line {
+    position: relative;
+    text-align: center;
+    padding-inline: var(--gutter);
+    font-size: var(--fs-h2);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    color: var(--text-on-dark);
+    text-shadow: 0 0 var(--s-3) var(--bg-dark), 0 0 var(--s-6) var(--bg-dark);
+    opacity: 0;
+    animation: ohm-reveal 0.8s ease-out 3s forwards;
+  }
+
+  @keyframes ohm-current {
+    from { stroke-dashoffset: 1; }
+    to { stroke-dashoffset: 0; }
+  }
+  @keyframes ohm-signature {
+    0% { stroke-dashoffset: 1; opacity: 0; }
+    10% { opacity: 1; }
+    85% { opacity: 1; }
+    100% { stroke-dashoffset: 0; opacity: 0; }
+  }
+  @keyframes ohm-pulse {
+    from { opacity: 0.25; }
+    to { opacity: 0.55; }
+  }
+  @keyframes ohm-settle {
+    to { opacity: 1; }
+  }
+  @keyframes ohm-reveal {
+    to { opacity: 1; }
+  }
+
+  /* Hover (fine pointers only) and keyboard focus jump straight to the end state. */
+  @media (hover: hover) and (pointer: fine) {
+    .hello:hover .omega-glow-wrap,
+    .hello:hover .hello-line {
+      animation: none;
+      opacity: 1;
+      transition: opacity 300ms;
+    }
+  }
+  .hello:focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: calc(-1 * var(--s-4));
+  }
+  .hello:focus-visible .omega-glow-wrap,
+  .hello:focus-visible .hello-line {
+    animation: none;
+    opacity: 1;
+    transition: opacity 300ms;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .omega-idle,
+    .omega-light {
+      display: none;
+    }
+    .omega-glow,
+    .omega-glow-wrap,
+    .hello-line {
+      animation: none;
+    }
+    .omega-glow-wrap,
+    .hello-line {
+      opacity: 1;
+    }
+  }
+</style>

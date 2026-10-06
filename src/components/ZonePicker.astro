@@ -78,16 +78,16 @@ const { current, heading } = Astro.props;
     border-style: dashed;
   }
 
-  /* The chosen area (aria-current="page" on /book/<zone>, "true" once book.ts selects it). Zone
-     buttons get a ring; "out" inverts to a cream fill. */
-  a[data-zone='home'][aria-current],
-  a[data-zone='shared'][aria-current],
-  a[data-zone='north'][aria-current] {
+  /* The chosen area (aria-current="page" on /book/<zone>, "true" once book.ts selects it) gets a ring.
+     "out" takes the tint its map area shows when chosen, and keeps its dashed border. */
+  a[data-zone][aria-current] {
     box-shadow: 0 0 0 3px var(--text-on-dark);
   }
-  a[data-zone='out'][aria-current] {
-    background: var(--text-on-dark);
-    color: var(--bg-dark);
+  a[data-zone='out'][aria-current],
+  a[data-zone='out'][aria-current]:hover {
+    background: var(--zone-out-tint);
+    border-color: var(--ink);
+    color: var(--ink);
   }
   /* Linked hover (book.ts): the button whose map area is hovered gets the same ring. */
   a[data-zone].is-hot {

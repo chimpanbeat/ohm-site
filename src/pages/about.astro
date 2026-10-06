@@ -32,6 +32,8 @@ const desktopSizes = '(min-width: 72rem) 72rem, 100vw';
 >
   <section class="section">
     <div class="container about">
+      <h1>About Brian</h1>
+
       <!-- width/height on the portrait sources reserve its aspect ratio on mobile (no layout shift). -->
       <picture>
         <source media={mobileMedia} type="image/avif" srcset={pAvif.srcSet.attribute} sizes={mobileSizes} width={portrait.width} height={portrait.height} />
@@ -47,8 +49,6 @@ const desktopSizes = '(min-width: 72rem) 72rem, 100vw';
           decoding="async"
         />
       </picture>
-
-      <h1>About Brian</h1>
 
       <p>I started my career as an electrical engineer. For 12 years I worked mostly at a desk or in a lab, designing systems, tracing problems to their source rather than where they showed up, and testing each fix until it held.</p>
       <p>In 2019, partway through that career, I tore the labrum in my right shoulder. Surgery and a long rehab followed. Physical therapy carried me through the hardest stretch and made me curious about how clinical work helps people recover. Yoga came next. It helped me rebuild strength and range of motion, and it showed me how closely body and mind are connected. Those experiences led me to bodywork.</p>

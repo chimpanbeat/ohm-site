@@ -26,6 +26,9 @@ const DECIMALS = 5;
 // show on the map as unlabeled dashes (7R).
 const NEAR_KM = 0.3;
 const MIN_KM = 2;
+// Minor roads (9A): every other primary/secondary way, one unlabelled pool drawn thin and faint.
+const SIMPLIFY_MINOR_DEG = 0.0006;
+const MIN_MINOR_KM = 1;
 
 /** Road names (after dropping a North/South/East/West prefix) → short name. */
 const NAMED = [
@@ -71,6 +74,7 @@ const query = `[out:json][timeout:120];
   way["highway"~"^(motorway|trunk|primary|secondary|tertiary)$"]["name"~"^(North |South |East |West )?(${NAMED.map(([n]) => n).join('|')})$"](${box});
   way["highway"~"^(motorway|trunk)$"]["ref"~"I 25|US 24"](${box});
   way["highway"]["ref"~"CO 83"](${box});
+  way["highway"~"^(primary|secondary)$"](${box});
   node["place"~"^(city|town|village|hamlet)$"]["name"~"^(${OSM_PLACES.join('|')})$"](${box});
 );
 out geom;`;
@@ -280,13 +284,16 @@ const round = (n) => Number(n.toFixed(DECIMALS));
 const data = await overpass();
 const raw = new Map(ROADS.map((r) => [r.name, []]));
 const lines = new Map(ROADS.map((r) => [r.name, []]));
+const rawMinor = [];
 const places = new Map();
 
 for (const el of data.elements ?? []) {
   const tags = el.tags ?? {};
   if (el.type === 'way' && el.geometry) {
     const name = shortName(tags);
-    if (name) raw.get(name).push(el.geometry.map((p) => [p.lon, p.lat]));
+    const coords = el.geometry.map((p) => [p.lon, p.lat]);
+    if (name) raw.get(name).push(coords);
+    else if (tags.highway === 'primary' || tags.highway === 'secondary') rawMinor.push(coords);
   } else if (el.type === 'node' && OSM_PLACES.includes(tags.name)) {
     const rank = PLACE_RANK[tags.place] ?? 9;
     const prev = places.get(tags.name);
@@ -302,6 +309,13 @@ for (const [name, ways] of raw) {
   }
 }
 
+// All minor ways share one pool: joined, clipped, simplified; short pieces are dropped (no cluster logic).
+const minor = joinLines(rawMinor)
+  .flatMap(clipLine)
+  .filter((piece) => lengthKm(piece) >= MIN_MINOR_KM)
+  .map((piece) => simplify(piece, SIMPLIFY_MINOR_DEG).map(([x, y]) => [round(x), round(y)]))
+  .filter((piece) => piece.length >= 2);
+
 const missing = [
   ...ROADS.filter((r) => lines.get(r.name).length === 0).map((r) => `road ${r.name}`),
   ...OSM_PLACES.filter((p) => !places.has(p)).map((p) => `place ${p}`),
@@ -312,6 +326,7 @@ if (missing.length) {
 }
 
 const features = [
+  { type: 'Feature', properties: { kind: 'minor' }, geometry: { type: 'MultiLineString', coordinates: minor } },
   ...ROADS.map((r) => ({
     type: 'Feature',
     properties: { kind: 'road', name: r.name, major: r.major },
@@ -330,7 +345,9 @@ const features = [
 
 writeFileSync(outPath, JSON.stringify({ type: 'FeatureCollection', features }) + '\n');
 
-let vertices = 0;
+const minorVertices = minor.reduce((sum, l) => sum + l.length, 0);
+console.log(`minor roads ${String(minor.length).padStart(3)} lines ${String(minorVertices).padStart(5)} vertices`);
+let vertices = minorVertices;
 for (const r of ROADS) {
   const ls = lines.get(r.name);
   const n = ls.reduce((sum, l) => sum + l.length, 0);

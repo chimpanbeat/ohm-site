@@ -13,7 +13,7 @@ import { href } from '../lib/url.ts';
         class="logo-full"
         src={logoLine}
         alt={site.name}
-        width={180}
+        width={240}
         densities={[2, 3]}
         loading="eager"
       />
@@ -21,8 +21,8 @@ import { href } from '../lib/url.ts';
         class="logo-icon"
         src={icon}
         alt={site.name}
-        width={40}
-        height={40}
+        width={48}
+        height={48}
         densities={[2, 3]}
         loading="eager"
       />
@@ -58,13 +58,13 @@ import { href } from '../lib/url.ts';
     flex-shrink: 0;
   }
   .logo-full {
-    width: 180px;
+    width: 200px;
     height: auto;
   }
   .logo-icon {
     display: none;
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
   }
   .site-header__nav {
     display: flex;
@@ -82,10 +82,15 @@ import { href } from '../lib/url.ts';
     min-height: 44px;
     padding-inline: var(--s-4);
   }
-  /* Four nav items: compact type up to 33rem (the full-size row needs about 520px). */
-  @media (max-width: 33rem) {
+  @media (min-width: 48rem) {
     .logo-full {
-      width: 110px;
+      width: 240px;
+    }
+  }
+  /* Four nav items: compact type up to 35.5rem (the full-size row with the 200px logo needs about 565px). */
+  @media (max-width: 35.5rem) {
+    .logo-full {
+      width: 130px;
     }
     .site-header__nav {
       gap: var(--s-3);
@@ -95,13 +100,26 @@ import { href } from '../lib/url.ts';
       padding-inline: var(--s-3);
     }
   }
-  /* Icon-only logo up to 25rem: the compact row with the 110px logo needs about 391px. */
-  @media (max-width: 25rem) {
+  /* Icon-only logo up to 27.5rem: the compact row with the 130px logo needs about 434px. */
+  @media (max-width: 27.5rem) {
     .logo-full {
       display: none;
     }
     .logo-icon {
       display: block;
+    }
+  }
+  /* The icon row needs about 352px; below 22.5rem it tightens its gaps and padding (down to 320px). */
+  @media (max-width: 22.5rem) {
+    .site-header .container {
+      padding-inline: var(--s-3);
+    }
+    .site-header__row,
+    .site-header__nav {
+      gap: var(--s-2);
+    }
+    .site-header__nav .btn {
+      padding-inline: var(--s-2);
     }
   }
 </style>

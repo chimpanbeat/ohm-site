@@ -14,9 +14,10 @@ interface Props {
   title: string;
   description: string;
   noindex?: boolean;
+  bare?: boolean; // /hello only: no skip link, Header or Footer
 }
 
-const { title, description, noindex = false } = Astro.props;
+const { title, description, noindex = false, bare = false } = Astro.props;
 // build.format is 'file': drop '.html' / 'index.html' so canonicals match the clean URLs we link to.
 const canonical = new URL(Astro.url.pathname.replace(/(?:index)?\.html$/, ''), Astro.site);
 
@@ -78,11 +79,11 @@ if (site.licensed && site.licenseNumber) {
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   </head>
   <body>
-    <a class="skip-link" href="#main">Skip to content</a>
-    <Header />
+    {!bare && <a class="skip-link" href="#main">Skip to content</a>}
+    {!bare && <Header />}
     <main id="main">
       <slot />
     </main>
-    <Footer />
+    {!bare && <Footer />}
   </body>
 </html>

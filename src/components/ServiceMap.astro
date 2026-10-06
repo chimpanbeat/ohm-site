@@ -5,11 +5,15 @@
 import { site, zoneOrder, type ZoneKey } from '../data/site.ts';
 import { bboxOf, type ZoneCollection } from '../lib/geo.ts';
 import { makeFrame, viewBoxAttr } from '../lib/mapview.ts';
+import { href } from '../lib/url.ts';
 import zonesRaw from '../data/zones.geojson?raw';
 import osmRaw from '../data/osm.geojson?raw';
+import terrainImg from '../assets/terrain.webp';
+import terrain from '../data/terrain.json';
+import omega from '../data/omega.json';
 
 interface Props {
-  /** A zone to render zoomed with the others greyed, or 'office' for the office-area map (no zones). */
+  /** A zone to render zoomed with the others dimmed ('out' tints the outside area), or 'office' for the office map (no zones). */
   focus?: ZoneKey | 'office';
   /** Prefixes the <title>/<desc> ids, so two maps can share a page. */
   id?: string;
@@ -19,7 +23,7 @@ type Pt = [number, number];
 type RegionKey = Exclude<ZoneKey, 'out'>;
 
 interface OsmFeature {
-  properties: { kind: 'road' | 'place'; name: string; major?: boolean };
+  properties: { kind: 'road' | 'minor' | 'place'; name?: string; major?: boolean };
   geometry: { type: 'MultiLineString'; coordinates: Pt[][] } | { type: 'Point'; coordinates: Pt };
 }
 
@@ -37,7 +41,14 @@ const labelNudge: Record<string, [number, number]> = {
   'place:Manitou Springs': [-30, 0],
 };
 // The office map is zoomed in about 3×, so the full-map nudges would throw its labels kilometres off.
-const officeNudge: Record<string, [number, number]> = {};
+const officeNudge: Record<string, [number, number]> = {
+  'road:US 24': [45, 30], // clear of the Manitou Springs label
+};
+
+// The office mark: the traced Ω (dMap, the 6 px simplification), W map units wide at scale 1.
+const markW = 125;
+const [, , omegaW, omegaH] = omega.viewBox.split(' ').map(Number);
+const markH = Number(((markW * omegaH) / omegaW).toFixed(1));
 
 const zones = JSON.parse(zonesRaw) as ZoneCollection;
 const osm = (JSON.parse(osmRaw) as { features: OsmFeature[] }).features;
@@ -49,8 +60,14 @@ const office = focus === 'office';
 const focused = focus && focus !== 'out' && focus !== 'office' ? (focus as RegionKey) : undefined;
 const box = focused ? bboxOf(zones, focused) : null;
 const { mapArea } = site.office;
-// Office mode: a 12 km wide view around the (deliberately vague) office circle.
-const view = office ? frame.viewAround(mapArea.lng, mapArea.lat, 6) : box ? frame.viewFor(box) : full;
+// The office mark sits on the (deliberately vague, 2-decimal) office point.
+const [officeX, officeY] = frame.project(mapArea.lng, mapArea.lat);
+// Office mode: the Central & Southwest zoom, widened so the mark is never at an edge.
+const view = office
+  ? frame.include(frame.viewFor(bboxOf(zones, 'home')!), officeX, officeY, 120)
+  : box
+    ? frame.viewFor(box)
+    : full;
 const mapScale = Number((full.w / view.w).toFixed(3));
 
 const path = (pts: Pt[], close = false) =>
@@ -165,19 +182,68 @@ function roadLabelAt(lines: Pt[][]): Pt | null {
   return longest[longest.length - 1];
 }
 
+// A map with a focus never zooms, so its road lines are clipped to its view plus 5%: keep each run of
+// segments that touch that box (a segment that crosses it with both ends outside stays). Only the
+// zoomable /book map carries every road. Labels are placed before clipping.
+const clipBox = {
+  x0: view.x - view.w * 0.05,
+  y0: view.y - view.h * 0.05,
+  x1: view.x + view.w * 1.05,
+  y1: view.y + view.h * 1.05,
+};
+function clipLines(lines: Pt[][]): Pt[][] {
+  if (!focus) return lines;
+  const kept: Pt[][] = [];
+  for (const line of lines) {
+    let run: Pt[] | null = null;
+    for (let i = 1; i < line.length; i++) {
+      const [a, b] = [line[i - 1], line[i]];
+      const touches =
+        Math.max(a[0], b[0]) >= clipBox.x0 &&
+        Math.min(a[0], b[0]) <= clipBox.x1 &&
+        Math.max(a[1], b[1]) >= clipBox.y0 &&
+        Math.min(a[1], b[1]) <= clipBox.y1;
+      if (!touches) run = null;
+      else if (run) run.push(b);
+      else kept.push((run = [a, b]));
+    }
+  }
+  return kept;
+}
+
+const projectLines = (coords: Pt[][]) => coords.map((line) => line.map(([lng, lat]) => frame.project(lng, lat)));
+
 const roads = osm.flatMap((f) => {
   if (f.properties.kind !== 'road' || f.geometry.type !== 'MultiLineString') return [];
-  const lines = f.geometry.coordinates.map((line) => line.map(([lng, lat]) => frame.project(lng, lat)));
+  const lines = projectLines(f.geometry.coordinates);
   const at = roadLabelAt(lines);
   return [
     {
-      name: f.properties.name,
+      name: f.properties.name!,
       major: !!f.properties.major,
-      d: lines.map((l) => path(l)).join(''),
+      d: clipLines(lines).map((l) => path(l)).join(''),
       label: at ? nudge(`road:${f.properties.name}`, at) : null,
     },
   ];
 });
+
+// Unlabelled minor roads (npm run osm): one path, drawn thin and faint under the named roads.
+const minorD = osm.flatMap((f) =>
+  f.properties.kind === 'minor' && f.geometry.type === 'MultiLineString'
+    ? [clipLines(projectLines(f.geometry.coordinates)).map((l) => path(l)).join('')]
+    : [],
+)[0];
+
+// The outside area: a rectangle far larger than the view, with every zone ring as a hole (evenodd).
+const outD = (() => {
+  const [x0, y0, x1, y1] = [full.x - 5 * full.w, full.y - 5 * full.h, full.x + 6 * full.w, full.y + 6 * full.h];
+  const rect = `M${x0} ${y0}L${x1} ${y0}L${x1} ${y1}L${x0} ${y1}Z`;
+  return rect + zoneShapes.map((z) => z.d).join('');
+})();
+
+// The terrain shadow image covers the OSM box, stretched over its projected corners.
+const [terrainX0, terrainY0] = frame.project(terrain.bbox[0], terrain.bbox[3]);
+const [terrainX1, terrainY1] = frame.project(terrain.bbox[2], terrain.bbox[1]);
 
 // The office map drops places outside its view; otherwise half a label pokes in at the edge.
 const places = osm.flatMap((f) => {
@@ -189,13 +255,16 @@ const places = osm.flatMap((f) => {
 const names = regions.map((k) => site.zones[k].name);
 const title = office ? 'Office area map' : 'Service area map';
 const desc = office
-  ? 'Map of southwest Colorado Springs with a circle around the area my office is in, near Cheyenne Canyon and the Broadmoor. The exact address is sent after you book.'
+  ? 'Map of southwest Colorado Springs with my logo marking the area my office is in, near Cheyenne Canyon and the Broadmoor. The exact address is sent after you book.'
   : `Map of Colorado Springs showing my three service areas, ${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}, with the major roads that border them.`;
-const state = (key: RegionKey) => (focused ? (key === focused ? 'is-focused' : 'is-muted') : undefined);
+// focus 'out' dims all three zones and tints the outside area; a zone focus dims the other two.
+const state = (key: RegionKey) =>
+  focused ? (key === focused ? 'is-focused' : 'is-muted') : focus === 'out' ? 'is-muted' : undefined;
 
-// The office circle, in map units (office mode only).
-const [officeX, officeY] = frame.project(mapArea.lng, mapArea.lat);
-const officeR = Number((mapArea.radiusKm * frame.unitsPerKm).toFixed(1));
+// The mark is a pointer-only link to the office on the zone maps (book.ts turns the click into a
+// switch to "At my office" on /book); on the office map it is just the marker.
+const Mark = office ? 'g' : 'a';
+const markProps = office ? {} : { href: href('/book/office'), tabindex: '-1', 'aria-hidden': 'true' };
 ---
 
 <div class:list={['service-map', { 'service-map--office': office }]}>
@@ -211,12 +280,24 @@ const officeR = Number((mapArea.radiusKm * frame.unitsPerKm).toFixed(1));
     <title id={`${id}-title`}>{title}</title>
     <desc id={`${id}-desc`}>{desc}</desc>
 
+    {!office && <path class:list={['zone', 'zone--out', { 'is-focused': focus === 'out' }]} data-zone="out" fill-rule="evenodd" d={outD} />}
     {
       !office &&
         zoneShapes.map((z) => (
           <path class:list={['zone', `zone--${z.key}`, state(z.key)]} data-zone={z.key} fill-rule="evenodd" d={z.d} />
         ))
     }
+    <image
+      class="terrain"
+      href={terrainImg.src}
+      x={terrainX0}
+      y={terrainY0}
+      width={Number((terrainX1 - terrainX0).toFixed(1))}
+      height={Number((terrainY1 - terrainY0).toFixed(1))}
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    />
+    {minorD && <path class="road road--minor" d={minorD} />}
     {roads.map((r) => <path class:list={['road', { 'road--major': r.major }]} data-road={r.name} d={r.d} />)}
     {
       !office &&
@@ -260,18 +341,18 @@ const officeR = Number((mapArea.radiusKm * frame.unitsPerKm).toFixed(1));
         ))
     }
 
-    {
-      office && (
-        <>
-          <circle class="office-area" cx={officeX} cy={officeY} r={officeR} />
-          <g transform={`translate(${officeX} ${Number((officeY + officeR * 1.2).toFixed(1))})`}>
-            <text class="zone-label" text-anchor="middle" dy="0.35em">
-              My office is in this area
-            </text>
-          </g>
-        </>
-      )
-    }
+    <Mark class="map-office" {...markProps}>
+      {!office && <title>Ohm Office</title>}
+      <g transform={`translate(${officeX} ${officeY})`}>
+        <g class="office-mark-scale">
+          <rect class="office-hit" x={-markW / 2} y={-markH / 2} width={markW} height={markH}></rect>
+          <svg class="office-mark" viewBox={omega.viewBox} x={-markW / 2} y={-markH / 2} width={markW} height={markH} overflow="visible">
+            <path d={omega.dMap}></path>
+          </svg>
+          <text class="office-label" y={markH / 2 + 14} text-anchor="middle" dy="0.35em">Ohm Office</text>
+        </g>
+      </g>
+    </Mark>
 
     {
       !office && (
@@ -300,12 +381,12 @@ const officeR = Number((mapArea.radiusKm * frame.unitsPerKm).toFixed(1));
           <span class="visually-hidden"> (opens in a new tab)</span>
         </a>
       </p>
-      <p class="map-hint" hidden>Tap an area on the map or a button above to choose it. Tap it again to see all areas.</p>
+      <p class="map-hint" hidden>Tap an area on the map or a button above to choose it. Tap it again to see all areas. The Ohm symbol marks my office; tap it for office sessions.</p>
       </>
     )
   }
   <p class="map-credit">
-    Roads and places &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>
+    Roads and places &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>. Terrain: USGS 3DEP.
   </p>
 </div>
 
@@ -382,9 +463,21 @@ const officeR = Number((mapArea.radiusKm * frame.unitsPerKm).toFixed(1));
   .zone--north {
     fill: var(--zone-north-tint);
   }
+  /* The zones that aren't chosen keep their colour, dimmed. */
   .zone.is-muted {
-    fill: var(--zone-muted);
-    fill-opacity: 0.06;
+    fill-opacity: 0.35;
+  }
+  /* Everything outside the zones. Invisible until hovered or chosen, but it takes the click. */
+  .zone--out {
+    fill: var(--zone-out-tint);
+    fill-opacity: 0;
+    pointer-events: fill;
+  }
+  .zone--out.is-hot {
+    fill-opacity: 0.6;
+  }
+  .zone--out.is-focused {
+    fill-opacity: 1;
   }
   .is-interactive .zone {
     cursor: pointer;
@@ -412,14 +505,49 @@ const officeR = Number((mapArea.radiusKm * frame.unitsPerKm).toFixed(1));
     stroke-width: 4px;
   }
 
-  /* Office map: the approximate office area. A circle, not a pin, so it reads as "around here". */
-  .office-area {
-    fill: var(--accent);
-    fill-opacity: 0.18;
-    stroke: var(--accent);
-    stroke-width: 2px;
-    vector-effect: non-scaling-stroke;
+  /* Terrain shadow (npm run terrain): black with alpha, so flat ground keeps the zone tints exact. */
+  .terrain {
+    opacity: 0.6;
     pointer-events: none;
+  }
+
+  /* The office mark: the bare Ω with a cream halo and the label "Ohm Office", the same size at every
+     zoom (like the pin). On the zone maps it is a pointer-only link to the office. */
+  .office-mark-scale {
+    transform: scale(calc(1 / var(--map-scale, 1)));
+  }
+  .office-mark path {
+    fill: var(--accent);
+    stroke: var(--bg-light);
+    stroke-width: 3px;
+    paint-order: stroke;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+  }
+  /* The cut-out in the Ω isn't painted, so a transparent box keeps the whole mark clickable. */
+  .office-hit {
+    fill: transparent;
+    stroke: none;
+  }
+  a.map-office {
+    cursor: pointer;
+    text-decoration: none; /* the global link underline would otherwise show on the label at rest */
+  }
+  /* The global text rule switches pointer events off; the label is part of the link, so turn them back on. */
+  a.map-office .office-label {
+    pointer-events: auto;
+  }
+  a.map-office:hover .office-mark path {
+    stroke-width: 5px;
+  }
+  a.map-office:hover .office-label {
+    text-decoration: underline;
+  }
+  /* The label sits inside the scaled group, so its size is in the full-view units, not divided again. */
+  .office-label {
+    font-size: var(--t-zone);
+    font-weight: 700;
+    stroke-width: 4px;
   }
 
   .road {
@@ -434,6 +562,10 @@ const officeR = Number((mapArea.radiusKm * frame.unitsPerKm).toFixed(1));
   }
   .road--major {
     stroke-width: 2.5px;
+  }
+  .road--minor {
+    stroke-opacity: 0.22;
+    stroke-width: 1px;
   }
 
   text {

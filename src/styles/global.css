@@ -13,6 +13,7 @@
 html {
   -webkit-text-size-adjust: 100%;
   scroll-padding-top: var(--header-h);
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -126,9 +127,18 @@ a:hover {
   padding-block: var(--s-16);
 }
 
+/* The first section on a page sits closer to the header; Home's hero has its own padding. */
+main > .section:first-child {
+  padding-top: var(--s-8);
+}
+
 @media (min-width: 48rem) {
   .section {
     padding-block: var(--s-24);
+  }
+
+  main > .section:first-child {
+    padding-top: var(--s-12);
   }
 }
 

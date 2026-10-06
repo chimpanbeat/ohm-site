@@ -38,6 +38,8 @@ const tint = {
   'home tint': mix(hex('green-700'), hex('cream'), 0.4),
   'shared tint': mix(hex('green-300'), hex('cream'), 0.4),
   'north tint': mix(hex('terra-500'), hex('cream'), 0.4),
+  // The "outside" area (--zone-out-tint, 9A): ink at 15% over cream.
+  'out tint': mix(hex('ink'), hex('cream'), 0.15),
 };
 
 const pairs = [

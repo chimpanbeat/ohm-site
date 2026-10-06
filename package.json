@@ -12,10 +12,13 @@
     "preview": "astro preview",
     "zones": "node scripts/kml-to-geojson.mjs",
     "osm": "node scripts/fetch-osm.mjs",
+    "terrain": "node scripts/make-terrain.mjs",
     "check:wording": "node scripts/check-wording.mjs",
     "check:contrast": "node scripts/check-contrast.mjs",
     "test": "node --test \"tests/**/*.test.ts\"",
-    "icons": "node scripts/make-icons.mjs"
+    "icons": "node scripts/make-icons.mjs",
+    "omega": "node scripts/trace-omega.mjs",
+    "check:dist": "node scripts/check-dist.mjs"
   },
   "dependencies": {
     "astro": "^7.3.5"

@@ -68,11 +68,10 @@ test('out-of-region note shows no amount while the fee is unset', () => {
   assert.doesNotMatch(site.outOfRegionFeeNote, /[$\d]/);
 });
 
-test('the office map circle is approximate: two decimals, at least 1 km', () => {
-  const { lat, lng, radiusKm } = site.office.mapArea;
+test('the office mark is approximate: two decimals', () => {
+  const { lat, lng } = site.office.mapArea;
   assert.equal(Number(lat.toFixed(2)), lat);
   assert.equal(Number(lng.toFixed(2)), lng);
-  assert.ok(radiusKm >= 1);
 });
 
 test('the out zone has no booking link', () => {

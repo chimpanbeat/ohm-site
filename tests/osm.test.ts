@@ -12,6 +12,7 @@ const osm = JSON.parse(readFileSync(new URL('../src/data/osm.geojson', import.me
   features: Feature[];
 };
 const roads = osm.features.filter((f) => f.properties.kind === 'road');
+const minor = osm.features.filter((f) => f.properties.kind === 'minor');
 const places = osm.features.filter((f) => f.properties.kind === 'place');
 
 // ARCHITECTURE §B5 box: S, W, N, E.
@@ -36,14 +37,23 @@ test('osm.geojson has the 7 places', () => {
   );
 });
 
-test('features carry only kind, name and (for roads) major', () => {
+test('features carry only kind, name and (for roads) major, no OSM ids or tags', () => {
   for (const f of roads) assert.deepEqual(Object.keys(f.properties).sort(), ['kind', 'major', 'name']);
   for (const f of places) assert.deepEqual(Object.keys(f.properties).sort(), ['kind', 'name']);
+  for (const f of minor) assert.deepEqual(Object.keys(f.properties), ['kind']);
+});
+
+test('osm.geojson has one unnamed minor-roads feature with at least 50 lines', () => {
+  assert.equal(minor.length, 1);
+  const [f] = minor;
+  assert.equal(f.geometry.type, 'MultiLineString');
+  assert.ok(!('name' in f.properties));
+  assert.ok((f.geometry.coordinates as Pt[][]).length >= 50);
 });
 
 test('every coordinate lies in the §B5 box', () => {
   const points: Pt[] = [
-    ...roads.flatMap((f) => (f.geometry.coordinates as Pt[][]).flat()),
+    ...[...minor, ...roads].flatMap((f) => (f.geometry.coordinates as Pt[][]).flat()),
     ...places.map((f) => f.geometry.coordinates as Pt),
   ];
   assert.ok(points.length > 0);

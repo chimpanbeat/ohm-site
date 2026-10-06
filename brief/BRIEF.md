@@ -85,7 +85,8 @@ Packages and the friends-and-family rate are **not** shown on the site.
 
 | Route       | Purpose            | Notes                                                                       |
 |-------------|--------------------|-----------------------------------------------------------------------------|
-| `/`         | Home               | Who Ohm is for, what a session does, one clear "Book a session" CTA. Short. |
+| `/`         | Home               | Who Ohm is for, what a session does, one clear "Book a session" CTA. Short. No splash or overlay. Search, Maps and the Google Business Profile link here. |
+| `/hello`    | Entrance           | Full-screen splash for card, QR, social and referral traffic: the body graphic, a large Ω with a light running along it, and "Take the path of least resistance". Tap or click to enter Home. `noindex`, not linked, not in the sitemap. Added Oct 6, 2026: a splash on Home would trip Google's intrusive-interstitial signal and slow search visitors down. |
 | `/services` | Services           | See content below.                                                          |
 | `/pricing`  | Pricing            | Rates at the office and at your place (with the travel fee), and the travel-fee rule. Added Oct 6, 2026. |
 | `/about`    | About Brian        | Uses the provided photos. Draft copy from §8, marked for Brian's review.    |
@@ -119,7 +120,7 @@ Packages and the friends-and-family rate are **not** shown on the site.
 1.  **"Where do you want your session?"** Two choices:
     - **At my office:** show the office days and the `links.office` button. Office days are Tuesdays, Wednesday evenings, Fridays, and Saturdays. The Wednesday evening slot (8:00 PM) is at the office only (Oct 6, 2026).
     - **At your place (mobile):** go to step 2.
-2.  **"Where are you located?"** The zone buttons come first, each with a colour swatch that matches the map. Then **"Not sure? Enter your address"**: the address field using Google Places autocomplete, restricted to US addresses and biased to Colorado Springs (order changed Oct 6, 2026).
+2.  **"Where are you located?"** The zone buttons come first, each coloured like its area on the map. Then **"Not sure? Enter your address:"**: the address field using Google Places autocomplete, restricted to US addresses and biased to Colorado Springs (order changed Oct 6, 2026).
     - On selection, get the latitude/longitude and test it against the zone polygons.
     - The matching zone button is highlighted, whether chosen by button or by address.
 3.  **Result card.** Shows the zone's plain-language name, the days I'm in that area, the travel fee note, and one primary button to that zone's PS link.
@@ -127,13 +128,16 @@ Packages and the friends-and-family rate are **not** shown on the site.
     - The visitor stays on the page; the map stays visible.
 4.  **Out of region:** from an address, "That address is outside my regular service area."; from the button, "Outside my regular service area". Then "I can sometimes travel outside my regular area by request." Show a PocketSuite lead form button, a PocketSuite chat button, and an email link. No booking link, no phone.
 5.  **Map** (Oct 6, 2026): the site draws its own map (an SVG built at compile time) of the zones from `zones.geojson`, plus the major roads that bound them and nearby town names from OpenStreetMap. No map service and no per-view cost. Brian is trying it; the fallback plan is a Google Maps JavaScript map.
-    - Zone names are labelled on the map, and the zone colours match swatches on the zone buttons.
+    - Zone names are labelled on the map, and the zone colours match the zone buttons.
     - The first view fits all zones (the old My Maps view was zoomed in too far).
-    - Choosing a zone zooms to fit it and greys out the other zones. Clicking a zone on the map chooses it.
+    - Choosing a zone zooms to fit it and dims the other zones, which keep their colours. Clicking a zone on the map chooses it; clicking it again goes back to all areas.
+    - Everything outside the zones is the "outside my regular area" area: hovering or clicking it works like the zone buttons, and choosing it dims all three zones (Oct 6, 2026).
     - A pin marks the entered address.
+    - Light terrain shading (USGS elevation data) and a layer of smaller roads give context (Oct 6, 2026).
+    - Brian's Ω logo marks the office area on every map; on the service map, clicking it switches to "At my office". The office map uses the same zoom as the Central & Southwest view.
     - It works without JavaScript or the key: the static map shows, and `/book/<zone>` shows it focused on that zone.
     - "Open the map in Google Maps" links to Brian's My Maps viewer. The My Maps iframe is no longer embedded.
-6.  A "Near a boundary or can't find your address? Chat with me" line (PocketSuite chat). Boundaries are approximate.
+6.  A "Near a boundary or can't find your address? Chat with me or send me an email" line (PocketSuite chat and email). Boundaries are approximate.
 
 ### Zones
 

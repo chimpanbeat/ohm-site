@@ -18,6 +18,9 @@ brief/*
 *.kmz
 *.kml.xml
 
+# Downloaded inputs for `npm run terrain` (elevation tiles), reused between runs
+.cache/
+
 # OS / editor
 .DS_Store
 Thumbs.db
