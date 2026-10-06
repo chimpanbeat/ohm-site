@@ -21,6 +21,11 @@ export const wording = {
     'In September 2026 I completed a 650-hour advanced neuromuscular program.',
     'In September 2026 I graduated from the 650-hour Advanced Neuromuscular Massage Therapy program at the Colorado Institute of Massage Therapy.',
   ],
+  /** Services intro, first sentence (8A). Unlicensed copy avoids the bare word "massage" (§A6). */
+  notSpa: [
+    "This isn't a generic spa session, and it isn't no-pain, no-gain deep tissue torture.",
+    "This isn't a generic spa massage, and it isn't no-pain, no-gain deep tissue torture.",
+  ],
   /** Home hero headline (HomeMock uses the licensed line). */
   heroLine: [site.tagline, 'Massage for action'],
 } as const satisfies Record<string, readonly [string, string]>;

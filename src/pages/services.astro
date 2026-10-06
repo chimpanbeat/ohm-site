@@ -15,7 +15,7 @@ const minPrice = Math.min(...Object.values(site.rates).map((r) => r.price));
   <section class="section">
     <div class="container">
       <h1>Services</h1>
-      <p class="intro">I work on the muscles and fascia that limit how you move. Every session starts with an assessment, and I explain what I find and why I'm working where I am.</p>
+      <p>{w('notSpa')} I take a clinical approach that meets you where you are. Every session starts with an assessment, and I explain what I find and why I'm working where I am.</p>
     </div>
   </section>
 
@@ -58,9 +58,6 @@ const minPrice = Math.min(...Object.values(site.rates).map((r) => r.price));
 </Base>
 
 <style>
-  .intro {
-    margin-top: var(--s-6);
-  }
   .stack > * + * {
     margin-top: var(--s-4);
   }

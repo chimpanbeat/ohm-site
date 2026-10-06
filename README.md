@@ -41,6 +41,8 @@ The preview is https://chimpanbeat.github.io/ohm-site/. It is `noindex` until th
 
 Everything a visitor sees about the business is in **`src/data/site.ts`**: rates, travel fee, office and zone days, zone names, email, `contact` (the PocketSuite lead form and chat, used when someone is outside the service area), PocketSuite booking links, the My Maps viewer URL and the deploy settings. There is no phone number on the site. Pages read from it; don't type a rate, day or link into a page.
 
+The office circle on the `/book` map is `site.office.mapArea` (`lat`, `lng`, `radiusKm`). It is approximate on purpose: keep the coordinates to 2 decimals (a test enforces it), and never put the real address there.
+
 PocketSuite links that still start with `TODO_` are placeholders. Buttons using one fall back to the general PocketSuite page and carry a `data-placeholder` attribute, so you can find them in the page source. Replace the value with the tested link and the attribute goes away.
 
 ## Re-exporting zones

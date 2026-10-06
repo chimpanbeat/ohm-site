@@ -13,6 +13,7 @@ const book = bookingUrl(site.office.linkKey);
 <div class="card">
   <Heading id="office-h">At my office</Heading>
   <p>{site.officeArea}</p>
+  <p>I send the exact address after you book.</p>
   <p>I'm there {site.office.days}.</p>
   <p>
     <a class="btn" href={book.href} data-placeholder={book.placeholder ? '' : undefined}>Book at the office</a>

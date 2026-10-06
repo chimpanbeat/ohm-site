@@ -20,7 +20,13 @@ export interface MapFrame {
   viewFor(box: BBox, pad?: number): View;
   /** The smallest 4:5 view that contains `view` and the point (x, y) with `margin` around it. */
   include(view: View, x: number, y: number, margin?: number): View;
+  /** Map units per kilometre (1° of latitude = 110.57 km). */
+  unitsPerKm: number;
+  /** 4:5 view centred on the projected point, `2 × halfWidthKm` wide. */
+  viewAround(lng: number, lat: number, halfWidthKm: number): View;
 }
+
+const KM_PER_DEG_LAT = 110.57;
 
 const FULL_WIDTH = 1000;
 const FULL_PAD = 0.06;
@@ -62,9 +68,17 @@ export function makeFrame(zones: ZoneCollection): MapFrame {
     h: FULL_WIDTH / ASPECT,
   };
 
+  const unitsPerKm = k / KM_PER_DEG_LAT;
+
   return {
     project,
     full,
+    unitsPerKm,
+    viewAround(lng, lat, halfWidthKm) {
+      const [x, y] = project(lng, lat);
+      const half = halfWidthKm * unitsPerKm;
+      return fit(x - half, y - half / ASPECT, x + half, y + half / ASPECT);
+    },
     viewFor([w, s, e, n], pad = 0.1) {
       const [x0, y1] = project(w, s);
       const [x1, y0] = project(e, n);

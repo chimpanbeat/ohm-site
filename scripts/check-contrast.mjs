@@ -23,19 +23,41 @@ const ratio = (a, b) => {
   return (hi + 0.05) / (lo + 0.05);
 };
 
+/** `fg` at fraction `p` over `bg`, per sRGB channel: what CSS color-mix(in srgb, fg p%, bg) gives. */
+const mix = (fg, bg, p) =>
+  '#' +
+  [1, 3, 5]
+    .map((i) => {
+      const c = Math.round(parseInt(fg.slice(i, i + 2), 16) * p + parseInt(bg.slice(i, i + 2), 16) * (1 - p));
+      return c.toString(16).padStart(2, '0');
+    })
+    .join('');
+
+// The zone tints (tokens.css --zone-*-tint): each zone colour at 40% over cream.
+const tint = {
+  'home tint': mix(hex('green-700'), hex('cream'), 0.4),
+  'shared tint': mix(hex('green-300'), hex('cream'), 0.4),
+  'north tint': mix(hex('terra-500'), hex('cream'), 0.4),
+};
+
 const pairs = [
-  ['cream', 'green-900', 4.5],
-  ['cream', 'green-700', 4.5],
-  ['ink', 'cream', 4.5],
-  ['cream', 'terra-700', 4.5],
-  ['terra-500', 'green-900', 3.0], // large text only
+  ['cream', hex('cream'), 'green-900', hex('green-900'), 4.5],
+  ['cream', hex('cream'), 'green-700', hex('green-700'), 4.5],
+  ['ink', hex('ink'), 'cream', hex('cream'), 4.5],
+  ['cream', hex('cream'), 'terra-700', hex('terra-700'), 4.5],
+  ['terra-500', hex('terra-500'), 'green-900', hex('green-900'), 3.0], // large text only
+  // Zone buttons: ink text on each tint, and each tint against the page (the button's edge).
+  ...Object.entries(tint).flatMap(([name, color]) => [
+    ['ink', hex('ink'), name, color, 4.5],
+    [name, color, 'green-900', hex('green-900'), 3.0],
+  ]),
 ];
 
 let failed = false;
-for (const [fg, bg, min] of pairs) {
-  const r = ratio(hex(fg), hex(bg));
+for (const [fgName, fg, bgName, bg, min] of pairs) {
+  const r = ratio(fg, bg);
   const ok = r >= min;
   if (!ok) failed = true;
-  console.log(`${ok ? 'ok  ' : 'FAIL'} ${fg} on ${bg}: ${r.toFixed(2)} (min ${min})`);
+  console.log(`${ok ? 'ok  ' : 'FAIL'} ${fgName} on ${bgName}: ${r.toFixed(2)} (min ${min})`);
 }
 process.exit(failed ? 1 : 0);

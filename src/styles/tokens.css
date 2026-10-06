@@ -41,12 +41,17 @@
   --cta-text: var(--cream);
   --focus: var(--terra-500);
 
-  /* Service-area map (7A): zone fills on the SVG map (ServiceMap) and the
-     matching swatches on the zone buttons. */
+  /* Service-area map (7A): the base colour of each zone on the SVG map (ServiceMap).
+     Pages use the -tint versions below. */
   --zone-home: var(--green-700);
   --zone-shared: var(--green-300);
   --zone-north: var(--terra-500);
   --zone-muted: var(--ink); /* the zones that aren't chosen, at low opacity */
+  /* (8A) The colour each zone shows: its fill at 40% over the map background. Used opaque by
+     both the map fills and the area buttons, so they match exactly. */
+  --zone-home-tint: color-mix(in srgb, var(--zone-home) 40%, var(--bg-light));
+  --zone-shared-tint: color-mix(in srgb, var(--zone-shared) 40%, var(--bg-light));
+  --zone-north-tint: color-mix(in srgb, var(--zone-north) 40%, var(--bg-light));
 
   /* Type */
   --font-text: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;

@@ -23,8 +23,11 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 | 6B | sonnet | medium | Site review fixes: components, zones script, tests, README | done | 8e896d7 | |
 | 6R | opus | high | Review Phase 6, live map check, commit, push | done | 8e896d7 | Map title bar #125245, white 9.06:1. Glossary spacing nits fixed. |
 | 7A | opus | high | Brian's Oct 6 review: contracts, map architecture, copy, 7B step file | done | | Contract edits leave the build broken until 7B. Commit with Phase 7 |
-| 7B | sonnet | high | SVG service map, booking flow, pricing page, contact swap, copy | done | (Phase 7) | Deviations accepted in 7R (step Review). Screenshots in `docs/build/screens/` (gitignored) |
-| 7R | opus | high | Review Phase 7, live map check with Brian (SVG map go/no-go), commit, push | done | (Phase 7) | Brian: **go** on the SVG map (Oct 6). Review fixes: swatch colours, OSM stub filter, stale comment |
+| 7B | sonnet | high | SVG service map, booking flow, pricing page, contact swap, copy | done | e5d8eaa | Deviations accepted in 7R (step Review). Screenshots in `docs/build/screens/` (gitignored) |
+| 7R | opus | high | Review Phase 7, live map check with Brian (SVG map go/no-go), commit, push | done | e5d8eaa | Brian: **go** on the SVG map (Oct 6). Review fixes: swatch colours, OSM stub filter, stale comment |
+| 8A | opus | high | Brian's review of Phase 7: contracts, design (resistor divider, map-tinted buttons, deselect, office map), copy, 8B step file | done | | Items 1–12 (incl. Home "Who it's for", hero subline, and the About bio, Brian's text). Brian: "that's it for changes". Uncommitted; commit with Phase 8. Don't deploy before 8B (OfficeCard address line) |
+| 8B | sonnet | high | Map polish (tinted buttons, deselect, linked hover, Google Maps button), office map, resistor divider + spacing, copy | review | | Report in the step file. 3 questions for Opus (tokens.css comment, focus after Enter, office label nudge) |
+| 8R | opus | high | Review Phase 8, commit, push | in-progress | | |
 
 ## §12 acceptance (5R, 2026-10-05)
 | Criterion | Result | Evidence |
@@ -44,7 +47,7 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 - [x] North zone: the polygon is authoritative. The descriptions in `site.ts` and the brief were rewritten to match (Oct 5).
 - [x] Rate label is now "Initial assessment + session" (Oct 5).
 - [x] Google key referrer (fixed by Brian, verified live Oct 5): change `https://chimpanbeat.github.io/ohm-site/*` to `https://chimpanbeat.github.io/*`. Places calls send only the origin, so on the live preview the field is blocked and falls back to the picker (found in 3R; 5A §P3a).
-- [ ] Review the About draft (`docs/build/copy-deck.md` → About). It's built only from brief §8; paragraphs 1 and 4 put those facts in your voice.
+- [x] About bio: Brian wrote his own (Oct 6, 8A).
 - [x] Initial assessment: removed from the site (Oct 6).
 - [ ] SVG logo, if one exists (PNGs work, but an SVG would be crisper).
 - [ ] License number (license day).
@@ -54,10 +57,14 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 - [x] Brief §4 travel-fee note updated to the Oct 6 waiver (neither back-to-back session pays the fee).
 - [x] Phone number in git history: it's a business line, so leave it (Oct 6).
 - [x] SVG map go/no-go: **go** (Brian, Oct 6, 7R).
+- [ ] Office circle on the map (`site.office.mapArea`, 38.79, −104.86, 1.5 km): confirm it's the right neighbourhood (8A).
+- [ ] Office map context (8R): only the zone-border roads and town names show around the circle; nothing names Cheyenne Cañon or the Broadmoor. Want local roads and landmark labels (a `fetch-osm.mjs` change)?
 - [x] Monument: out of the service area (decided Oct 5, 2026). Brief §6 and §14 updated (6A).
 
 ## Architecture changes
 (Opus logs any mid-build change to ARCHITECTURE.md or step files here.)
+- 2026-10-06 (8R): ServiceMap office mode uses its own `officeNudge` table (full-map nudges are in full-map units), and drops places whose anchor is outside the view. 8B Done-when 6k amended: focus stays on the card heading after a pick (§B4).
+- 2026-10-06 (8A): Phase 8 added for Brian's review of Phase 7. Resistor zigzag H1 divider, map-tinted area buttons (`--zone-*-tint`), deselect + linked hover, office map (`site.office.mapArea`, `ServiceMap focus="office"`, `mapview.viewAround`/`unitsPerKm`), Google Maps button, copy (`wording.notSpa`, "electrical engineer", Om) (ARCHITECTURE §C 8A).
 - 2026-10-06 (7R): `fetch-osm.mjs` drops isolated road stubs (pieces of one road within 0.3 km form a cluster; clusters under 2 km are dropped). Zone swatches use `color-mix(… 35%, var(--bg-light))`, the colour each zone shows on the map.
 - 2026-10-06 (7B unblock): §B5 OSM box → `38.63,-105.09,39.17,-104.54`. `Security-Widefield` = mean of OSM `Security` + `Widefield`. `fetch-osm.mjs` joins ways before clipping (3,232 → 571 vertices). ServiceMap draws everything with no second clip. Decisions in the 7B Report.
 - 2026-10-06 (7A): Phase 7 added for Brian's Oct 6 review. Self-drawn SVG map (zones + OSM roads/places, `npm run osm`) replaces the My Maps iframe; the My Maps viewer stays as a link. A Maps JS map was drafted first, then dropped to avoid Dynamic Maps billing (rollback design kept in the 7A step file). `/pricing` + `PriceTable`, glossary removed, phone removed, `site.contact`, `--zone-*` tokens, `bboxOf` (ARCHITECTURE §C 2026-10-06).

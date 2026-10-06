@@ -14,7 +14,7 @@ Brief references (§n) point to `brief/BRIEF.md`.
 | `--green-900` | `#0C3F35` | Default page background: header, hero, Book page, footer |
 | `--green-700` | `#125245` | Secondary dark surfaces; link color on cream |
 | `--green-300` | `#7FA396` | Hairlines and borders on dark. **Not text** (4.26:1) |
-| `--terra-500` | `#C37A5B` | Logo, the single H1 rule, focus ring, large display text only (3.0:1 on cream, 3.5:1 on green-900) |
+| `--terra-500` | `#C37A5B` | Logo, the H1 resistor divider (8A), focus ring, large display text only (3.0:1 on cream, 3.5:1 on green-900) |
 | `--terra-700` | `#9C5739` | CTA button fill (cream text, 4.89:1); any small terracotta text |
 | `--cream` | `#F3F2F0` | Text on dark; background of reading bands |
 | `--ink` | `#0B2620` | Body text on cream (14.3:1) |
@@ -52,7 +52,8 @@ Contrast (verified):
   - Reading content (Services body, About text, home info blocks) sits in full-bleed **cream bands** with ink text.
   - No cards with shadows and no rounded blobs. The radius is 2px.
 - **The one memorable element** is the anatomical back illustration (`src/assets/graphic-green.png`), large and bleeding off the right or bottom edge of the home hero. Everywhere else stays quiet.
-- **Terracotta** appears only in the logo, the CTA button fill, one 3px rule under each H1 (48px wide), and the focus ring.
+- **Terracotta** appears only in the logo, the CTA button fill, the divider under each H1, the map's north zone and pin, and the focus ring.
+- **H1 divider (8A): a resistor symbol**, the ANSI/IEEE zigzag (lead, six alternating strokes, lead). It replaces the 3px × 48px rule, in `global.css` `h1::after`. It's drawn as a CSS mask over `background: var(--accent)`: an inline `data:image/svg+xml` with `viewBox="0 0 72 12"` and the path `M0 6H18L21 1L27 11L33 1L39 11L45 1L51 11L54 6H72`, `fill="none"`, `stroke="black"` (the mask only reads alpha; no hex), `stroke-width="2"`, `stroke-linejoin="miter"`. Size 72×12px. Set `mask` and `-webkit-mask`. Subtle: the same terracotta as before and a 2px stroke. **Spacing:** on every page with an H1, there's ≥ `--s-8` between the bottom of the zigzag and the next element. Use one global rule, not per-page margins.
 - **Never:**
   - eyebrow labels
   - numbered markers (unless the content is a real sequence)
@@ -90,7 +91,7 @@ HOME (mobile)                         HOME (desktop)
 │ RESTORE MOVEMENT.      │            │  RESTORE MOVEMENT.                           │
 │ ── (terra rule)        │            │  ──                                          │
 │ Neuromuscular therapy  │            │  Neuromuscular therapy for climbers,         │
-│ for climbers, athletes…│            │  athletes and desk-bound engineers.          │
+│ for climbers, athletes…│            │  for active people who want to move…         │
 │ [ Book a session → ]   │ ← above    │  [ Book a session → ]   From $90 · mobile    │
 │ From $90 · mobile/office│   the fold└──────────────────────────────────────────────┘
 ├────────────────────────┤            Then cream band: who it's for / what a session
@@ -113,7 +114,7 @@ BOOK (7A)                              SERVICES            PRICING (7A)         
 ├── mobile ──────────────┤
 │ H2 Where are you       │
 │ located?               │
-│ [■Central&SW][■Mid-n.] │  ← swatch = map colour; chosen one filled
+│ [▓Central&SW][▓Mid-n.] │  ← button = map tint (8A); chosen ringed, others dim
 │ [■North][□Outside]     │
 │ Not sure? Enter your   │
 │ address [__________▾]  │
@@ -124,8 +125,10 @@ BOOK (7A)                              SERVICES            PRICING (7A)         
 │ <SVG map: zones, roads,│  ← ours, built from geojson;
 │  chosen zone fitted,   │    no tiles, no Google map
 │  others grey, pin>     │
-│ hint · OSM credit · My │
-│ Maps link              │
+│ [Open in Google Maps ↗]│  ← 8A: a button; [Show all areas] sits on the map
+│ hint · OSM credit      │
+│ (office: card + map    │  ← 8A: circle, approximate
+│  with office circle)   │
 │ Near a boundary? Chat  │
 └────────────────────────┘
 ```
@@ -187,14 +190,14 @@ README.md                     step 5A (Opus verifies in 5R)
 The contract files in the repo are authoritative; read them directly. Summary:
 - **`site.ts`** exports:
   - `ZoneKey`, `LinkKey`, `Rate`, `Zone`
-  - `site` (the brief's §4 object plus `zones`, `zonePrecedence`, `office`, `serviceAreaSummary`, `areaServed`, `outOfRegionFeeNote`, `contact` (`lead`, `chat`: PocketSuite lead form and chat, 7A), `map`, `mapViewerUrl`, `deploy`). No `phone` (7A). `rates` is `s60` and `s90` only (7A). `mapViewerUrl` is built from `map` (`mid`, `center`, `zoom`) with `URLSearchParams`. No `mapEmbedUrl` or `headerColor` since 7A (no iframe).
+  - `site` (the brief's §4 object plus `zones`, `zonePrecedence`, `office`, `serviceAreaSummary`, `areaServed`, `outOfRegionFeeNote`, `contact` (`lead`, `chat`: PocketSuite lead form and chat, 7A), `map`, `mapViewerUrl`, `deploy`). `office.mapArea = {lat, lng, radiusKm}` (8A): the approximate office circle, 2-decimal coordinates, **not the address**. No `phone` (7A). `rates` is `s60` and `s90` only (7A). `mapViewerUrl` is built from `map` (`mid`, `center`, `zoom`) with `URLSearchParams`. No `mapEmbedUrl` or `headerColor` since 7A (no iframe).
   - `indexable`
   - `isPlaceholder(url)`
   - `bookingUrl(key) → {href, placeholder}`. Placeholder `TODO_` links fall back to `links.general`, so the preview has no dead buttons. Buttons with `placeholder: true` get a `data-placeholder` attribute.
   - `mailHref`, `zoneOrder`
-- **`wording.ts`** exports `wording`, `WordingKey` and `w(key)`.
+- **`wording.ts`** exports `wording`, `WordingKey` and `w(key)`. Key `notSpa` added in 8A (Services intro).
 - **`geo.ts`** exports `LngLat`, `Ring`, `ZoneFeature`, `ZoneCollection`, `BBox`, `pointInRing`, `pointInPolygon`, `bboxOf(fc, zone?)` (7A) and `zoneFor(lat, lng, fc)`.
-- **`tokens.css`** adds `--zone-home`, `--zone-shared`, `--zone-north`, `--zone-muted` (7A): zone fills on the SVG map and the matching button swatches.
+- **`tokens.css`** adds `--zone-home`, `--zone-shared`, `--zone-north`, `--zone-muted` (7A), and `--zone-{home|shared|north}-tint` (8A: `color-mix` of the zone colour at 40% into `--bg-light`). **The tints are what the eye sees:** the map fills them opaque, and the area buttons use them as their background.
 - **`url.ts`:**
   ```ts
   export function href(path: string): string
@@ -214,11 +217,11 @@ The contract files in the repo are authoritative; read them directly. Summary:
 | `Footer` | none | §A4 |
 | `BookCta` | `label?: string = 'Book a session'; variant?: 'primary' \| 'quiet'` | link to `href('/book')` |
 | `PriceTable` | none | (7A, replaces `RateTable`.) `<table>` with columns Session · At my office · At your place. One row per `site.rates` entry: label, `$price`, `$price + travelFee.amount`. The "At your place" header carries a small second line `includes ${travelFee.amount} travel`. No minutes column. Caption (visually hidden) `Session rates` |
-| `OfficeCard` | `headingLevel?: 2 \| 3` | Heading "At my office" (`id="office-h"`), office area, `I'm there {site.office.days}.`, button → `bookingUrl('office')` labelled "Book at the office" |
+| `OfficeCard` | `headingLevel?: 2 \| 3` | Heading "At my office" (`id="office-h"`), office area, `I send the exact address after you book.` (8A), `I'm there {site.office.days}.`, button → `bookingUrl('office')` labelled "Book at the office" |
 | `ZoneCard` | `zone: ZoneKey; headingLevel?: 2 \| 3; via?: 'address' \| 'pick' = 'pick'` | Heading `You're in my {name} area.`, days line `I'm there {days}.`, travel fee line `Travel fee ${amount}. {note}` from `site.travelFee`, primary button → `bookingUrl(zone.linkKey)` labelled "Book in this area". **`out`** (7A): heading `That address is outside my regular service area.` when `via='address'`, else `Outside my regular service area`; then `I can sometimes travel outside my regular area by request.`, `<p>{site.outOfRegionFeeNote}</p>` (never an amount while `outOfRegionFee` is null), then `ContactButtons`, **no booking link**. The heading has `tabindex="-1"` so JS can focus it |
 | `ContactButtons` | none | (7A) `Send a request` (`.btn`, → `site.contact.lead`), `Chat with me` (`.btn--quiet`, → `site.contact.chat`), then a plain line `Or email {site.email}` with the address as a `mailHref` link. Same tab, like the booking buttons |
-| `ZonePicker` | `current?: ZoneKey; heading?: string` | (7A) Optional `<h3>{heading}</h3>`, then a list of 4 plain links `href('/book/' + key)` with `data-zone={key}`, each starting with a decorative swatch (`<span class="swatch swatch--{key}" aria-hidden="true">`, filled with `--zone-{key}`, 1px `--text-on-dark` border; `out` gets an empty swatch with a dashed border) then `zone.name`. `aria-current="page"` on `current`; book.ts sets `aria-current="true"` on the chosen one. Any `[aria-current]` link uses the filled (inverted) button style |
-| `ServiceMap` | `focus?: ZoneKey` | (7A, replaces `MapEmbed`.) Build-time inline `<svg>` drawn from `zones.geojson` and `osm.geojson` through `src/lib/mapview.ts`. See §B4 "Map". `focus` (used by `/book/[zone]`) renders that zone's view and grey-out in the static HTML. Below the SVG: `<p class="map-hint" hidden>` (book.ts un-hides it), the credit line `Roads and places © OpenStreetMap contributors` (link → `https://www.openstreetmap.org/copyright`), and the "Open the map in Google Maps" link → `site.mapViewerUrl` (`target="_blank" rel="noopener"`) |
+| `ZonePicker` | `current?: ZoneKey; heading?: string` | (7A, restyled 8A) Optional `<h3>{heading}</h3>`, then a list of 4 plain links `href('/book/' + key)` with `data-zone={key}` and the text `zone.name`. **8A: the three zone buttons are coloured like their map area:** `background` and `border-color` are `var(--zone-{key}-tint)` and the text is `--ink`, so each button looks like a piece of the map. The swatch spans are removed. `out` keeps the quiet outline style with a **dashed** border. **Chosen state** (`aria-current="page"` on `current`; `"true"` set by book.ts): the chosen button gets a `box-shadow: 0 0 0 3px var(--text-on-dark)` ring (zone buttons) or the inverted cream fill (`out`), and while any link is current, the others drop to `opacity: 0.5`. That's the same grey-out as the map (`ul:has(a[aria-current]) a:not([aria-current])`). **Linked hover** (JS, `/book` only): hover/focus a zone button → its map area gets `is-hot`; hover a map area → its button gets `is-hot`. `is-hot` = a 3px `--text-on-dark` ring on the button, and a 4px outline on the map area |
+| `ServiceMap` | `focus?: ZoneKey \| 'office'; id?: string = 'map'` | (7A, replaces `MapEmbed`; office mode 8A.) Build-time inline `<svg>` drawn from `zones.geojson` and `osm.geojson` through `src/lib/mapview.ts`. See §B4 "Map". `id` prefixes the `<title>`/`<desc>` ids (`{id}-title`, `{id}-desc`), so two maps can share a page. `focus` (used by `/book/[zone]`) renders that zone's view and grey-out in the static HTML. **`focus='office'`** draws no zones: just roads, places and the office circle (§B4 "Office map"). Zone mode, below the SVG, in this order: the **Google Maps button** (`.btn btn--quiet` + external-link icon, `Open in Google Maps`, → `site.mapViewerUrl`, `target="_blank" rel="noopener"`), `<p class="map-hint" hidden>` (book.ts un-hides it), then the credit line `Roads and places © OpenStreetMap contributors` (→ `https://www.openstreetmap.org/copyright`). Over the SVG's top-right corner, `<button type="button" class="map-reset" hidden>Show all areas</button>` (book.ts shows it while zoomed). Office mode: the credit line only |
 
 ### B4. Booking router (`/book`)
 
@@ -230,7 +233,7 @@ The contract files in the repo are authoritative; read them directly. Summary:
   <label><input type="radio" name="where" value="office"> At my office</label>
   <label><input type="radio" name="where" value="mobile"> At your place</label>
 </fieldset>
-<section id="office" aria-labelledby="office-h"> <OfficeCard/> </section>
+<section id="office" aria-labelledby="office-h"> <OfficeCard/> <ServiceMap focus="office" id="office-map"/> </section>  <!-- map 8A -->
 <section id="mobile" aria-labelledby="mobile-h" data-maps-key={key}>
   <h2 id="mobile-h">Where are you located?</h2>  <!-- 7A order: areas, then address -->
   <ZonePicker/>                                  <!-- no heading here -->
@@ -248,7 +251,7 @@ The contract files in the repo are authoritative; read them directly. Summary:
 
 **`/book/[zone]`:** `getStaticPaths` → `home`, `shared`, `north`, `out`, `office`.
 - The page has an H1 "Book a session" and the card for that zone (`OfficeCard` for `office`), at heading level 2. The `out` card uses `via='pick'`.
-- Under the card: `<ServiceMap focus={zone} />` (not on the office page), so the static page shows the zone zoomed with the others greyed.
+- Under the card: `<ServiceMap focus={zone} />`, so the static page shows the zone zoomed with the others greyed. On the office page it's `<ServiceMap focus="office" />` (8A).
 - It also has `ZonePicker current=… heading="Not sure? Pick your area."` and links "Back to booking options" → `/book` and "At my office" → `/book/office` (the latter omitted on the office page).
 - No client JS.
 
@@ -268,17 +271,28 @@ select(zone, via, loc?):
   aria-current="true" on the picker link for zone (remove it from the others);
   map: focusZone(zone, loc) and setPin(loc) (no loc → hide the pin).
   via 'pick' also clears the address input.
+  .map-reset visible iff zone is home|shared|north (8A).
 address selection → select(zoneFor(...), 'address', {lat, lng}).
+deselect() (8A): empty #zone-result; remove aria-current from every picker link; setPin(null);
+  clear the address input; map back to the full view, no is-focused/is-muted, --map-scale 1;
+  hide .map-reset. Focus stays where it is, except: if focus was inside #zone-result or on
+  .map-reset, move it to the first picker link.
+  Triggers: click a picker link that already has aria-current; click the map area that has
+  is-focused; click .map-reset.
+hot(zone | null) (8A): pointerenter/focusin on a zone picker link → is-hot on the map area
+  (fill + outline paths) of that zone; pointerenter on a map area → is-hot on its picker link;
+  pointerleave/focusout → hot(null). Never for 'out'. Purely visual; no announcements.
 ```
 - **Zone-picker links with JS on (7A):** on `/book` they're intercepted, so the map stays on the page. Without JS they navigate to `/book/<zone>`, which shows the same map zoomed to that zone.
 - **Map (7A): our own SVG, no map service.** Brian chose this over a Maps JS map (Dynamic Maps billing, a heavier page, an iframe fallback). Rollback path if he doesn't like it: the Maps JS design is kept in `steps/7A-review-contracts.md` → "Alternative: Maps JS map".
   - **Data:** `src/data/zones.geojson` (zones) and `src/data/osm.geojson` (roads + places, `npm run osm`, committed). Nothing is fetched at runtime.
   - **Projection (`mapview.ts`):** equirectangular scaled by `cos(lat0)`. At this size it's indistinguishable from Web Mercator. `x = (lng − west) · cos(lat0) · k`, `y = (north − lat) · k`, with the full view 1000 units wide. The **full view** is `bboxOf(zones)` padded 6% and widened to a **4:5** (w:h) box around its centre. That gives context east and west (Falcon, Manitou) and stops it being a tall strip. `viewFor(bbox)` returns a 4:5 box in SVG units that contains `bbox` padded 10%. The client imports the same module, so the build and the pin use the same maths.
   - **Layers, bottom to top:** panel background `--bg-light`; zone fills; roads; zone outlines; road labels; place labels; zone labels; pin. The `<svg>` is `role="img"` with `<title>` `Service area map` and `<desc>` naming the three zones and the roads shown. Interactive paths are a pointer-only extra; the buttons are the keyboard path.
-  - **Styling (tokens only, classes not inline colours):** zones `fill: var(--zone-{key})`, fill-opacity 0.35, stroke the same colour, 2px. Roads `--ink` at 0.45: I-25 2.5px, others 1.5px. All strokes `vector-effect: non-scaling-stroke`. Labels: `--ink`, DM Sans, with a `--bg-light` halo (`paint-order: stroke`). Zone labels 700 weight. Road labels short names (I-25, US 24, Hwy 83, Academy, Woodmen, Powers, Garden of the Gods, Austin Bluffs, Templeton Gap, Baptist). Place labels italic at 0.7 opacity.
+  - **Styling (tokens only, classes not inline colours):** zones `fill: var(--zone-{key}-tint)`, opaque (8A; was `--zone-{key}` at 0.35), stroke `var(--zone-{key})`, 2px; `is-hot` stroke 4px. Roads `--ink` at 0.45: I-25 2.5px, others 1.5px. All strokes `vector-effect: non-scaling-stroke`. Labels: `--ink`, DM Sans, with a `--bg-light` halo (`paint-order: stroke`). Zone labels 700 weight. Road labels short names (I-25, US 24, Hwy 83, Academy, Woodmen, Powers, Garden of the Gods, Austin Bluffs, Templeton Gap, Baptist). Place labels italic at 0.7 opacity.
   - **Label placement (build time):** a zone label sits at its polygon's pole of inaccessibility (a grid search for the interior point farthest from an edge; no dependency). A road label sits at a vertex near the middle of the road's longest piece inside the full view. `ServiceMap` keeps a small `labelNudge` table (zone/road → `[dx, dy]` in SVG units) for hand fixes.
   - **Zoom:** JS swaps the `viewBox`, with no animation (§A3 restraint). `focusZone(home|shared|north)` → `viewFor(bboxOf(zones, zone))`, adds `is-focused` to that zone and `is-muted` to the others (fill `--zone-muted` at 0.06, outline opacity 0.25). `focusZone(out)` → the full view, extended to include the pin if it's outside, with no muting. To keep text and the pin the same on-screen size, JS sets `--map-scale` (full width ÷ current width) on the svg. Labels and the pin use `font-size: calc(… / var(--map-scale))` and `transform: scale(calc(1 / var(--map-scale)))`.
   - **Pin:** a `<g class="map-pin" hidden>` in the SVG (teardrop path, `--accent` fill, `--bg-light` outline). `setPin({lat,lng})` projects with `mapview.ts` and sets its translate. `null` hides it.
+  - **Office map (8A):** `ServiceMap focus="office"`. It has no zone layers. View: `frame.viewAround(office.mapArea.lng, office.mapArea.lat, 6)`, a 4:5 view centred on the point, 12 km wide, with `--map-scale` = full width ÷ view width. Roads and places as usual. The office marker is a `<circle>` at the projected point, `r = radiusKm × frame.unitsPerKm`, fill `--accent` at 0.18, stroke `--accent` 2px (non-scaling). Its label `My office is in this area` sits just below the circle with the zone-label style (counter-scaled). No pin teardrop: the circle says "approximate". No JS, no interaction, no reset. Shown in `#office` on `/book` and on `/book/office`. `<title>`/`<desc>` from the copy deck.
   - **Size:** full width of the container, `max-width: 34rem`, aspect 4:5, `--radius`, 1px `--line-dark` border. Simplify the roads so the inline SVG for `/book` stays under ~40 KB.
 - **Privacy (7A):** the pin's coordinates live only in memory and in an SVG `transform`. Nothing is requested to draw them.
 - **Cost (7A):** the map costs nothing. Google is used only for Places autocomplete (unchanged). The README's `Map loads per day` cap stays as a guard.
@@ -372,6 +386,8 @@ Copy into `src/assets/`, renamed to kebab-case. Only these are committed:
 
 ## C. Architecture changes log
 Record any change to this file here with the date and reason.
+- 2026-10-06 (Opus, 8A): Brian's review of Phase 7. H1 rule → resistor zigzag divider with ≥`--s-8` below it (§A3). Area buttons take their map tint as their background, and a chosen area dims the other buttons (`--zone-*-tint` tokens, §B2, §B3). Map fills use the same tints, opaque. Deselect (re-click, click the focused area, "Show all areas") and linked hover (§B4). Office map: `ServiceMap focus="office"` with an approximate circle from `site.office.mapArea`; `mapview` adds `viewAround` and `unitsPerKm` (§B3, §B4). The Google Maps link becomes a button above the hint. `ServiceMap` `id` prop for two maps on one page.
+- 2026-10-06 (Opus, 7R): `npm run osm` drops isolated road stubs (pieces of one road within 0.3 km form a cluster; a cluster under 2 km is dropped) (§B5).
 - 2026-10-06 (Opus, 7B unblock): `npm run osm` box widened to `38.63,-105.09,39.17,-104.54` (Fountain and Falcon were outside it). `Security-Widefield` = mean of OSM's `Security` and `Widefield` nodes. The script joins ways into chains before clipping and simplifying. ServiceMap does no second clip (§B5).
 - 2026-10-06 (Opus, 7A, revised): Brian chose a self-drawn **SVG map** over the Maps JS map in the first 7A draft, to avoid Dynamic Maps billing. New `ServiceMap`, `mapview.ts`, `osm.geojson` + `npm run osm`. The My Maps iframe, `mapEmbedUrl` and `headerColor` (with its §A1 hex exception) are gone; `mapViewerUrl` stays as the "Open the map in Google Maps" link (§A1, §B1–B5).
 - 2026-10-06 (Opus, 7A): Brian's review. Phone removed site-wide; out-of-region contact is the PocketSuite lead form, chat and email (`site.contact`). Initial assessment rate removed. New `/pricing` page with `PriceTable` (office and at-your-place columns), replacing `RateTable` on Services. Glossary removed (`glossary.ts`, `Glossary`). `/book` mobile section reordered (areas first, then address). The service-area map is now a Maps JS map (zones from `zones.geojson`, fit, grey-out, pin, click to choose) with the My Maps iframe as the no-JS / no-key fallback (iframe zoom 12 → 11). Zone colour tokens and `bboxOf` added. Picker links intercepted on `/book` (§A4, §A5, §B1–B4, §B7).

@@ -59,7 +59,9 @@ let placesStarted = false;
 
 // The service-area map (ServiceMap.astro). It is drawn at build time; this script only swaps the
 // viewBox, the focus classes and the pin. It never depends on Google.
-const svg = document.querySelector<SVGSVGElement>('#mobile .service-map svg');
+const svg = document.querySelector<SVGSVGElement>('#mobile .service-map svg[role="img"]');
+/** "Show all areas", over the map's corner; visible only while the map is zoomed to an area. */
+const reset = mobile?.querySelector<HTMLButtonElement>('.map-reset') ?? null;
 let frame: MapFrame | null = null;
 /** The address pin in map units. Memory only: never stored, logged, or put in the URL. */
 let pin: [number, number] | null = null;
@@ -114,7 +116,47 @@ function select(zone: ZoneKey, via: 'address' | 'pick', loc?: { lat: number; lng
   }
   setPin(loc ?? null);
   focusZone(zone);
+  if (reset) reset.hidden = !isRegion(zone);
   if (via === 'pick') clearAddress?.();
+}
+
+/**
+ * Undo select(): no card, no chosen button, no pin, an empty address field, and the full map.
+ * If focus was on something that just went away (the card heading or the reset button), it moves
+ * to the first area button; otherwise it stays where it is.
+ */
+function deselect(): void {
+  if (!result) return;
+  const active = document.activeElement;
+  const lostFocus = !!active && (result.contains(active) || active === reset);
+  result.replaceChildren();
+  for (const link of document.querySelectorAll<HTMLAnchorElement>('#mobile .zone-picker a[data-zone]')) {
+    link.removeAttribute('aria-current');
+  }
+  setPin(null);
+  clearAddress?.();
+  if (svg && frame) {
+    for (const el of svg.querySelectorAll<SVGElement>('[data-zone]')) el.classList.remove('is-focused', 'is-muted');
+    svg.setAttribute('viewBox', viewBoxAttr(frame.full));
+    svg.style.setProperty('--map-scale', '1');
+  }
+  if (reset) reset.hidden = true;
+  hot(null);
+  if (lostFocus) document.querySelector<HTMLElement>('#mobile .zone-picker a')?.focus();
+}
+
+const isRegion = (zone: ZoneKey | null | undefined): zone is 'home' | 'shared' | 'north' =>
+  zone === 'home' || zone === 'shared' || zone === 'north';
+
+/**
+ * Linked hover: the area button and its map area light up together (is-hot). Purely visual. Only
+ * the three real areas; "out" has none.
+ */
+function hot(zone: ZoneKey | null | undefined): void {
+  for (const el of mobile?.querySelectorAll('.is-hot') ?? []) el.classList.remove('is-hot');
+  if (!isRegion(zone)) return;
+  mobile?.querySelector(`.zone-picker a[data-zone="${zone}"]`)?.classList.add('is-hot');
+  svg?.querySelector(`[data-zone="${zone}"].zone-line`)?.classList.add('is-hot');
 }
 
 const slot = $('address-slot');
@@ -349,18 +391,41 @@ function init(): void {
   }
 
   // One delegated handler: the area buttons stay on the page (without JS they are plain links
-  // to /book/<zone>), and a click on a zone on the map chooses it.
+  // to /book/<zone>). Clicking an area chooses it; clicking the chosen one again, the focused
+  // area on the map, or "Show all areas" goes back to the full view.
   mobile.addEventListener('click', (e) => {
     const target = e.target as Element;
+    if (target.closest('.map-reset')) {
+      deselect();
+      return;
+    }
     const link = target.closest<HTMLAnchorElement>('.zone-picker a[data-zone]');
     if (link) {
       if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return; // let the browser open a tab
       e.preventDefault();
-      select(link.dataset.zone as ZoneKey, 'pick');
+      if (link.hasAttribute('aria-current')) deselect();
+      else select(link.dataset.zone as ZoneKey, 'pick');
       return;
     }
     const zonePath = target.closest<SVGPathElement>('path.zone[data-zone]');
-    if (zonePath) select(zonePath.dataset.zone as ZoneKey, 'pick');
+    if (!zonePath) return;
+    if (zonePath.classList.contains('is-focused')) deselect();
+    else select(zonePath.dataset.zone as ZoneKey, 'pick');
+  });
+
+  // Linked hover. The pointer drives it by what is under it; keyboard focus drives it only when the
+  // browser shows a focus ring (a mouse click also focuses a button, and that must not stick).
+  mobile.addEventListener('pointerover', (e) => {
+    const el = (e.target as Element).closest<HTMLElement | SVGElement>('.zone-picker a[data-zone], path.zone[data-zone]');
+    hot((el?.dataset.zone as ZoneKey | undefined) ?? null);
+  });
+  mobile.addEventListener('pointerleave', () => hot(null));
+  mobile.addEventListener('focusin', (e) => {
+    const link = (e.target as Element).closest<HTMLAnchorElement>('.zone-picker a[data-zone]');
+    if (link?.matches(':focus-visible')) hot(link.dataset.zone as ZoneKey);
+  });
+  mobile.addEventListener('focusout', (e) => {
+    if ((e.target as Element).closest('.zone-picker a[data-zone]')) hot(null);
   });
 }
 

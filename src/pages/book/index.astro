@@ -26,6 +26,7 @@ const key = import.meta.env.PUBLIC_GOOGLE_MAPS_KEY ?? '';
 
       <section id="office" aria-labelledby="office-h">
         <OfficeCard />
+        <ServiceMap focus="office" id="office-map" />
       </section>
 
       <section id="mobile" aria-labelledby="mobile-h" data-maps-key={key}>

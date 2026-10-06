@@ -62,6 +62,22 @@ test('include() leaves the view alone when the point is well inside it', () => {
   assert.deepEqual(frame.include(frame.full, cx, cy), frame.full);
 });
 
+test('unitsPerKm: 0.1° of latitude is 11.057 km on the map', () => {
+  const [, y0] = frame.project(-104.8, 38.9);
+  const [, y1] = frame.project(-104.8, 39.0);
+  assert.ok(Math.abs((y0 - y1) - 11.057 * frame.unitsPerKm) < 0.5, `${y0 - y1} vs ${11.057 * frame.unitsPerKm}`);
+});
+
+test('viewAround is 4:5, centred on the point and 2 × the half-width in km wide', () => {
+  const [lng, lat, km] = [-104.86, 38.79, 6];
+  const view = frame.viewAround(lng, lat, km);
+  const [x, y] = frame.project(lng, lat);
+  assert.ok(Math.abs(view.w / view.h - 0.8) < 0.001);
+  assert.ok(Math.abs(view.x + view.w / 2 - x) < 0.2, `centre x ${view.x + view.w / 2} vs ${x}`);
+  assert.ok(Math.abs(view.y + view.h / 2 - y) < 0.2, `centre y ${view.y + view.h / 2} vs ${y}`);
+  assert.ok(Math.abs(view.w - 2 * km * frame.unitsPerKm) < 0.5, `width ${view.w} vs ${2 * km * frame.unitsPerKm}`);
+});
+
 test('project: east is larger x, north is smaller y', () => {
   const [x0, y0] = frame.project(-104.8, 38.9);
   const [x1] = frame.project(-104.7, 38.9);

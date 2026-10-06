@@ -26,7 +26,7 @@ const { zone } = Astro.params as { zone: ZoneKey | 'office' };
         {zone === 'office' ? <OfficeCard headingLevel={2} /> : <ZoneCard zone={zone} headingLevel={2} />}
       </div>
 
-      {zone !== 'office' && <ServiceMap focus={zone} />}
+      <ServiceMap focus={zone} />
 
       <ZonePicker current={zone === 'office' ? undefined : zone} heading="Not sure? Pick your area." />
 
@@ -44,9 +44,6 @@ const { zone } = Astro.params as { zone: ZoneKey | 'office' };
 </Base>
 
 <style>
-  .result {
-    margin-top: var(--s-8);
-  }
   .links {
     margin-top: var(--s-8);
   }

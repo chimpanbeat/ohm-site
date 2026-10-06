@@ -63,13 +63,23 @@ h1 {
   text-transform: uppercase;
 }
 
+/* The divider is a resistor symbol (ANSI/IEEE zigzag), drawn as a mask over the accent colour.
+   The mask only reads alpha, so the stroke colour is irrelevant (ARCHITECTURE §A3). */
 h1::after {
   content: '';
   display: block;
-  width: 48px;
-  height: 3px;
+  width: 72px;
+  height: 12px;
   margin-top: var(--s-4);
   background: var(--accent);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 12'%3E%3Cpath d='M0 6H18L21 1L27 11L33 1L39 11L45 1L51 11L54 6H72' fill='none' stroke='black' stroke-width='2' stroke-linejoin='miter'/%3E%3C/svg%3E") center / 72px 12px no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 12'%3E%3Cpath d='M0 6H18L21 1L27 11L33 1L39 11L45 1L51 11L54 6H72' fill='none' stroke='black' stroke-width='2' stroke-linejoin='miter'/%3E%3C/svg%3E") center / 72px 12px no-repeat;
+}
+
+/* One rule for the space under every H1 divider: the zigzag is the last thing inside the H1,
+   so this is the gap from its bottom edge to the next element. */
+h1 + * {
+  margin-top: var(--s-8);
 }
 
 h2 {

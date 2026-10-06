@@ -12,7 +12,7 @@ PocketSuite (PS) handles booking, availability, intake forms, contracts, payment
 
 - **Ohm Precision Bodywork LLC.** Solo clinical bodywork practice in Colorado Springs, CO. Mobile-first (sessions at the client's location), plus a home office.
 - **Tagline:** "Reduce resistance. Restore movement."
-- **Name meaning (usable in copy):** Ohm is the electrical unit of resistance, a nod to Brian's 12 years as an FPGA design engineer and to the tissue resistance he works on. It also echoes *Om*, reflecting yoga and breathwork. The tagline carries both meanings.
+- **Name meaning (usable in copy):** Ohm is the electrical unit of resistance, a nod to Brian's 12 years as an electrical engineer (say "electrical engineer", not "FPGA design engineer": Brian, Oct 6 2026) and to the tissue resistance he works on. It also sounds like *Om*, the sacred sound of yoga and meditation; yoga and breathwork are part of how he got here. The tagline carries both meanings.
 - **Positioning:** clinical and results-oriented, not spa. Precise but human. Analytical clients (athletes, engineers, active people) respond to clear, evidence-based explanations rather than generic wellness language.
 - **Audience, in priority order:**
   1.  Climbers and outdoor athletes (CityRock climbing gym is the anchor community).
@@ -20,6 +20,8 @@ PocketSuite (PS) handles booking, availability, intake forms, contracts, payment
   3.  Chronic pain clients referred by chiropractors and PTs.
   4.  Technical professionals with desk-posture issues.
   5.  Military and veterans (secondary).
+
+  Site copy (Brian, Oct 6 2026): Home "Who it's for" names active people broadly (climbers, runners, cyclists, lifters, hikers, non-athletes) plus persistent pain and injury/surgery recovery. It deliberately doesn't name desk workers or veterans, and neither does the home hero line or meta description (8A).
 - **Contact:** <brian@ohmprecisionbodywork.com> · ohmprecisionbodywork.com · PocketSuite lead form and chat (links in §4). **No phone number on the site** (decided Oct 6, 2026).
 
 ## 2. Non-goals
@@ -55,7 +57,7 @@ export const site = {
   licensed: false,                 // flips wording rules (§7). Default false.
   licenseNumber: "",               // shown in footer only when licensed && non-empty
   email: "brian@ohmprecisionbodywork.com",   // no phone (Oct 6, 2026)
-  officeArea: "Southwest Colorado Springs (address sent after booking)",
+  officeArea: "Southwest Colorado Springs, in the Cheyenne Canyon / Broadmoor area", // exact address sent after booking; the /book map shows an approximate circle (Oct 6)
   rates: {                         // no initial assessment rate (removed Oct 6, 2026)
     s60:     { label: "60-minute session", minutes: 60, price: 90 },
     s90:     { label: "90-minute session", minutes: 90, price: 120 },
@@ -196,9 +198,9 @@ Brian's Colorado massage therapy license is expected around the week of Oct 12, 
 ## 8. Content and voice
 
 - **Voice:** plain, direct, sentence case, active voice, no filler, no spa or wellness clichés. Explain *why* briefly where it helps. Brian's clients like knowing the rationale.
-- **About copy source.** Draft from these facts, then mark the draft for Brian's review:
+- **About copy:** Brian wrote the bio himself (Oct 6 2026); it's in `docs/build/copy-deck.md` → About and is authoritative. New facts in it: labrum tear in his right shoulder in 2019, surgery and rehab, PT, then yoga; he climbs, mountaineers, does the Manitou Incline, paddleboards. The original fact list, kept for reference:
   - Graduate of the 650-hour Advanced Neuromuscular Massage Therapy program at the Colorado Institute of Massage Therapy (Sept 2026). Under the §7 rules, say "advanced neuromuscular program" until `licensed` is true.
-  - 12 years as an FPGA design engineer before switching careers. This gives him a systematic, analytical approach to assessment and documentation.
+  - 12 years as an electrical engineer (FPGA design; site copy says only "electrical engineer") before switching careers. This gives him a systematic, analytical approach to assessment and documentation.
   - Rock climber for 5+ years; volunteers with adaptive climbing groups at CityRock.
   - His path into bodywork came from his own shoulder surgery and rehab, then yoga and breathwork.
   - Philosophy: evidence-informed, precise, built on client autonomy. Clients leave understanding their bodies and with tools for their own recovery.

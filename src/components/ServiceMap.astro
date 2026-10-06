@@ -9,7 +9,10 @@ import zonesRaw from '../data/zones.geojson?raw';
 import osmRaw from '../data/osm.geojson?raw';
 
 interface Props {
-  focus?: ZoneKey;
+  /** A zone to render zoomed with the others greyed, or 'office' for the office-area map (no zones). */
+  focus?: ZoneKey | 'office';
+  /** Prefixes the <title>/<desc> ids, so two maps can share a page. */
+  id?: string;
 }
 
 type Pt = [number, number];
@@ -20,7 +23,7 @@ interface OsmFeature {
   geometry: { type: 'MultiLineString'; coordinates: Pt[][] } | { type: 'Point'; coordinates: Pt };
 }
 
-const { focus } = Astro.props;
+const { focus, id = 'map' } = Astro.props;
 
 // Manual label fixes in SVG units: [dx, dy]. Keys are `zone:<key>`, `road:<name>`, `place:<name>`.
 const labelNudge: Record<string, [number, number]> = {
@@ -33,6 +36,8 @@ const labelNudge: Record<string, [number, number]> = {
   'road:US 24': [40, -35],
   'place:Manitou Springs': [-30, 0],
 };
+// The office map is zoomed in about 3×, so the full-map nudges would throw its labels kilometres off.
+const officeNudge: Record<string, [number, number]> = {};
 
 const zones = JSON.parse(zonesRaw) as ZoneCollection;
 const osm = (JSON.parse(osmRaw) as { features: OsmFeature[] }).features;
@@ -40,15 +45,18 @@ const frame = makeFrame(zones);
 const { full } = frame;
 
 const regions: RegionKey[] = zoneOrder.filter((k): k is RegionKey => k !== 'out');
-const focused = focus && focus !== 'out' ? (focus as RegionKey) : undefined;
+const office = focus === 'office';
+const focused = focus && focus !== 'out' && focus !== 'office' ? (focus as RegionKey) : undefined;
 const box = focused ? bboxOf(zones, focused) : null;
-const view = box ? frame.viewFor(box) : full;
+const { mapArea } = site.office;
+// Office mode: a 12 km wide view around the (deliberately vague) office circle.
+const view = office ? frame.viewAround(mapArea.lng, mapArea.lat, 6) : box ? frame.viewFor(box) : full;
 const mapScale = Number((full.w / view.w).toFixed(3));
 
 const path = (pts: Pt[], close = false) =>
   'M' + pts.map(([x, y]) => `${x} ${y}`).join('L') + (close ? 'Z' : '');
 const nudge = (key: string, [x, y]: Pt): Pt => {
-  const [dx, dy] = labelNudge[key] ?? [0, 0];
+  const [dx, dy] = (office ? officeNudge : labelNudge)[key] ?? [0, 0];
   return [x + dx, y + dy];
 };
 
@@ -126,7 +134,11 @@ const zoneShapes = regions.map((key) => {
   return { key, d, label, text: lines(site.zones[key].name) };
 });
 
-const inView = ([x, y]: Pt) => x >= full.x && x <= full.x + full.w && y >= full.y && y <= full.y + full.h;
+// Road labels go where the road is on screen: the full view normally (so they stay put when book.ts
+// zooms), the office view for the office map.
+const labelBounds = office ? view : full;
+const inView = ([x, y]: Pt) =>
+  x >= labelBounds.x && x <= labelBounds.x + labelBounds.w && y >= labelBounds.y && y <= labelBounds.y + labelBounds.h;
 const lengthOf = (pts: Pt[]) => pts.reduce((sum, p, i) => (i ? sum + Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]) : 0), 0);
 
 /** A vertex near the middle (by length) of the longest run of the road that is inside the full view. */
@@ -167,39 +179,50 @@ const roads = osm.flatMap((f) => {
   ];
 });
 
-const places = osm.flatMap((f) =>
-  f.properties.kind === 'place' && f.geometry.type === 'Point'
-    ? [{ name: f.properties.name, at: nudge(`place:${f.properties.name}`, frame.project(...f.geometry.coordinates)) }]
-    : [],
-);
+// The office map drops places outside its view; otherwise half a label pokes in at the edge.
+const places = osm.flatMap((f) => {
+  if (f.properties.kind !== 'place' || f.geometry.type !== 'Point') return [];
+  const at = nudge(`place:${f.properties.name}`, frame.project(...f.geometry.coordinates));
+  return office && !inView(at) ? [] : [{ name: f.properties.name, at }];
+});
 
 const names = regions.map((k) => site.zones[k].name);
-const desc = `Map of Colorado Springs showing my three service areas, ${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}, with the major roads that border them.`;
+const title = office ? 'Office area map' : 'Service area map';
+const desc = office
+  ? 'Map of southwest Colorado Springs with a circle around the area my office is in, near Cheyenne Canyon and the Broadmoor. The exact address is sent after you book.'
+  : `Map of Colorado Springs showing my three service areas, ${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}, with the major roads that border them.`;
 const state = (key: RegionKey) => (focused ? (key === focused ? 'is-focused' : 'is-muted') : undefined);
+
+// The office circle, in map units (office mode only).
+const [officeX, officeY] = frame.project(mapArea.lng, mapArea.lat);
+const officeR = Number((mapArea.radiusKm * frame.unitsPerKm).toFixed(1));
 ---
 
-<div class="service-map">
+<div class:list={['service-map', { 'service-map--office': office }]}>
+  <div class="map-frame">
   <svg
     viewBox={viewBoxAttr(view)}
     data-full={viewBoxAttr(full)}
     style={`--map-scale: ${mapScale}`}
     role="img"
-    aria-labelledby="map-title map-desc"
+    aria-labelledby={`${id}-title ${id}-desc`}
     preserveAspectRatio="xMidYMid meet"
   >
-    <title id="map-title">Service area map</title>
-    <desc id="map-desc">{desc}</desc>
+    <title id={`${id}-title`}>{title}</title>
+    <desc id={`${id}-desc`}>{desc}</desc>
 
     {
-      zoneShapes.map((z) => (
-        <path class:list={['zone', `zone--${z.key}`, state(z.key)]} data-zone={z.key} fill-rule="evenodd" d={z.d} />
-      ))
+      !office &&
+        zoneShapes.map((z) => (
+          <path class:list={['zone', `zone--${z.key}`, state(z.key)]} data-zone={z.key} fill-rule="evenodd" d={z.d} />
+        ))
     }
     {roads.map((r) => <path class:list={['road', { 'road--major': r.major }]} data-road={r.name} d={r.d} />)}
     {
-      zoneShapes.map((z) => (
-        <path class:list={['zone-line', `zone-line--${z.key}`, state(z.key)]} data-zone={z.key} fill-rule="evenodd" d={z.d} />
-      ))
+      !office &&
+        zoneShapes.map((z) => (
+          <path class:list={['zone-line', `zone-line--${z.key}`, state(z.key)]} data-zone={z.key} fill-rule="evenodd" d={z.d} />
+        ))
     }
     {
       roads.map(
@@ -223,34 +246,66 @@ const state = (key: RegionKey) => (focused ? (key === focused ? 'is-focused' : '
       ))
     }
     {
-      zoneShapes.map((z) => (
-        <g transform={`translate(${z.label[0]} ${z.label[1]})`}>
-          <text class:list={['zone-label', state(z.key)]} data-zone={z.key} text-anchor="middle" dy={`${0.35 - (z.text.length - 1) * 0.575}em`}>
-            {z.text.map((line, i) => (
-              <tspan x="0" dy={i ? '1.15em' : undefined}>
-                {line}
-              </tspan>
-            ))}
-          </text>
-        </g>
-      ))
+      !office &&
+        zoneShapes.map((z) => (
+          <g transform={`translate(${z.label[0]} ${z.label[1]})`}>
+            <text class:list={['zone-label', state(z.key)]} data-zone={z.key} text-anchor="middle" dy={`${0.35 - (z.text.length - 1) * 0.575}em`}>
+              {z.text.map((line, i) => (
+                <tspan x="0" dy={i ? '1.15em' : undefined}>
+                  {line}
+                </tspan>
+              ))}
+            </text>
+          </g>
+        ))
     }
 
-    <g class="map-pin" hidden>
-      {/* 24x32 teardrop, tip at (0,0), drawn at 2.25x: the map is only ~340px wide on a phone. */}
-      <g transform="scale(2.25)">
-        <path d="M0 0C-4-8-12-14-12-20A12 12 0 1 1 12-20C12-14 4-8 0 0Z"></path>
-        <circle cy="-20" r="4"></circle>
-      </g>
-    </g>
-  </svg>
+    {
+      office && (
+        <>
+          <circle class="office-area" cx={officeX} cy={officeY} r={officeR} />
+          <g transform={`translate(${officeX} ${Number((officeY + officeR * 1.2).toFixed(1))})`}>
+            <text class="zone-label" text-anchor="middle" dy="0.35em">
+              My office is in this area
+            </text>
+          </g>
+        </>
+      )
+    }
 
-  <p class="map-hint" hidden>The colors match the area buttons above. Tap an area on the map to choose it.</p>
+    {
+      !office && (
+        <g class="map-pin" hidden>
+          {/* 24x32 teardrop, tip at (0,0), drawn at 2.25x: the map is only ~340px wide on a phone. */}
+          <g transform="scale(2.25)">
+            <path d="M0 0C-4-8-12-14-12-20A12 12 0 1 1 12-20C12-14 4-8 0 0Z" />
+            <circle cy="-20" r="4" />
+          </g>
+        </g>
+      )
+    }
+  </svg>
+  {!office && <button type="button" class="map-reset" hidden>Show all areas</button>}
+  </div>
+
+  {
+    !office && (
+      <>
+      <p class="map-link">
+        <a class="btn btn--quiet" href={site.mapViewerUrl} target="_blank" rel="noopener">
+          Open in Google Maps
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />
+          </svg>
+          <span class="visually-hidden"> (opens in a new tab)</span>
+        </a>
+      </p>
+      <p class="map-hint" hidden>Tap an area on the map or a button above to choose it. Tap it again to see all areas.</p>
+      </>
+    )
+  }
   <p class="map-credit">
     Roads and places &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>
-  </p>
-  <p class="map-link">
-    <a href={site.mapViewerUrl} target="_blank" rel="noopener">Open the map in Google Maps</a>
   </p>
 </div>
 
@@ -281,31 +336,51 @@ const state = (key: RegionKey) => (focused ? (key === focused ? 'is-focused' : '
     }
   }
 
-  svg {
+  .map-frame {
+    position: relative;
+    max-width: 34rem;
+  }
+  .map-frame > svg {
     display: block;
     width: 100%;
     height: auto;
     aspect-ratio: 4 / 5;
-    max-width: 34rem;
     background: var(--bg-light);
     border: 1px solid var(--line-dark);
     border-radius: var(--radius);
     color: var(--text-on-light);
   }
 
-  /* Zones: the fill takes the click; everything drawn over it lets clicks through. */
+  /* "Show all areas": over the map's top-right corner while book.ts has it zoomed. */
+  .map-reset {
+    position: absolute;
+    top: var(--s-2);
+    right: var(--s-2);
+    min-height: 44px;
+    padding-inline: var(--s-3);
+    background: var(--bg-light);
+    color: var(--ink);
+    border: 1px solid var(--line-light);
+    border-radius: var(--radius);
+    font-size: var(--fs-small);
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  /* Zones: the fill takes the click; everything drawn over it lets clicks through.
+     The fill is the tint the area buttons use, opaque, so button and map match exactly. */
   .zone {
-    fill-opacity: 0.35;
+    fill-opacity: 1;
     stroke: none;
   }
   .zone--home {
-    fill: var(--zone-home);
+    fill: var(--zone-home-tint);
   }
   .zone--shared {
-    fill: var(--zone-shared);
+    fill: var(--zone-shared-tint);
   }
   .zone--north {
-    fill: var(--zone-north);
+    fill: var(--zone-north-tint);
   }
   .zone.is-muted {
     fill: var(--zone-muted);
@@ -331,6 +406,20 @@ const state = (key: RegionKey) => (focused ? (key === focused ? 'is-focused' : '
   }
   .zone-line.is-muted {
     stroke-opacity: 0.25;
+  }
+  /* Linked hover: book.ts sets is-hot while the matching button or area is hovered or focused. */
+  .zone-line.is-hot {
+    stroke-width: 4px;
+  }
+
+  /* Office map: the approximate office area. A circle, not a pin, so it reads as "around here". */
+  .office-area {
+    fill: var(--accent);
+    fill-opacity: 0.18;
+    stroke: var(--accent);
+    stroke-width: 2px;
+    vector-effect: non-scaling-stroke;
+    pointer-events: none;
   }
 
   .road {
@@ -391,13 +480,21 @@ const state = (key: RegionKey) => (focused ? (key === focused ? 'is-focused' : '
   }
 
   .map-hint,
-  .map-credit,
-  .map-link {
+  .map-credit {
     font-size: var(--fs-small);
     margin-top: var(--s-3);
   }
-  .map-credit,
-  .map-link {
+  .map-credit {
     margin-top: var(--s-2);
+  }
+  .map-link {
+    margin-top: var(--s-3);
+  }
+  /* The external-link glyph in the Google Maps button. (Overrides the global svg block rules.) */
+  .map-link svg {
+    flex: none;
+    width: 1em;
+    height: 1em;
+    margin-inline-start: var(--s-2);
   }
 </style>

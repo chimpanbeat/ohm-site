@@ -15,6 +15,15 @@ Written by Opus in step 4A (2026-10-05). **This is the only source of visible te
 ## Global
 Header, Footer, OfficeCard, ZonePicker and ZoneCard keep their current text (ARCHITECTURE §B3) except for the changes below.
 
+**Changes in step 8A (Oct 6, Brian's review of Phase 7):**
+- **"FPGA design engineer" → "electrical engineer"** everywhere (Home "Why Ohm", About meta description and paragraph 2). Brian: too specific.
+- **OfficeCard:** `{site.officeArea}` now reads "Southwest Colorado Springs, in the Cheyenne Canyon / Broadmoor area". The address note moves to its own line, directly after the area: `I send the exact address after you book.`
+- **Office map** (`/book` office section and `/book/office`), labels and text:
+  - Circle label: `My office is in this area`
+  - `<title>`: `Office area map`. `<desc>`: `Map of southwest Colorado Springs with a circle around the area my office is in, near Cheyenne Canyon and the Broadmoor. The exact address is sent after you book.`
+  - No hint, no Google Maps button. Credit line as on the service map.
+- **Service map** (mobile section): see Book → Mobile section.
+
 **Changes in step 7A (Oct 6, Brian's review):**
 - **Header nav:** `Services`, `Pricing` (→ `/pricing`), `About`, then the `Book` button.
 - **Footer:** the phone line is removed. Nothing replaces it.
@@ -48,24 +57,24 @@ The OG image (5A) reuses the About alt text for `og:image:alt`.
 
 **Meta**
 - `title`: `Ohm Precision Bodywork · Neuromuscular therapy in Colorado Springs` (ARCHITECTURE §B7. Pass it whole; no suffix.)
-- `description`: `Neuromuscular therapy in Colorado Springs for climbers, athletes and desk workers. Trigger point therapy and sports recovery, at your place or my office.`
+- `description` (8A): `Neuromuscular therapy in Colorado Springs for climbers, runners and active people. Trigger point therapy and sports recovery, at your place or my office.`
 
 **Hero** (on `--green-900`)
 - **H1:** `{w:heroLine}`
-- **Subline** (`<p>` under the H1 rule): `Neuromuscular therapy in Colorado Springs for climbers, athletes and desk-bound engineers.`
+- **Subline** (`<p>` under the H1 divider) (8A): `Neuromuscular therapy in Colorado Springs, for active people who want to move, perform and feel their best.` (Brian's text)
 - **CTA:** `<BookCta />`
 - **Price hint** (`<p>`, small, beside or under the CTA): `From ${minPrice} · at your place or my office`
 
 **Cream band: three blocks** (each an `<h2>` and one `<p>`, in this order)
 
 1. **H2:** `Who it's for`
-   **P:** `Climbers and outdoor athletes, endurance athletes, and people with chronic pain referred by their chiropractor or PT. Also engineers and other desk workers whose posture has started to cost them, and military service members and veterans. If you want to know why I'm working where I'm working, ask. I'll explain.`
+   **P** (8A, Brian's text): `Ohm is for people who use their bodies and want to keep doing it: climbers, runners, cyclists, lifters, weekend hikers, and anyone active who wouldn't call themselves an athlete. I also work with people managing persistent pain or recovering from an injury or surgery, alongside their care team.`
 
 2. **H2:** `What a session does`
    **P:** `Each session starts with a short assessment: where it hurts, how you move, and what you want to get back to. Then I work on the muscles and trigger points that limit that movement, using neuromuscular techniques, trigger point therapy and {w:deepTissue}. The aim is to reduce resistance in the tissue and restore movement. You leave knowing what I found, with a few things to do on your own between sessions.`
 
 3. **H2:** `Why "Ohm"`
-   **P:** `An ohm is the unit of electrical resistance. I spent 12 years as an FPGA design engineer before changing careers, and resistance is still what I work on, now in muscle and fascia. The name also echoes Om, for the yoga and breathwork that brought me here. The tagline carries both meanings.`
+   **P** (8A): `An ohm is the unit of electrical resistance. I spent 12 years as an electrical engineer before changing careers, and resistance is still what I work on, now in muscle and fascia. Say the name out loud and you also hear Om, the sacred sound of yoga and meditation. Yoga is a big part of how I got here. The tagline carries both meanings.`
 
 **Green CTA band**
 - **H2:** `Book a session`
@@ -82,7 +91,8 @@ The OG image (5A) reuses the About alt text for `og:image:alt`.
 
 **Header section** (on `--green-900`)
 - **H1:** `Services` (7A)
-- **Intro P:** `I work on the muscles and fascia that limit how you move. Every session starts with an assessment, and I explain what I find and why I'm working where I am.`
+- **Intro P** (8A): `{w:notSpa} I take a clinical approach that meets you where you are. Every session starts with an assessment, and I explain what I find and why I'm working where I am.`
+  (Unlicensed, `notSpa` reads "This isn't a generic spa session, and it isn't no-pain, no-gain deep tissue torture." Licensed, "spa session" becomes "spa massage".)
 
 **Cream band: session types**
 - **H2:** `Session types`
@@ -127,7 +137,7 @@ The OG image (5A) reuses the About alt text for `og:image:alt`.
 
 **Header section** (on `--green-900`)
 - **H1:** `Pricing`
-- **Intro P:** `Same session rates at my office or at your place. Mobile sessions add a flat ${site.travelFee.amount} travel fee, already included in the "At your place" column.`
+- **Intro P** (8A): `Same session rates at my office or at your place. Mobile sessions add a flat ${site.travelFee.amount} travel fee.`
 
 **Cream band**
 - `<PriceTable />`. Its text: caption `Session rates`; column headers `Session`, `At my office`, `At your place` with the small second line `includes ${site.travelFee.amount} travel`; row labels from `{site.rates.*.label}`; prices `${price}` and `${price + site.travelFee.amount}`, computed. Today: 60-minute session $90 / $115; 90-minute session $120 / $145.
@@ -141,25 +151,26 @@ The OG image (5A) reuses the About alt text for `og:image:alt`.
 
 ## About (`src/pages/about.astro`)
 
-`<!-- TODO(Brian): review About draft -->` goes in the page source, directly above the first paragraph.
-
-> **TODO(Brian): review About draft.** It is built only from the brief §8 facts. Check every sentence, especially paragraphs 1 and 4, which put those facts in your voice.
+**8A: Brian wrote this bio himself (Oct 6 2026).** The review TODO is resolved: remove the `<!-- TODO(Brian): review About draft -->` comment from the page source.
 
 **Meta**
 - `title`: `About Brian · Ohm Precision Bodywork`
-- `description`: `Brian Clarke spent 12 years as an FPGA design engineer before training in neuromuscular therapy. Evidence-informed bodywork for climbers and athletes in Colorado Springs.`
+- `description` (8A): `Brian Clarke spent 12 years as an electrical engineer before training in neuromuscular therapy. Evidence-informed bodywork for climbers and athletes in Colorado Springs.`
 
 **Picture:** the alt text from the table above.
 
 **H1:** `About Brian`
 
-**Body** (five `<p>`, in this order; no subheadings)
-1. `My path into {w:practice} started with my own shoulder surgery and rehab. Yoga and breathwork came next, and with them a lasting interest in how bodies move and recover.`
-2. `Before that, I spent 12 years as an FPGA design engineer. Debugging hardware is systematic: observe, form a hypothesis, test, write it down. I assess the body the same way, and I keep clear notes so each session builds on the last.`
-3. `{w:training} Its core is neuromuscular therapy: trigger point release, ischemic compression and PNF.`
-   No glossary on About (Brian, Oct 5 2026: the terms are defined on Services).
-4. `I've been climbing for more than five years, and I volunteer with adaptive climbing groups at CityRock. I know what a hard season does to forearms, shoulders and hips.`
-5. `My approach is evidence-informed and precise, and it starts from your goals. I'll explain what I find and why I'm working where I am. You should leave understanding your body a little better, with tools for your own recovery.`
+**Body** (8A, Brian's text; five `<p>`, in this order; no subheadings)
+1. `I started my career as an electrical engineer. For 12 years I worked mostly at a desk or in a lab, designing systems, tracing problems to their source rather than where they showed up, and testing each fix until it held.`
+2. `In 2019, partway through that career, I tore the labrum in my right shoulder. Surgery and a long rehab followed. Physical therapy carried me through the hardest stretch and made me curious about how clinical work helps people recover. Yoga came next. It helped me rebuild strength and range of motion, and it showed me how closely body and mind are connected. Those experiences led me to bodywork.`
+3. `{w:training} My work focuses on how the nervous system influences muscle tension. I use focused pressure and active stretching, and I trace pain back to its likely source, not just where you feel it. I bring the same systematic approach to every session and keep clear notes so each one builds on the last.`
+   (`{w:training}` renders Brian's sentence "In September 2026 I completed a 650-hour advanced neuromuscular program." while unlicensed, and names the school once licensed. Keep the `w()` call; don't type the sentence.)
+   "bodywork" in ¶2 is literal text, not `{w:practice}`: it's Brian's story ("led me to bodywork"), and it's true in either licence state.
+4. `Outside of work, I climb, mountaineer, take on the Manitou Incline, paddleboard, and spend time on the yoga mat. For active people, doing those things at full capacity is a big part of who we are. I also know the toll they take: soreness, stiffness, compensation patterns, and nagging injuries, especially when recovery gets skipped.`
+5. `My approach is evidence-informed, precise, and built around your goals. I'll explain what I find and why I'm working where I am, so you leave understanding your body a little better and with tools for your own recovery.`
+
+`check:wording` will warn (not fail) on "fix" in ¶1. The warning is expected: it's engineering, not a medical promise. List it in the Report.
 
 **CTA:** `<BookCta />`
 
@@ -178,11 +189,13 @@ The OG image (5A) reuses the About alt text for `og:image:alt`.
 **Mobile section** (7A, ARCHITECTURE §B4):
 - **H2** (`#mobile-h`): `Where are you located?`
 - **Address label** (built in `book.ts`): `Not sure? Enter your address`
-- **Map hint** (`.map-hint`, un-hidden by book.ts): `The colors match the area buttons above. Tap an area on the map to choose it.`
+- **Map hint** (`.map-hint`, un-hidden by book.ts) (8A): `Tap an area on the map or a button above to choose it. Tap it again to see all areas.`
+- **Reset button** (8A, over the map's top-right corner, shown only while zoomed to an area): `Show all areas`
+- **Google Maps button** (8A, replaces the small link; directly under the map): `Open in Google Maps`, with an external-link icon and visually hidden ` (opens in a new tab)`.
 - **Map `<title>`:** `Service area map`. **`<desc>`:** `Map of Colorado Springs showing my three service areas, Central & Southwest Springs, Mid-north Springs and North Springs, with the major roads that border them.` Build the zone names from `site.zones` (don't type them).
 - **Map labels:** zone names from `site.zones[key].name`; road short names and place names as listed in ARCHITECTURE §B4.
 - **Credit line** (small, under the map): `Roads and places © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright)`
-- **Link** (unchanged): `Open the map in Google Maps` → `{site.mapViewerUrl}`
+- ~~**Link:** `Open the map in Google Maps`~~ → replaced by the Google Maps button above (8A), still → `{site.mapViewerUrl}`
 - **Boundary line:** `Near a boundary or can't find your address? [Chat with me]({site.contact.chat}). Boundaries are approximate.`
 - `/book/[zone]` (not office) shows the same map, focused on that zone. The hint isn't shown there (no JS).
 

@@ -49,10 +49,17 @@ export const site = {
   city: 'Colorado Springs',
   region: 'CO',
 
-  officeArea: 'Southwest Colorado Springs (address sent after booking)',
+  // The exact address is sent after booking (OfficeCard says so). Brian, Oct 6 2026.
+  officeArea: 'Southwest Colorado Springs, in the Cheyenne Canyon / Broadmoor area',
   office: {
     days: 'Tuesdays, Wednesday evenings, Fridays, and Saturdays',
     linkKey: 'office' as LinkKey,
+    /**
+     * The office on the /book map: a circle, deliberately vague. NOT the address. Two decimals
+     * (~1 km) on purpose; tests enforce it. Between North Cheyenne Cañon and the Broadmoor (8A).
+     * TODO(Brian): confirm the circle reads as the right neighbourhood.
+     */
+    mapArea: { lat: 38.79, lng: -104.86, radiusKm: 1.5 },
   },
 
   rates: {

@@ -23,7 +23,6 @@ const { current, heading } = Astro.props;
             data-zone={key}
             aria-current={key === current ? 'page' : undefined}
           >
-            <span class={`swatch swatch--${key}`} aria-hidden="true" />
             {site.zones[key].name}
           </a>
         </li>
@@ -47,36 +46,59 @@ const { current, heading } = Astro.props;
   .zone-picker--titled {
     margin-top: var(--s-8);
   }
-  a {
-    gap: var(--s-2);
+  /* Each zone button is its map area: the same opaque tint ServiceMap fills the area with. */
+  a[data-zone='home'] {
+    --tint: var(--zone-home-tint);
   }
-  /* The colour each zone shows on the SVG map: its --zone-* fill at 35% over the map background
-     (ServiceMap .zone), so a button can be matched to its zone by colour. */
-  .swatch {
-    flex: none;
-    width: 0.875rem;
-    height: 0.875rem;
-    border: 1px solid var(--text-on-dark);
-    border-radius: var(--radius);
+  a[data-zone='shared'] {
+    --tint: var(--zone-shared-tint);
   }
-  .swatch--home {
-    background: color-mix(in srgb, var(--zone-home) 35%, var(--bg-light));
+  a[data-zone='north'] {
+    --tint: var(--zone-north-tint);
   }
-  .swatch--shared {
-    background: color-mix(in srgb, var(--zone-shared) 35%, var(--bg-light));
+  a[data-zone='home'],
+  a[data-zone='shared'],
+  a[data-zone='north'] {
+    background: var(--tint);
+    border-color: var(--tint);
+    color: var(--ink);
   }
-  .swatch--north {
-    background: color-mix(in srgb, var(--zone-north) 35%, var(--bg-light));
+  /* Hover keeps the tint; only the underline changes. */
+  a[data-zone='home']:hover,
+  a[data-zone='shared']:hover,
+  a[data-zone='north']:hover {
+    background: var(--tint);
+    border-color: var(--tint);
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
   }
-  .swatch--out {
+  /* "Outside my regular area" has no area on the map: the quiet outline, dashed. */
+  a[data-zone='out'] {
     border-style: dashed;
   }
-  /* The chosen area (aria-current="page" on /book/<zone>, "true" once book.ts selects it). */
-  a[aria-current] {
+
+  /* The chosen area (aria-current="page" on /book/<zone>, "true" once book.ts selects it). Zone
+     buttons get a ring; "out" inverts to a cream fill. */
+  a[data-zone='home'][aria-current],
+  a[data-zone='shared'][aria-current],
+  a[data-zone='north'][aria-current] {
+    box-shadow: 0 0 0 3px var(--text-on-dark);
+  }
+  a[data-zone='out'][aria-current] {
     background: var(--text-on-dark);
     color: var(--bg-dark);
   }
-  a[aria-current] .swatch {
-    border-color: var(--bg-dark);
+  /* Linked hover (book.ts): the button whose map area is hovered gets the same ring. */
+  a[data-zone].is-hot {
+    box-shadow: 0 0 0 3px var(--text-on-dark);
+  }
+  /* The grey-out the map does, for the buttons: while one is chosen, the others dim. A dimmed
+     button that has keyboard focus or is hot comes back to full strength so its ring stays visible. */
+  ul:has(a[aria-current]) a:not([aria-current]) {
+    opacity: 0.5;
+  }
+  ul:has(a[aria-current]) a:not([aria-current]):is(:focus-visible, .is-hot) {
+    opacity: 1;
   }
 </style>
