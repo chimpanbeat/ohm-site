@@ -19,9 +19,9 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 | 4R | opus | medium | Wording, voice, and design review, commit | done | 30da510 | |
 | 5A | sonnet | medium | SEO, OG, sitemap/robots, contrast check, README draft | done | 057f968 | |
 | 5R | opus | high | Final review: Lighthouse, §12 checklist, README verification, commit, launch list | done | 057f968 | About CLS fix in follow-up commit |
-| 6A | opus | high | Site review fixes (Oct 5): brief, contracts, copy, 6B step file | done | (uncommitted; lands in 6R) | Brian asked for one commit at the end |
-| 6B | sonnet | medium | Site review fixes: components, zones script, tests, README | review | | |
-| 6R | opus | high | Review Phase 6, live map check, commit, push | in-progress | | |
+| 6A | opus | high | Site review fixes (Oct 5): brief, contracts, copy, 6B step file | done | 8e896d7 | Brian asked for one commit at the end |
+| 6B | sonnet | medium | Site review fixes: components, zones script, tests, README | done | 8e896d7 | |
+| 6R | opus | high | Review Phase 6, live map check, commit, push | done | 8e896d7 | Map title bar #125245, white 9.06:1. Glossary spacing nits fixed. |
 
 ## §12 acceptance (5R, 2026-10-05)
 | Criterion | Result | Evidence |
