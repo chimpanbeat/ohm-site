@@ -191,7 +191,10 @@ No splash on Home (9A batch 5: it's on `/hello`, below).
 **Meta**
 - `title`: `Book a session · Ohm Precision Bodywork`
 - `description`: `Find the right booking link for an office or mobile session in Colorado Springs and Manitou Springs.`
-- The `/book/[zone]` pages use the same `title` and `description`.
+- The `/book/[zone]` pages have their own (Oct 6, after the final audit), built from `site.ts`; `title` ends ` · Ohm Precision Bodywork`:
+  - home, shared, north: `Book in {zone.name}` / `Book a mobile session at your place in {zone.name}. I'm there {zone.days}.`
+  - office: `Book at my office` / `Book a session at my office in {officeArea}. I'm there {office.days}.`
+  - out: `{zones.out.name}` / `I can sometimes travel outside my regular area by request. Get in touch, or book a session at my office.`
 
 **Intro P** (directly under the H1, before the `#where` fieldset):
 `Tell me where you want your session and I'll point you to the right booking page. Scheduling, intake forms and payment are all handled on PocketSuite.`

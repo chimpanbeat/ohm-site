@@ -12,12 +12,26 @@ export function getStaticPaths() {
 }
 
 const { zone } = Astro.params as { zone: ZoneKey | 'office' };
+
+// Each zone page gets its own title and description (copy deck → Book).
+const meta =
+  zone === 'office'
+    ? {
+        title: 'Book at my office',
+        description: `Book a session at my office in ${site.officeArea}. I'm there ${site.office.days}.`,
+      }
+    : zone === 'out'
+      ? {
+          title: site.zones.out.name,
+          description: 'I can sometimes travel outside my regular area by request. Get in touch, or book a session at my office.',
+        }
+      : {
+          title: `Book in ${site.zones[zone].name}`,
+          description: `Book a mobile session at your place in ${site.zones[zone].name}. I'm there ${site.zones[zone].days}.`,
+        };
 ---
 
-<Base
-  title="Book a session · Ohm Precision Bodywork"
-  description="Find the right booking link for an office or mobile session in Colorado Springs and Manitou Springs."
->
+<Base title={`${meta.title} · ${site.name}`} description={meta.description}>
   <section class="section">
     <div class="container book">
       <h1>Book a session</h1>
