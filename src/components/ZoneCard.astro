@@ -5,9 +5,11 @@ import ContactButtons from './ContactButtons.astro';
 interface Props {
   zone: ZoneKey;
   headingLevel?: 2 | 3;
+  /** How the visitor got here: typed an address, or picked an area. Only changes the out card's heading. */
+  via?: 'address' | 'pick';
 }
 
-const { zone, headingLevel = 2 } = Astro.props;
+const { zone, headingLevel = 2, via = 'pick' } = Astro.props;
 const Heading = `h${headingLevel}` as 'h2' | 'h3';
 const z = site.zones[zone];
 const book = z.linkKey ? bookingUrl(z.linkKey) : null;
@@ -30,8 +32,10 @@ const book = z.linkKey ? bookingUrl(z.linkKey) : null;
       </>
     ) : (
       <>
-        <Heading tabindex="-1">That's outside my regular service area.</Heading>
-        <p>I sometimes travel there by request.</p>
+        <Heading tabindex="-1">
+          {via === 'address' ? 'That address is outside my regular service area.' : 'Outside my regular service area'}
+        </Heading>
+        <p>I can sometimes travel outside my regular area by request.</p>
         <p>{site.outOfRegionFeeNote}</p>
         <ContactButtons />
       </>

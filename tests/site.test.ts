@@ -1,6 +1,5 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import { site, bookingUrl, indexable, isPlaceholder, type LinkKey, type ZoneKey } from '../src/data/site.ts';
 import { w } from '../src/data/wording.ts';
 
@@ -31,23 +30,30 @@ test('every zone key matches its record key', () => {
   for (const [k, z] of Object.entries(site.zones)) assert.equal(z.key, k);
 });
 
-test('map URLs are built from site.map', () => {
-  assert.equal(
-    site.mapEmbedUrl,
-    'https://www.google.com/maps/d/embed?mid=1kjLh6P3y-W-_wvvBdjYpT_CcSEnqSWc&noprof=1&ll=38.89985450733466%2C-104.8154571&z=12&ehbc=125245',
-  );
+test('the map viewer URL is built from site.map', () => {
   assert.equal(
     site.mapViewerUrl,
-    'https://www.google.com/maps/d/viewer?mid=1kjLh6P3y-W-_wvvBdjYpT_CcSEnqSWc&ll=38.89985450733466%2C-104.8154571&z=12',
+    'https://www.google.com/maps/d/viewer?mid=1kjLh6P3y-W-_wvvBdjYpT_CcSEnqSWc&ll=38.89985450733466%2C-104.8154571&z=11',
   );
 });
 
-test('map header colour is a bare hex equal to --green-700', () => {
-  assert.match(site.map.headerColor, /^[0-9a-f]{6}$/i);
-  const css = readFileSync(new URL('../src/styles/tokens.css', import.meta.url), 'utf8');
-  const green = css.match(/--green-700:\s*#([0-9a-f]{6})\s*;/i)?.[1];
-  assert.ok(green, '--green-700 not found in tokens.css');
-  assert.equal(site.map.headerColor.toLowerCase(), green.toLowerCase());
+test('there is no phone number; contact is the PocketSuite lead form and chat', () => {
+  assert.equal('phone' in site, false);
+  assert.ok(site.contact.lead.startsWith('https://pocketsuite.io/'));
+  assert.ok(site.contact.chat.startsWith('https://pocketsuite.io/'));
+});
+
+test('rates are the 60- and 90-minute sessions only', () => {
+  assert.deepEqual(Object.keys(site.rates), ['s60', 's90']);
+});
+
+test('the travel-fee note holds no amount (the amount is site.travelFee.amount)', () => {
+  assert.doesNotMatch(site.travelFee.note, /[\d$]/);
+});
+
+test('days: Central & Southwest has no Wednesdays; the office has Wednesday evenings', () => {
+  assert.doesNotMatch(site.zones.home.days, /wed/i);
+  assert.match(site.office.days, /wednesday evenings/i);
 });
 
 test('Monument is not named in the service area copy', () => {

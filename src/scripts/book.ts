@@ -3,7 +3,8 @@
 // Privacy: nothing the visitor types is stored, logged, or sent anywhere but Google (step 3B).
 
 import type { ZoneKey } from '../data/site.ts';
-import { zoneFor, type ZoneCollection } from '../lib/geo.ts';
+import { bboxOf, zoneFor, type ZoneCollection } from '../lib/geo.ts';
+import { makeFrame, viewBoxAttr, type MapFrame, type View } from '../lib/mapview.ts';
 import zonesRaw from '../data/zones.geojson?raw';
 
 type Where = 'office' | 'mobile';
@@ -56,12 +57,64 @@ const result = $('zone-result');
 
 let placesStarted = false;
 
-/** Clone the zone's card into the live region and move focus to its heading. */
-export function showZone(zone: ZoneKey): void {
-  const tpl = document.querySelector<HTMLTemplateElement>(`template[data-zone="${zone}"]`);
+// The service-area map (ServiceMap.astro). It is drawn at build time; this script only swaps the
+// viewBox, the focus classes and the pin. It never depends on Google.
+const svg = document.querySelector<SVGSVGElement>('#mobile .service-map svg');
+let frame: MapFrame | null = null;
+/** The address pin in map units. Memory only: never stored, logged, or put in the URL. */
+let pin: [number, number] | null = null;
+/** Set by the combobox once it exists; empties the address field. */
+let clearAddress: (() => void) | null = null;
+
+const PIN_MARGIN = 100; // map units around the pin when the view widens to include it (the pin is ~72 units tall)
+
+function setPin(loc: { lat: number; lng: number } | null): void {
+  const el = svg?.querySelector<SVGGElement>('.map-pin');
+  if (!el || !frame) return;
+  if (!loc) {
+    pin = null;
+    el.setAttribute('hidden', '');
+    return;
+  }
+  pin = frame.project(loc.lng, loc.lat);
+  el.style.transform = `translate(${pin[0]}px, ${pin[1]}px) scale(calc(1 / var(--map-scale)))`;
+  el.removeAttribute('hidden');
+}
+
+/** Zoom to the zone and grey out the others; for "out", show everything (widened to include the pin). */
+function focusZone(zone: ZoneKey): void {
+  if (!svg || !frame) return;
+  let view: View = frame.full;
+  const box = zone === 'out' ? null : bboxOf(zones, zone);
+  if (box) view = frame.viewFor(box);
+  else if (pin) view = frame.include(view, pin[0], pin[1], PIN_MARGIN);
+  for (const el of svg.querySelectorAll<SVGElement>('[data-zone]')) {
+    const key = el.dataset.zone;
+    el.classList.toggle('is-focused', !!box && key === zone);
+    el.classList.toggle('is-muted', !!box && key !== zone);
+  }
+  svg.setAttribute('viewBox', viewBoxAttr(view));
+  svg.style.setProperty('--map-scale', String(frame.full.w / view.w));
+}
+
+/**
+ * Show a zone: clone its card into the live region and focus the heading, mark the matching
+ * picker button, then move the map. `via` picks the card variant (only "out" has two).
+ */
+function select(zone: ZoneKey, via: 'address' | 'pick', loc?: { lat: number; lng: number }): void {
+  const tpl =
+    document.querySelector<HTMLTemplateElement>(`template[data-zone="${zone}"][data-via="${via}"]`) ??
+    document.querySelector<HTMLTemplateElement>(`template[data-zone="${zone}"]:not([data-via])`);
   if (!tpl || !result) return;
   result.replaceChildren(tpl.content.cloneNode(true));
   result.querySelector<HTMLElement>('[tabindex="-1"]')?.focus();
+  for (const link of document.querySelectorAll<HTMLAnchorElement>('#mobile .zone-picker a[data-zone]')) {
+    if (link.dataset.zone === zone) link.setAttribute('aria-current', 'true');
+    else link.removeAttribute('aria-current');
+  }
+  setPin(loc ?? null);
+  focusZone(zone);
+  if (via === 'pick') clearAddress?.();
 }
 
 const slot = $('address-slot');
@@ -69,7 +122,7 @@ let dead = false;
 
 /**
  * Terminal for this page view: drop the address field and let the zone picker, map and
- * "Text me" line carry on. Shows no error copy and logs nothing.
+ * boundary line carry on. Shows no error copy and logs nothing.
  */
 function unavailable(): void {
   if (dead) return;
@@ -119,7 +172,7 @@ function mountCombobox(places: PlacesLib): void {
 
   const label = document.createElement('label');
   label.htmlFor = 'addr';
-  label.textContent = 'Your address';
+  label.textContent = 'Not sure? Enter your address';
 
   const input = document.createElement('input');
   input.id = 'addr';
@@ -163,7 +216,7 @@ function mountCombobox(places: PlacesLib): void {
         li.setAttribute('aria-selected', 'false');
         li.textContent = p.text.text;
         li.addEventListener('mousedown', (e) => e.preventDefault()); // keep focus in the input
-        li.addEventListener('click', () => void select(i));
+        li.addEventListener('click', () => void choosePrediction(i));
         return li;
       }),
     );
@@ -173,6 +226,14 @@ function mountCombobox(places: PlacesLib): void {
   }
 
   const close = () => show([]);
+
+  // Picking an area by button or map empties the address field.
+  clearAddress = () => {
+    requestId++; // drop anything still in flight
+    clearTimeout(debounce);
+    input.value = '';
+    close();
+  };
 
   async function search(value: string): Promise<void> {
     if (dead) return; // a debounce can outlive the field
@@ -194,7 +255,7 @@ function mountCombobox(places: PlacesLib): void {
     }
   }
 
-  async function select(i: number): Promise<void> {
+  async function choosePrediction(i: number): Promise<void> {
     const prediction = predictions[i];
     if (!prediction) return;
     const id = ++requestId;
@@ -209,7 +270,8 @@ function mountCombobox(places: PlacesLib): void {
       if (!loc) return unavailable();
       if (id !== requestId) return; // the visitor kept typing
       if (place.formattedAddress) input.value = place.formattedAddress; // display only
-      showZone(zoneFor(loc.lat(), loc.lng(), zones));
+      const [lat, lng] = [loc.lat(), loc.lng()];
+      select(zoneFor(lat, lng, zones), 'address', { lat, lng });
     } catch {
       unavailable();
     }
@@ -242,7 +304,7 @@ function mountCombobox(places: PlacesLib): void {
       case 'Enter':
         if (active < 0) return;
         e.preventDefault();
-        void select(active);
+        void choosePrediction(active);
         break;
       case 'Escape':
         if (!n) return;
@@ -279,9 +341,30 @@ function init(): void {
     radio.checked = false; // undo any state the browser restored
     radio.addEventListener('change', () => radio.checked && choose(radio.value as Where));
   }
+
+  if (svg) {
+    frame = makeFrame(zones);
+    svg.classList.add('is-interactive');
+    mobile.querySelector<HTMLElement>('.map-hint')?.removeAttribute('hidden');
+  }
+
+  // One delegated handler: the area buttons stay on the page (without JS they are plain links
+  // to /book/<zone>), and a click on a zone on the map chooses it.
+  mobile.addEventListener('click', (e) => {
+    const target = e.target as Element;
+    const link = target.closest<HTMLAnchorElement>('.zone-picker a[data-zone]');
+    if (link) {
+      if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return; // let the browser open a tab
+      e.preventDefault();
+      select(link.dataset.zone as ZoneKey, 'pick');
+      return;
+    }
+    const zonePath = target.closest<SVGPathElement>('path.zone[data-zone]');
+    if (zonePath) select(zonePath.dataset.zone as ZoneKey, 'pick');
+  });
 }
 
 init();
 
-// Dev-only hook so showZone can be tried from the browser devtools.
-if (import.meta.env.DEV) Object.assign(window, { showZone });
+// Dev-only hook so select can be tried from the browser devtools.
+if (import.meta.env.DEV) Object.assign(window, { select });

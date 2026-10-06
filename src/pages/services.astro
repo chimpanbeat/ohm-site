@@ -1,19 +1,20 @@
 ---
 import Base from '../layouts/Base.astro';
 import BookCta from '../components/BookCta.astro';
-import RateTable from '../components/RateTable.astro';
-import Glossary from '../components/Glossary.astro';
 import { site } from '../data/site.ts';
 import { w } from '../data/wording.ts';
+import { href } from '../lib/url.ts';
+
+const minPrice = Math.min(...Object.values(site.rates).map((r) => r.price));
 ---
 
 <Base
-  title="Services and pricing · Ohm Precision Bodywork"
-  description={`Neuromuscular therapy, sports recovery for climbers, and myofascial and ${w('deepTissue')} in Colorado Springs. Rates, the travel fee, and office or mobile sessions.`}
+  title="Services · Ohm Precision Bodywork"
+  description={`Neuromuscular therapy, sports recovery for climbers, and myofascial and ${w('deepTissue')} in Colorado Springs, at my office or at your place.`}
 >
   <section class="section">
     <div class="container">
-      <h1>Services and pricing</h1>
+      <h1>Services</h1>
       <p class="intro">I work on the muscles and fascia that limit how you move. Every session starts with an assessment, and I explain what I find and why I'm working where I am.</p>
     </div>
   </section>
@@ -23,8 +24,8 @@ import { w } from '../data/wording.ts';
       <h2>Session types</h2>
       <div>
         <h3>Neuromuscular therapy</h3>
-        <p>Trigger point release, ischemic compression and PNF stretching, aimed at the specific muscles that refer pain or limit your range. Precise, pressure-specific work, with the reasoning explained as we go.</p>
-        <Glossary keys={['ischemicCompression', 'pnf', 'referredPain']} />
+        <p>Neuromuscular therapy works with your nervous system, not against it. Your nervous system sets how tight a muscle stays and how sensitive an area feels, and after an injury or a long stretch of pain it can keep muscles guarded when they no longer need to be. I use focused pressure, stretches you take an active part in, and other targeted techniques to give it a reason to let go. The aim is less pain and more freedom to move.</p>
+        <p>A big part of this is trigger points: tight, tender spots in a muscle that can send pain somewhere else. Knots in your upper shoulders, for example, can show up as a headache. Knowing these referred pain patterns means I look for where your pain starts, not just where you feel it.</p>
       </div>
       <div>
         <h3>Sports and athletic recovery</h3>
@@ -40,10 +41,7 @@ import { w } from '../data/wording.ts';
       </div>
 
       <h2 class="gap">Pricing</h2>
-      <RateTable />
-      <p>{site.rates.s60.label} at your place: ${site.rates.s60.price} + ${site.travelFee.amount} travel = ${site.rates.s60.price + site.travelFee.amount}.</p>
-      <p>{site.travelFee.note}</p>
-      <!-- TODO(Brian): is the initial assessment + session required for first-time clients? If yes, Opus adds one line here. -->
+      <p>Sessions start at ${minPrice}, at my office or at your place. See <a href={href('/pricing')}>rates and the travel fee</a>.</p>
 
       <h2 class="gap">At my office or at your place</h2>
       <p>Sessions are at my home office or at your place. The office is in {site.officeArea}, and I'm there {site.office.days}. For mobile sessions I come to you, with a ${site.travelFee.amount} travel fee, and the days depend on your part of town. The booking page works out which area you're in and sends you to the right booking link.</p>

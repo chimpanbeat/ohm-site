@@ -3,6 +3,7 @@ import Base from '../../layouts/Base.astro';
 import OfficeCard from '../../components/OfficeCard.astro';
 import ZoneCard from '../../components/ZoneCard.astro';
 import ZonePicker from '../../components/ZonePicker.astro';
+import ServiceMap from '../../components/ServiceMap.astro';
 import { site, zoneOrder, type ZoneKey } from '../../data/site.ts';
 import { href } from '../../lib/url.ts';
 
@@ -25,7 +26,9 @@ const { zone } = Astro.params as { zone: ZoneKey | 'office' };
         {zone === 'office' ? <OfficeCard headingLevel={2} /> : <ZoneCard zone={zone} headingLevel={2} />}
       </div>
 
-      <ZonePicker current={zone === 'office' ? undefined : zone} />
+      {zone !== 'office' && <ServiceMap focus={zone} />}
+
+      <ZonePicker current={zone === 'office' ? undefined : zone} heading="Not sure? Pick your area." />
 
       <p class="links">
         <a href={href('/book')}>Back to booking options</a>

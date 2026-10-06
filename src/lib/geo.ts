@@ -38,6 +38,27 @@ export function pointInPolygon(pt: LngLat, rings: Ring[]): boolean {
   return !holes.some((hole) => pointInRing(pt, hole));
 }
 
+/** [west, south, east, north] in degrees. */
+export type BBox = [number, number, number, number];
+
+/**
+ * Bounding box of the given zones' polygons (all zones when `zone` is omitted).
+ * Null when no feature matches. Used to fit the booking map (7A).
+ */
+export function bboxOf(fc: ZoneCollection, zone?: Exclude<ZoneKey, 'out'>): BBox | null {
+  let box: BBox | null = null;
+  for (const { properties, geometry } of fc.features) {
+    if (zone && properties.zone !== zone) continue;
+    const polys = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
+    for (const [lng, lat] of polys.flatMap((rings) => rings[0] ?? [])) {
+      box = box
+        ? [Math.min(box[0], lng), Math.min(box[1], lat), Math.max(box[2], lng), Math.max(box[3], lat)]
+        : [lng, lat, lng, lat];
+    }
+  }
+  return box;
+}
+
 /**
  * The zone for a coordinate. When polygons overlap, site.zonePrecedence decides
  * (shared over home or north). A point in no polygon is 'out'.

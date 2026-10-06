@@ -1,0 +1,403 @@
+---
+// Service-area map: an inline SVG drawn at build time from zones.geojson and osm.geojson
+// (docs/build/ARCHITECTURE.md §B4). No tiles, no map library, nothing fetched at runtime.
+// book.ts swaps the viewBox, the is-focused / is-muted classes and the pin on /book.
+import { site, zoneOrder, type ZoneKey } from '../data/site.ts';
+import { bboxOf, type ZoneCollection } from '../lib/geo.ts';
+import { makeFrame, viewBoxAttr } from '../lib/mapview.ts';
+import zonesRaw from '../data/zones.geojson?raw';
+import osmRaw from '../data/osm.geojson?raw';
+
+interface Props {
+  focus?: ZoneKey;
+}
+
+type Pt = [number, number];
+type RegionKey = Exclude<ZoneKey, 'out'>;
+
+interface OsmFeature {
+  properties: { kind: 'road' | 'place'; name: string; major?: boolean };
+  geometry: { type: 'MultiLineString'; coordinates: Pt[][] } | { type: 'Point'; coordinates: Pt };
+}
+
+const { focus } = Astro.props;
+
+// Manual label fixes in SVG units: [dx, dy]. Keys are `zone:<key>`, `road:<name>`, `place:<name>`.
+const labelNudge: Record<string, [number, number]> = {
+  'zone:home': [25, 0],
+  'place:Colorado Springs': [0, 75],
+  'road:Academy': [75, 0],
+  'road:Woodmen': [40, 0],
+  'road:Templeton Gap': [75, -30],
+  'road:Austin Bluffs': [-40, 20],
+  'road:US 24': [40, -35],
+  'place:Manitou Springs': [-30, 0],
+};
+
+const zones = JSON.parse(zonesRaw) as ZoneCollection;
+const osm = (JSON.parse(osmRaw) as { features: OsmFeature[] }).features;
+const frame = makeFrame(zones);
+const { full } = frame;
+
+const regions: RegionKey[] = zoneOrder.filter((k): k is RegionKey => k !== 'out');
+const focused = focus && focus !== 'out' ? (focus as RegionKey) : undefined;
+const box = focused ? bboxOf(zones, focused) : null;
+const view = box ? frame.viewFor(box) : full;
+const mapScale = Number((full.w / view.w).toFixed(3));
+
+const path = (pts: Pt[], close = false) =>
+  'M' + pts.map(([x, y]) => `${x} ${y}`).join('L') + (close ? 'Z' : '');
+const nudge = (key: string, [x, y]: Pt): Pt => {
+  const [dx, dy] = labelNudge[key] ?? [0, 0];
+  return [x + dx, y + dy];
+};
+
+// Zones, projected: one list of rings (outer first, then holes) per polygon.
+const zoneRings = Object.fromEntries(
+  regions.map((key) => {
+    const f = zones.features.find((feat) => feat.properties.zone === key);
+    const polys = !f ? [] : f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : f.geometry.coordinates;
+    return [key, polys.map((rings) => rings.map((ring) => ring.map(([lng, lat]) => frame.project(lng, lat))))];
+  }),
+) as Record<RegionKey, Pt[][][]>;
+
+/** Pole of inaccessibility: the interior point farthest from any edge, by grid search plus one refinement. */
+function pole(rings: Pt[][]): Pt {
+  const all = rings.flat();
+  const edges: [Pt, Pt][] = rings.flatMap((r) => r.map((p, i): [Pt, Pt] => [p, r[(i + 1) % r.length]]));
+  const inside = (x: number, y: number) => {
+    let hit = false;
+    for (const [[ax, ay], [bx, by]] of edges) {
+      if (ay > y !== by > y && x < ((bx - ax) * (y - ay)) / (by - ay) + ax) hit = !hit;
+    }
+    return hit;
+  };
+  const distance = (x: number, y: number) => {
+    let best = Infinity;
+    for (const [[ax, ay], [bx, by]] of edges) {
+      const dx = bx - ax;
+      const dy = by - ay;
+      const t = dx || dy ? Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy))) : 0;
+      best = Math.min(best, Math.hypot(x - (ax + t * dx), y - (ay + t * dy)));
+    }
+    return best;
+  };
+  const search = (x0: number, y0: number, x1: number, y1: number, n: number, from: Pt | null): Pt => {
+    let best: Pt = from ?? [(x0 + x1) / 2, (y0 + y1) / 2];
+    let bestD = from ? distance(...from) : -1;
+    for (let i = 0; i <= n; i++) {
+      for (let j = 0; j <= n; j++) {
+        const x = x0 + ((x1 - x0) * i) / n;
+        const y = y0 + ((y1 - y0) * j) / n;
+        if (!inside(x, y)) continue;
+        const d = distance(x, y);
+        if (d > bestD) {
+          bestD = d;
+          best = [x, y];
+        }
+      }
+    }
+    return best;
+  };
+  const xs = all.map((p) => p[0]);
+  const ys = all.map((p) => p[1]);
+  const [x0, x1] = [Math.min(...xs), Math.max(...xs)];
+  const [y0, y1] = [Math.min(...ys), Math.max(...ys)];
+  const coarse = search(x0, y0, x1, y1, 40, null);
+  const dx = (x1 - x0) / 40;
+  const dy = (y1 - y0) / 40;
+  const [px, py] = search(coarse[0] - dx, coarse[1] - dy, coarse[0] + dx, coarse[1] + dy, 20, coarse);
+  return [Number(px.toFixed(1)), Number(py.toFixed(1))];
+}
+
+/** Two lines for long zone names, split at the space nearest the middle. */
+function lines(name: string): string[] {
+  if (name.length <= 14) return [name];
+  const mid = name.length / 2;
+  const spaces = [...name].flatMap((c, i) => (c === ' ' ? [i] : []));
+  const at = spaces.reduce((a, b) => (Math.abs(b - mid) < Math.abs(a - mid) ? b : a));
+  return [name.slice(0, at), name.slice(at + 1)];
+}
+
+const zoneShapes = regions.map((key) => {
+  const polys = zoneRings[key];
+  const d = polys.map((rings) => rings.map((ring) => path(ring, true)).join('')).join('');
+  const label = nudge(`zone:${key}`, pole(polys.flat()));
+  return { key, d, label, text: lines(site.zones[key].name) };
+});
+
+const inView = ([x, y]: Pt) => x >= full.x && x <= full.x + full.w && y >= full.y && y <= full.y + full.h;
+const lengthOf = (pts: Pt[]) => pts.reduce((sum, p, i) => (i ? sum + Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]) : 0), 0);
+
+/** A vertex near the middle (by length) of the longest run of the road that is inside the full view. */
+function roadLabelAt(lines: Pt[][]): Pt | null {
+  let longest: Pt[] = [];
+  for (const line of lines) {
+    let run: Pt[] = [];
+    for (const p of [...line, null]) {
+      if (p && inView(p)) {
+        run.push(p);
+        continue;
+      }
+      if (run.length > 1 && lengthOf(run) > lengthOf(longest)) longest = run;
+      run = [];
+    }
+  }
+  if (longest.length < 2) return null;
+  const half = lengthOf(longest) / 2;
+  let walked = 0;
+  for (let i = 1; i < longest.length; i++) {
+    walked += Math.hypot(longest[i][0] - longest[i - 1][0], longest[i][1] - longest[i - 1][1]);
+    if (walked >= half) return longest[i];
+  }
+  return longest[longest.length - 1];
+}
+
+const roads = osm.flatMap((f) => {
+  if (f.properties.kind !== 'road' || f.geometry.type !== 'MultiLineString') return [];
+  const lines = f.geometry.coordinates.map((line) => line.map(([lng, lat]) => frame.project(lng, lat)));
+  const at = roadLabelAt(lines);
+  return [
+    {
+      name: f.properties.name,
+      major: !!f.properties.major,
+      d: lines.map((l) => path(l)).join(''),
+      label: at ? nudge(`road:${f.properties.name}`, at) : null,
+    },
+  ];
+});
+
+const places = osm.flatMap((f) =>
+  f.properties.kind === 'place' && f.geometry.type === 'Point'
+    ? [{ name: f.properties.name, at: nudge(`place:${f.properties.name}`, frame.project(...f.geometry.coordinates)) }]
+    : [],
+);
+
+const names = regions.map((k) => site.zones[k].name);
+const desc = `Map of Colorado Springs showing my three service areas, ${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}, with the major roads that border them.`;
+const state = (key: RegionKey) => (focused ? (key === focused ? 'is-focused' : 'is-muted') : undefined);
+---
+
+<div class="service-map">
+  <svg
+    viewBox={viewBoxAttr(view)}
+    data-full={viewBoxAttr(full)}
+    style={`--map-scale: ${mapScale}`}
+    role="img"
+    aria-labelledby="map-title map-desc"
+    preserveAspectRatio="xMidYMid meet"
+  >
+    <title id="map-title">Service area map</title>
+    <desc id="map-desc">{desc}</desc>
+
+    {
+      zoneShapes.map((z) => (
+        <path class:list={['zone', `zone--${z.key}`, state(z.key)]} data-zone={z.key} fill-rule="evenodd" d={z.d} />
+      ))
+    }
+    {roads.map((r) => <path class:list={['road', { 'road--major': r.major }]} data-road={r.name} d={r.d} />)}
+    {
+      zoneShapes.map((z) => (
+        <path class:list={['zone-line', `zone-line--${z.key}`, state(z.key)]} data-zone={z.key} fill-rule="evenodd" d={z.d} />
+      ))
+    }
+    {
+      roads.map(
+        (r) =>
+          r.label && (
+            <g transform={`translate(${r.label[0]} ${r.label[1]})`}>
+              <text class="road-label" text-anchor="middle" dy="0.35em">
+                {r.name}
+              </text>
+            </g>
+          ),
+      )
+    }
+    {
+      places.map((p) => (
+        <g transform={`translate(${p.at[0]} ${p.at[1]})`}>
+          <text class="place-label" text-anchor="middle" dy="0.35em">
+            {p.name}
+          </text>
+        </g>
+      ))
+    }
+    {
+      zoneShapes.map((z) => (
+        <g transform={`translate(${z.label[0]} ${z.label[1]})`}>
+          <text class:list={['zone-label', state(z.key)]} data-zone={z.key} text-anchor="middle" dy={`${0.35 - (z.text.length - 1) * 0.575}em`}>
+            {z.text.map((line, i) => (
+              <tspan x="0" dy={i ? '1.15em' : undefined}>
+                {line}
+              </tspan>
+            ))}
+          </text>
+        </g>
+      ))
+    }
+
+    <g class="map-pin" hidden>
+      {/* 24x32 teardrop, tip at (0,0), drawn at 2.25x: the map is only ~340px wide on a phone. */}
+      <g transform="scale(2.25)">
+        <path d="M0 0C-4-8-12-14-12-20A12 12 0 1 1 12-20C12-14 4-8 0 0Z"></path>
+        <circle cy="-20" r="4"></circle>
+      </g>
+    </g>
+  </svg>
+
+  <p class="map-hint" hidden>The colors match the area buttons above. Tap an area on the map to choose it.</p>
+  <p class="map-credit">
+    Roads and places &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>
+  </p>
+  <p class="map-link">
+    <a href={site.mapViewerUrl} target="_blank" rel="noopener">Open the map in Google Maps</a>
+  </p>
+</div>
+
+<style>
+  .service-map {
+    margin-top: var(--s-8);
+    /* Label sizes are in SVG units (the map is 1000 wide). The map is as wide as the screen up to 34rem,
+       so smaller screens need bigger units to keep labels near 12–13px. */
+    --t-road: 34px;
+    --t-zone: 38px;
+  }
+  @media (min-width: 24rem) {
+    .service-map {
+      --t-road: 30px;
+      --t-zone: 34px;
+    }
+  }
+  @media (min-width: 30rem) {
+    .service-map {
+      --t-road: 26px;
+      --t-zone: 30px;
+    }
+  }
+  @media (min-width: 36rem) {
+    .service-map {
+      --t-road: 24px;
+      --t-zone: 28px;
+    }
+  }
+
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 5;
+    max-width: 34rem;
+    background: var(--bg-light);
+    border: 1px solid var(--line-dark);
+    border-radius: var(--radius);
+    color: var(--text-on-light);
+  }
+
+  /* Zones: the fill takes the click; everything drawn over it lets clicks through. */
+  .zone {
+    fill-opacity: 0.35;
+    stroke: none;
+  }
+  .zone--home {
+    fill: var(--zone-home);
+  }
+  .zone--shared {
+    fill: var(--zone-shared);
+  }
+  .zone--north {
+    fill: var(--zone-north);
+  }
+  .zone.is-muted {
+    fill: var(--zone-muted);
+    fill-opacity: 0.06;
+  }
+  .is-interactive .zone {
+    cursor: pointer;
+  }
+  .zone-line {
+    fill: none;
+    stroke-width: 2px;
+    vector-effect: non-scaling-stroke;
+    pointer-events: none;
+  }
+  .zone-line--home {
+    stroke: var(--zone-home);
+  }
+  .zone-line--shared {
+    stroke: var(--zone-shared);
+  }
+  .zone-line--north {
+    stroke: var(--zone-north);
+  }
+  .zone-line.is-muted {
+    stroke-opacity: 0.25;
+  }
+
+  .road {
+    fill: none;
+    stroke: var(--ink);
+    stroke-opacity: 0.45;
+    stroke-width: 1.5px;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+    pointer-events: none;
+  }
+  .road--major {
+    stroke-width: 2.5px;
+  }
+
+  text {
+    fill: var(--ink);
+    font-family: var(--font-text);
+    paint-order: stroke;
+    stroke: var(--bg-light);
+    stroke-width: calc(4px / var(--map-scale, 1));
+    stroke-linejoin: round;
+    pointer-events: none;
+    user-select: none;
+  }
+  .road-label,
+  .place-label {
+    font-size: calc(var(--t-road) / var(--map-scale, 1));
+  }
+  .place-label {
+    font-style: italic;
+    opacity: 0.7;
+  }
+  .zone-label {
+    font-size: calc(var(--t-zone) / var(--map-scale, 1));
+    font-weight: 700;
+  }
+  .zone-label.is-muted {
+    opacity: 0.5;
+  }
+
+  .map-pin {
+    pointer-events: none;
+  }
+  /* The browser's [hidden] rule only covers HTML elements, not SVG. */
+  .map-pin[hidden] {
+    display: none;
+  }
+  .map-pin path {
+    fill: var(--accent);
+    stroke: var(--bg-light);
+    stroke-width: 2px;
+    vector-effect: non-scaling-stroke;
+  }
+  .map-pin circle {
+    fill: var(--bg-light);
+  }
+
+  .map-hint,
+  .map-credit,
+  .map-link {
+    font-size: var(--fs-small);
+    margin-top: var(--s-3);
+  }
+  .map-credit,
+  .map-link {
+    margin-top: var(--s-2);
+  }
+</style>

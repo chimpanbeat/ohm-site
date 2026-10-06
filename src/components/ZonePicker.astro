@@ -4,18 +4,26 @@ import { href } from '../lib/url.ts';
 
 interface Props {
   current?: ZoneKey;
+  /** Omit when a surrounding heading already introduces the list. */
+  heading?: string;
 }
 
-const { current } = Astro.props;
+const { current, heading } = Astro.props;
 ---
 
-<div class="zone-picker">
-  <h3>Not sure? Pick your area.</h3>
+<div class:list={['zone-picker', { 'zone-picker--titled': heading }]}>
+  {heading && <h3>{heading}</h3>}
   <ul>
     {
       zoneOrder.map((key) => (
         <li>
-          <a class="btn btn--quiet" href={href(`/book/${key}`)} aria-current={key === current ? 'page' : undefined}>
+          <a
+            class="btn btn--quiet"
+            href={href(`/book/${key}`)}
+            data-zone={key}
+            aria-current={key === current ? 'page' : undefined}
+          >
+            <span class={`swatch swatch--${key}`} aria-hidden="true" />
             {site.zones[key].name}
           </a>
         </li>
@@ -26,7 +34,7 @@ const { current } = Astro.props;
 
 <style>
   .zone-picker {
-    margin-top: var(--s-8);
+    margin-top: var(--s-4);
   }
   ul {
     list-style: none;
@@ -36,8 +44,39 @@ const { current } = Astro.props;
     flex-wrap: wrap;
     gap: var(--s-3);
   }
-  a[aria-current='page'] {
+  .zone-picker--titled {
+    margin-top: var(--s-8);
+  }
+  a {
+    gap: var(--s-2);
+  }
+  /* The colour each zone shows on the SVG map: its --zone-* fill at 35% over the map background
+     (ServiceMap .zone), so a button can be matched to its zone by colour. */
+  .swatch {
+    flex: none;
+    width: 0.875rem;
+    height: 0.875rem;
+    border: 1px solid var(--text-on-dark);
+    border-radius: var(--radius);
+  }
+  .swatch--home {
+    background: color-mix(in srgb, var(--zone-home) 35%, var(--bg-light));
+  }
+  .swatch--shared {
+    background: color-mix(in srgb, var(--zone-shared) 35%, var(--bg-light));
+  }
+  .swatch--north {
+    background: color-mix(in srgb, var(--zone-north) 35%, var(--bg-light));
+  }
+  .swatch--out {
+    border-style: dashed;
+  }
+  /* The chosen area (aria-current="page" on /book/<zone>, "true" once book.ts selects it). */
+  a[aria-current] {
     background: var(--text-on-dark);
     color: var(--bg-dark);
+  }
+  a[aria-current] .swatch {
+    border-color: var(--bg-dark);
   }
 </style>

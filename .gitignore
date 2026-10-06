@@ -26,3 +26,4 @@ Thumbs.db
 # local browser tooling output (screenshots, snapshots, Lighthouse reports)
 .playwright-mcp/
 lighthouse/
+docs/build/screens/

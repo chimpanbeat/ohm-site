@@ -3,8 +3,8 @@ import Base from '../../layouts/Base.astro';
 import OfficeCard from '../../components/OfficeCard.astro';
 import ZoneCard from '../../components/ZoneCard.astro';
 import ZonePicker from '../../components/ZonePicker.astro';
-import MapEmbed from '../../components/MapEmbed.astro';
-import { smsHref, zoneOrder } from '../../data/site.ts';
+import ServiceMap from '../../components/ServiceMap.astro';
+import { site, zoneOrder } from '../../data/site.ts';
 
 const key = import.meta.env.PUBLIC_GOOGLE_MAPS_KEY ?? '';
 ---
@@ -29,13 +29,13 @@ const key = import.meta.env.PUBLIC_GOOGLE_MAPS_KEY ?? '';
       </section>
 
       <section id="mobile" aria-labelledby="mobile-h" data-maps-key={key}>
-        <h2 id="mobile-h">At your place</h2>
+        <h2 id="mobile-h">Where are you located?</h2>
+        <ZonePicker />
         <div id="address-slot"></div>
         <div id="zone-result" aria-live="polite"></div>
-        <ZonePicker />
-        <MapEmbed />
+        <ServiceMap />
         <p class="boundary">
-          Near a boundary or can't find your address? <a href={smsHref}>Text me</a>. Boundaries are approximate.
+          Near a boundary or can't find your address? <a href={site.contact.chat}>Chat with me</a>. Boundaries are approximate.
         </p>
       </section>
 
@@ -46,6 +46,9 @@ const key = import.meta.env.PUBLIC_GOOGLE_MAPS_KEY ?? '';
           </template>
         ))
       }
+      <template data-zone="out" data-via="address">
+        <ZoneCard zone="out" via="address" headingLevel={3} />
+      </template>
     </div>
   </section>
 </Base>

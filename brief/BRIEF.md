@@ -1,6 +1,6 @@
 # Ohm Precision Bodywork — Website Brief
 
-Owner: Brian Clarke · Prepared Oct 4, 2026 · Updated Oct 5, 2026 (§6 key and quota details, new §14, repo is public) · Target: deployable preview this week
+Owner: Brian Clarke · Prepared Oct 4, 2026 · Updated Oct 5, 2026 (§6 key and quota details, new §14, repo is public) · Updated Oct 6, 2026 (no phone on the site, initial assessment removed, Pricing page, days, travel-fee waiver, interactive map) · Target: deployable preview this week
 
 ## 1. What this site is for
 
@@ -20,7 +20,7 @@ PocketSuite (PS) handles booking, availability, intake forms, contracts, payment
   3.  Chronic pain clients referred by chiropractors and PTs.
   4.  Technical professionals with desk-posture issues.
   5.  Military and veterans (secondary).
-- **Contact:** 719-900-3339 · <brian@ohmprecisionbodywork.com> · ohmprecisionbodywork.com
+- **Contact:** <brian@ohmprecisionbodywork.com> · ohmprecisionbodywork.com · PocketSuite lead form and chat (links in §4). **No phone number on the site** (decided Oct 6, 2026).
 
 ## 2. Non-goals
 
@@ -54,16 +54,18 @@ Put all business facts in `src/data/site.ts`, a typed object that pages read fro
 export const site = {
   licensed: false,                 // flips wording rules (§7). Default false.
   licenseNumber: "",               // shown in footer only when licensed && non-empty
-  phone: "719-900-3339",
-  email: "brian@ohmprecisionbodywork.com",
+  email: "brian@ohmprecisionbodywork.com",   // no phone (Oct 6, 2026)
   officeArea: "Southwest Colorado Springs (address sent after booking)",
-  rates: {
-    initial: { label: "Initial assessment + session", minutes: 75, price: 110 },
+  rates: {                         // no initial assessment rate (removed Oct 6, 2026)
     s60:     { label: "60-minute session", minutes: 60, price: 90 },
     s90:     { label: "90-minute session", minutes: 90, price: 120 },
   },
-  travelFee: { amount: 25, note: "Flat, per mobile session. Waived for back-to-back sessions at the same location." },
+  travelFee: { amount: 25, note: "Flat, per mobile session. Book two sessions back to back at the same place, like you and your partner, and neither one has a travel fee." },
   outOfRegionFee: null,            // TBD. Do not display an amount while null.
+  contact: {
+    lead: "https://pocketsuite.io/lead/ohm-precision-bodywork",
+    chat: "https://pocketsuite.io/chat/ohm-precision-bodywork",
+  },
   links: {                         // PLACEHOLDERS. Brian replaces these with tested PS links.
     office:  "TODO_PS_OFFICE",
     home:    "TODO_PS_HOME_REGION",
@@ -82,22 +84,30 @@ Packages and the friends-and-family rate are **not** shown on the site.
 | Route       | Purpose            | Notes                                                                       |
 |-------------|--------------------|-----------------------------------------------------------------------------|
 | `/`         | Home               | Who Ohm is for, what a session does, one clear "Book a session" CTA. Short. |
-| `/services` | Services & pricing | See content below.                                                          |
+| `/services` | Services           | See content below.                                                          |
+| `/pricing`  | Pricing            | Rates at the office and at your place (with the travel fee), and the travel-fee rule. Added Oct 6, 2026. |
 | `/about`    | About Brian        | Uses the provided photos. Draft copy from §8, marked for Brian's review.    |
 | `/book`     | Booking router     | The core feature (§6).                                                      |
 | `/404`      | Not found          | Plain, with a link to `/book`.                                              |
 
 **Services page content:**
 
-- **Session types:** neuromuscular therapy (trigger point release, ischemic compression, PNF), sports and athletic recovery, myofascial / deep tissue work, and chronic pain and injury support (in collaboration with referring chiropractors and PTs).
-- **Prices:** from the config `rates` and `travelFee`.
+- **Session types:** neuromuscular therapy, sports and athletic recovery, myofascial / deep tissue work, and chronic pain and injury support (in collaboration with referring chiropractors and PTs).
+  - Neuromuscular therapy is described in plain terms, like the others: working with the nervous system to reduce pain and restore movement, using a range of techniques. No technique glossary. Trigger points and referred pain are explained briefly, because knowing those patterns is what sets Brian apart (Oct 6, 2026).
+- **Prices:** a short line with the starting price and a link to `/pricing`.
+
+**Pricing page content** (Oct 6, 2026):
+
+- A table with columns Session, At my office, At your place. No minutes column (the label already says it).
+- At your place = rate + travel fee, computed from config: 60 min $90 + $25 = $115, 90 min $120 + $25 = $145.
+- The travel-fee rule (`travelFee.note`).
 - **Office vs mobile:** one plain paragraph explaining the difference.
 - **Scope note:** sessions are not a substitute for medical diagnosis or treatment.
 
 **Global elements:**
 
-- **Header:** logo and nav (Services, About, Book).
-- **Footer:** phone, email, and a one-line service area summary ("Colorado Springs and Manitou Springs; other areas by request"). Show the license line only when `licensed` is true and `licenseNumber` is set.
+- **Header:** logo and nav (Services, Pricing, About, Book).
+- **Footer:** email and a one-line service area summary (no phone) ("Colorado Springs and Manitou Springs; other areas by request"). Show the license line only when `licensed` is true and `licenseNumber` is set.
 - Every page links to `/book`.
 
 ## 6. Booking router (`/book`)
@@ -105,23 +115,29 @@ Packages and the friends-and-family rate are **not** shown on the site.
 ### Flow
 
 1.  **"Where do you want your session?"** Two choices:
-    - **At my office:** show the office days and the `links.office` button. Office days are Tue, Fri, and Sat, plus some Wed evenings.
+    - **At my office:** show the office days and the `links.office` button. Office days are Tuesdays, Wednesday evenings, Fridays, and Saturdays. The Wednesday evening slot (8:00 PM) is at the office only (Oct 6, 2026).
     - **At your place (mobile):** go to step 2.
-2.  **Address field** using Google Places autocomplete, restricted to US addresses and biased to Colorado Springs.
+2.  **"Where are you located?"** The zone buttons come first, each with a colour swatch that matches the map. Then **"Not sure? Enter your address"**: the address field using Google Places autocomplete, restricted to US addresses and biased to Colorado Springs (order changed Oct 6, 2026).
     - On selection, get the latitude/longitude and test it against the zone polygons.
+    - The matching zone button is highlighted, whether chosen by button or by address.
 3.  **Result card.** Shows the zone's plain-language name, the days I'm in that area, the travel fee note, and one primary button to that zone's PS link.
     - Example: "You're in my Central & Southwest area. I'm there Tuesdays and Fridays."
-4.  **Out of region:** "That's outside my regular service area. I sometimes travel there by request." Show call, text, and email buttons. No booking link.
-5.  **Fallback, always visible below the address field:**
-    - The embedded zone map (Google My Maps iframe, viewer URL from config).
-    - Manual zone buttons: "Not sure? Pick your area."
-    - A "Near a boundary or can't find your address? Text me" line. Boundaries are approximate.
+    - The visitor stays on the page; the map stays visible.
+4.  **Out of region:** from an address, "That address is outside my regular service area."; from the button, "Outside my regular service area". Then "I can sometimes travel outside my regular area by request." Show a PocketSuite lead form button, a PocketSuite chat button, and an email link. No booking link, no phone.
+5.  **Map** (Oct 6, 2026): the site draws its own map (an SVG built at compile time) of the zones from `zones.geojson`, plus the major roads that bound them and nearby town names from OpenStreetMap. No map service and no per-view cost. Brian is trying it; the fallback plan is a Google Maps JavaScript map.
+    - Zone names are labelled on the map, and the zone colours match swatches on the zone buttons.
+    - The first view fits all zones (the old My Maps view was zoomed in too far).
+    - Choosing a zone zooms to fit it and greys out the other zones. Clicking a zone on the map chooses it.
+    - A pin marks the entered address.
+    - It works without JavaScript or the key: the static map shows, and `/book/<zone>` shows it focused on that zone.
+    - "Open the map in Google Maps" links to Brian's My Maps viewer. The My Maps iframe is no longer embedded.
+6.  A "Near a boundary or can't find your address? Chat with me" line (PocketSuite chat). Boundaries are approximate.
 
 ### Zones
 
 | Key      | Client-facing name (draft)  | Days                         | PS link                                                             |
 |----------|-----------------------------|------------------------------|---------------------------------------------------------------------|
-| `home`   | Central & Southwest Springs | Tue, Fri (some Wed evenings) | `links.home`                                                        |
+| `home`   | Central & Southwest Springs | Tue, Fri                     | `links.home`                                                        |
 | `shared` | Mid-north Springs           | Tue, Wed, Fri                | `links.shared`, a keyword link showing both home and north services |
 | `north`  | North Springs               | Wed                          | `links.north`                                                       |
 | `out`    | Outside regular area        | By request                   | contact only                                                        |
@@ -152,7 +168,7 @@ Rough boundary descriptions (for copy and alt text only; the polygons decide):
   - Confirm the key is restricted to the Maps JavaScript API and Places API (New) only (already set).
   - Set daily quota caps after the Google Cloud account is upgraded from the free trial (the console blocks quota edits during the trial; see §14). Suggested: `AutocompletePlacesRequest` per day 300, `GetPlaceRequest` per day 100, Maps JavaScript API map loads per day 100. Verify the quota names and numbers against the console and Google's current docs.
 - Load the Maps script only on `/book`, and only after the visitor chooses mobile.
-- If the script fails to load or the key is missing, hide the address field and show the map and manual zone buttons instead.
+- If the script fails to load or the key is missing, hide the address field. The map and the manual zone buttons still work.
 - The address never leaves the browser except in the Google request. Do not log it.
 
 ### Accessibility

@@ -13,13 +13,24 @@ Written by Opus in step 4A (2026-10-05). **This is the only source of visible te
 - Apostrophes and quotes are straight (`'` and `"`), as in the existing components.
 
 ## Global
-Header, Footer, OfficeCard, ZonePicker and RateTable keep their current text (ARCHITECTURE §B3).
+Header, Footer, OfficeCard, ZonePicker and ZoneCard keep their current text (ARCHITECTURE §B3) except for the changes below.
 
-**Changes in step 6A (Oct 5, site review):**
-- **ZoneCard, `out` only:** a new `<p>` after `I sometimes travel there by request.` and before the contact buttons: `{site.outOfRegionFeeNote}`. No amount is shown while `site.outOfRegionFee` is `null`.
-- **MapEmbed:** iframe `title` is `Ohm service area map`.
-- **Travel-fee note:** `{site.travelFee.note}` now ends "No travel fee for a second session booked right after the first at the same address." It's config-only, so ZoneCard and Services pick it up with no page change.
-- **Glossary:** definitions live in `src/data/glossary.ts` and render through `<Glossary keys={[…]} />` (a `<dl>`). Use the term and definition text exactly as written there.
+**Changes in step 7A (Oct 6, Brian's review):**
+- **Header nav:** `Services`, `Pricing` (→ `/pricing`), `About`, then the `Book` button.
+- **Footer:** the phone line is removed. Nothing replaces it.
+- **No phone number anywhere.** No `tel:` or `sms:` links, no "Call", "Text" or "Text me".
+- **ContactButtons** (out-of-region card): `Send a request` (primary, → `{site.contact.lead}`), `Chat with me` (quiet, → `{site.contact.chat}`), then a `<p>`: `Or email ` + a `mailHref` link showing `{site.email}` + `.`
+- **ZoneCard, `out`:**
+  - Heading, `via='address'`: `That address is outside my regular service area.`
+  - Heading, `via='pick'` (picker button and `/book/out`): `Outside my regular service area`
+  - Then `I can sometimes travel outside my regular area by request.` (replaces "I sometimes travel there by request."), then `{site.outOfRegionFeeNote}`, then ContactButtons.
+- **ZonePicker:** no built-in heading. `/book/[zone]` passes `heading="Not sure? Pick your area."`; `/book` passes none (its H2 introduces the list).
+- **Travel-fee note:** `{site.travelFee.note}` is now "Flat, per mobile session. Book two sessions back to back at the same place, like you and your partner, and neither one has a travel fee." Config-only.
+- **Glossary:** removed from the site (`glossary.ts` and `Glossary` are deleted). Trigger points are explained in the Services prose instead.
+
+- **Map:** the My Maps iframe (`MapEmbed`) is replaced by our own SVG map (`ServiceMap`); its text is under Book → Mobile section.
+
+**Earlier (6A):** `{site.outOfRegionFeeNote}` on the out card.
 
 ## Alt text
 | Image | Where | Alt |
@@ -66,11 +77,11 @@ The OG image (5A) reuses the About alt text for `og:image:alt`.
 ## Services (`src/pages/services.astro`)
 
 **Meta**
-- `title`: `Services and pricing · Ohm Precision Bodywork`
-- `description`: `Neuromuscular therapy, sports recovery for climbers, and myofascial and {w:deepTissue} in Colorado Springs. Rates, the travel fee, and office or mobile sessions.`
+- `title`: `Services · Ohm Precision Bodywork` (7A; was "Services and pricing")
+- `description`: `Neuromuscular therapy, sports recovery for climbers, and myofascial and {w:deepTissue} in Colorado Springs, at my office or at your place.` (7A)
 
 **Header section** (on `--green-900`)
-- **H1:** `Services and pricing`
+- **H1:** `Services` (7A)
 - **Intro P:** `I work on the muscles and fascia that limit how you move. Every session starts with an assessment, and I explain what I find and why I'm working where I am.`
 
 **Cream band: session types**
@@ -78,8 +89,9 @@ The OG image (5A) reuses the About alt text for `og:image:alt`.
 - Four `<h3>` + `<p>` pairs, in this order:
 
 1. **H3:** `Neuromuscular therapy`
-   **P:** `Trigger point release, ischemic compression and PNF stretching, aimed at the specific muscles that refer pain or limit your range. Precise, pressure-specific work, with the reasoning explained as we go.`
-   **Glossary** (after the P, 6A): `<Glossary keys={['ischemicCompression', 'pnf', 'referredPain']} />`
+   Two `<p>` (7A; replaces the technique list and the glossary):
+   **P1:** `Neuromuscular therapy works with your nervous system, not against it. Your nervous system sets how tight a muscle stays and how sensitive an area feels, and after an injury or a long stretch of pain it can keep muscles guarded when they no longer need to be. I use focused pressure, stretches you take an active part in, and other targeted techniques to give it a reason to let go. The aim is less pain and more freedom to move.`
+   **P2:** `A big part of this is trigger points: tight, tender spots in a muscle that can send pain somewhere else. Knots in your upper shoulders, for example, can show up as a headache. Knowing these referred pain patterns means I look for where your pain starts, not just where you feel it.`
 
 2. **H3:** `Sports and athletic recovery`
    **P:** `Sports recovery for climbers, endurance athletes and anyone training hard. I focus on the areas that take the load, like a climber's forearms and shoulders, and fit sessions around your training.`
@@ -90,12 +102,10 @@ The OG image (5A) reuses the About alt text for `og:image:alt`.
 4. **H3:** `Chronic pain and injury support`
    **P:** `Ongoing work for chronic pain and for recovery after an injury, in collaboration with your chiropractor or PT. I work alongside their plan, not in place of it.`
 
-**Cream band (continued): pricing**
+**Cream band (continued): pricing** (7A: the table moved to `/pricing`)
 - **H2:** `Pricing`
-- `<RateTable />` (its text is unchanged)
-- **Worked example P** (directly under the table, 6A): `{site.rates.s60.label} at your place: ${site.rates.s60.price} + ${site.travelFee.amount} travel = ${site.rates.s60.price + site.travelFee.amount}.` Today it renders as "60-minute session at your place: $90 + $25 travel = $115." Compute the sum in the page from config; never type it.
-- **P** (under the example): `{site.travelFee.note}`
-<!-- TODO(Brian): is the initial assessment + session required for first-time clients? If yes, Opus adds one line here. -->
+- **P:** `Sessions start at ${minPrice}, at my office or at your place. See [rates and the travel fee](/pricing).`
+- The initial-assessment TODO comment is deleted (the rate is gone).
 
 **Cream band (continued): office vs mobile**
 - **H2:** `At my office or at your place`
@@ -106,6 +116,26 @@ The OG image (5A) reuses the About alt text for `og:image:alt`.
   (Exact sentence. `check:wording` allowlists it.)
 
 **CTA:** `<BookCta />`, after the scope note.
+
+---
+
+## Pricing (`src/pages/pricing.astro`, new in 7A)
+
+**Meta**
+- `title`: `Pricing · Ohm Precision Bodywork`
+- `description`: `Rates for 60- and 90-minute neuromuscular therapy sessions in Colorado Springs, at my office or at your place, and how the mobile travel fee works.`
+
+**Header section** (on `--green-900`)
+- **H1:** `Pricing`
+- **Intro P:** `Same session rates at my office or at your place. Mobile sessions add a flat ${site.travelFee.amount} travel fee, already included in the "At your place" column.`
+
+**Cream band**
+- `<PriceTable />`. Its text: caption `Session rates`; column headers `Session`, `At my office`, `At your place` with the small second line `includes ${site.travelFee.amount} travel`; row labels from `{site.rates.*.label}`; prices `${price}` and `${price + site.travelFee.amount}`, computed. Today: 60-minute session $90 / $115; 90-minute session $120 / $145.
+- **H2:** `Travel fee`
+- **P:** `${site.travelFee.amount}. {site.travelFee.note}`
+- **P:** `Where you are decides which days I can come to you. The [booking page](/book) works it out from your address.`
+
+**CTA:** `<BookCta />`, on green after the cream band (same pattern as Services).
 
 ---
 
@@ -145,7 +175,18 @@ The OG image (5A) reuses the About alt text for `og:image:alt`.
 **Intro P** (directly under the H1, before the `#where` fieldset):
 `Tell me where you want your session and I'll point you to the right booking page. Scheduling, intake forms and payment are all handled on PocketSuite.`
 
-No other changes. The router text is fixed by ARCHITECTURE §B3 and §B4.
+**Mobile section** (7A, ARCHITECTURE §B4):
+- **H2** (`#mobile-h`): `Where are you located?`
+- **Address label** (built in `book.ts`): `Not sure? Enter your address`
+- **Map hint** (`.map-hint`, un-hidden by book.ts): `The colors match the area buttons above. Tap an area on the map to choose it.`
+- **Map `<title>`:** `Service area map`. **`<desc>`:** `Map of Colorado Springs showing my three service areas, Central & Southwest Springs, Mid-north Springs and North Springs, with the major roads that border them.` Build the zone names from `site.zones` (don't type them).
+- **Map labels:** zone names from `site.zones[key].name`; road short names and place names as listed in ARCHITECTURE §B4.
+- **Credit line** (small, under the map): `Roads and places © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright)`
+- **Link** (unchanged): `Open the map in Google Maps` → `{site.mapViewerUrl}`
+- **Boundary line:** `Near a boundary or can't find your address? [Chat with me]({site.contact.chat}). Boundaries are approximate.`
+- `/book/[zone]` (not office) shows the same map, focused on that zone. The hint isn't shown there (no JS).
+
+The rest of the router text is fixed by ARCHITECTURE §B3 and §B4.
 
 ---
 
@@ -162,6 +203,7 @@ No other changes. The router text is fixed by ARCHITECTURE §B3 and §B4.
 ---
 
 ## Checks Opus ran on this deck
+- **7A additions:** the neuromuscular paragraphs, Pricing page, out card, contact and map text. No licensed-only terms and no "massage". No "treat/cure/diagnose/fix/heal/health": the outcome line is phrased as an aim ("The aim is less pain and more freedom to move"), and "can show up as a headache" describes referred pain, not a promised result. No phone number. Prices are all computed from `site`. The map text (title, desc, hint, credit) is descriptive only, with no outcome language.
 - **6A additions:** the glossary, the worked example and `outOfRegionFeeNote` were checked against §7. They contain no licensed-only terms and no "treat/cure/diagnose/fix/heal" (or "health"). Each definition describes what happens in the session and makes no outcome claim. "Can be felt as a headache" describes referred pain, not something the work promises to change.
 - **§7, unlicensed:** no "massage", "massage therapist", "massage therapy", "LMT" or "licensed" outside the licensed variants in `wording.ts`. The school name appears only in `training`'s licensed variant.
 - **No medical claims:** the only "treat-", "diagnos-" words are in the scope note, which `check:wording` now strips before scanning. Also absent: cure, fix, heal, and "health" (the scan matches `heal…`).

@@ -1,0 +1,47 @@
+---
+import Base from '../layouts/Base.astro';
+import BookCta from '../components/BookCta.astro';
+import PriceTable from '../components/PriceTable.astro';
+import { site } from '../data/site.ts';
+import { href } from '../lib/url.ts';
+---
+
+<Base
+  title="Pricing · Ohm Precision Bodywork"
+  description="Rates for 60- and 90-minute neuromuscular therapy sessions in Colorado Springs, at my office or at your place, and how the mobile travel fee works."
+>
+  <section class="section">
+    <div class="container">
+      <h1>Pricing</h1>
+      <p class="intro">Same session rates at my office or at your place. Mobile sessions add a flat ${site.travelFee.amount} travel fee, already included in the "At your place" column.</p>
+    </div>
+  </section>
+
+  <section class="section band-light">
+    <div class="container stack">
+      <PriceTable />
+
+      <h2>Travel fee</h2>
+      <p>${site.travelFee.amount}. {site.travelFee.note}</p>
+      <p>Where you are decides which days I can come to you. The <a href={href('/book')}>booking page</a> works it out from your address.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <BookCta />
+    </div>
+  </section>
+</Base>
+
+<style>
+  .intro {
+    margin-top: var(--s-6);
+  }
+  .stack > * + * {
+    margin-top: var(--s-4);
+  }
+  .stack > h2 {
+    margin-top: var(--s-12);
+  }
+</style>

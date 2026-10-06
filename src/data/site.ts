@@ -25,13 +25,12 @@ export interface Zone {
 }
 
 // Google My Maps "Ohm Service Map". Brian cleaned the map in place (Oct 5 2026), so the ID is unchanged.
-// The /embed form allows iframing; the /viewer form sends X-Frame-Options: SAMEORIGIN, so it's only a link.
+// Since 7A the site draws its own SVG map; My Maps is only the "Open the map in Google Maps" link.
 const map = {
   mid: '1kjLh6P3y-W-_wvvBdjYpT_CcSEnqSWc',
   center: '38.89985450733466,-104.8154571',
-  zoom: 12,
-  // Title bar color (ehbc: 6-digit hex, no '#') = --green-700. My Maps sets the title in white: about 9:1 on green, 3.4:1 on terracotta (fails AA).
-  headerColor: '125245',
+  // 11 shows all three zones; 12 cut off the north (Brian, Oct 6 2026).
+  zoom: 11,
 };
 
 /** URLSearchParams encodes the ll comma as %2C, matching the URL Google gives. */
@@ -45,30 +44,36 @@ export const site = {
   licensed: false, // flips wording rules (brief §7). Default false.
   licenseNumber: '', // shown in footer only when licensed && non-empty
 
-  phone: '719-900-3339',
+  // No phone number on the site (Brian, Oct 6 2026). Contact is PocketSuite lead form, chat, or email.
   email: 'brian@ohmprecisionbodywork.com',
   city: 'Colorado Springs',
   region: 'CO',
 
   officeArea: 'Southwest Colorado Springs (address sent after booking)',
   office: {
-    days: 'Tue, Fri, and Sat, plus some Wed evenings',
+    days: 'Tuesdays, Wednesday evenings, Fridays, and Saturdays',
     linkKey: 'office' as LinkKey,
   },
 
   rates: {
-    initial: { label: 'Initial assessment + session', minutes: 75, price: 110 },
     s60: { label: '60-minute session', minutes: 60, price: 90 },
     s90: { label: '90-minute session', minutes: 90, price: 120 },
   } satisfies Record<string, Rate>,
 
   travelFee: {
     amount: 25,
-    note: 'Flat, per mobile session. No travel fee for a second session booked right after the first at the same address.',
+    // Back-to-back pair: neither session pays the fee (Brian, Oct 6 2026).
+    note: 'Flat, per mobile session. Book two sessions back to back at the same place, like you and your partner, and neither one has a travel fee.',
   },
   outOfRegionFee: null as number | null, // TBD. Do not display an amount while null.
   /** Out-of-region card. Contains no amount; revisit the wording when outOfRegionFee is set. */
   outOfRegionFeeNote: "An out-of-region fee applies; I'll quote it when you get in touch.",
+
+  /** PocketSuite contact pages (Brian, Oct 6 2026). Real URLs, not booking links. */
+  contact: {
+    lead: 'https://pocketsuite.io/lead/ohm-precision-bodywork',
+    chat: 'https://pocketsuite.io/chat/ohm-precision-bodywork',
+  },
 
   // PLACEHOLDERS. Brian replaces these with tested PS links. Never guess PS URLs.
   links: {
@@ -83,7 +88,7 @@ export const site = {
     home: {
       key: 'home',
       name: 'Central & Southwest Springs',
-      days: 'Tuesdays and Fridays (some Wednesday evenings)',
+      days: 'Tuesdays and Fridays',
       linkKey: 'home',
       area: 'Inside Academy Blvd to the east and south, west to Manitou Springs, north to Garden of the Gods Rd / Austin Bluffs Pkwy. Includes Broadmoor Bluffs.',
     },
@@ -117,11 +122,8 @@ export const site = {
   serviceAreaSummary: 'Colorado Springs and Manitou Springs; other areas by request',
   areaServed: ['Colorado Springs', 'Manitou Springs'],
 
-  // Built from `map` above. Empty mapEmbedUrl = map embed hidden.
+  // Built from `map` above.
   map,
-  mapEmbedUrl:
-    'https://www.google.com/maps/d/embed?' +
-    mapQuery({ mid: map.mid, noprof: '1', ll: map.center, z: String(map.zoom), ehbc: map.headerColor }),
   mapViewerUrl:
     'https://www.google.com/maps/d/viewer?' + mapQuery({ mid: map.mid, ll: map.center, z: String(map.zoom) }),
 
@@ -150,8 +152,6 @@ export function bookingUrl(key: LinkKey): { href: string; placeholder: boolean }
     : { href: url, placeholder: false };
 }
 
-export const telHref = `tel:+1${site.phone.replace(/\D/g, '')}`;
-export const smsHref = `sms:+1${site.phone.replace(/\D/g, '')}`;
 export const mailHref = `mailto:${site.email}`;
 
 export const zoneOrder: ZoneKey[] = ['home', 'shared', 'north', 'out'];

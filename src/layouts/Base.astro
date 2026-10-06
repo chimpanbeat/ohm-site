@@ -31,7 +31,6 @@ const jsonLd: Record<string, unknown> = {
   '@type': 'HealthAndBeautyBusiness',
   name: site.name,
   url: new URL(href('/'), Astro.site).href,
-  telephone: `+1${site.phone.replace(/\D/g, '')}`,
   email: site.email,
   image: ogUrl.href,
   areaServed: site.areaServed.map((name) => ({ '@type': 'City', name })),

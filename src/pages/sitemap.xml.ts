@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { href } from '../lib/url.ts';
 
 // Clean URLs (build.format is 'file'). /book/[zone] result pages are deliberately left out.
-const paths = ['/', '/services', '/about', '/book'];
+const paths = ['/', '/services', '/pricing', '/about', '/book'];
 
 export const GET: APIRoute = ({ site }) => {
   const urls = paths.map((p) => `  <url><loc>${new URL(href(p), site).href}</loc></url>`).join('\n');

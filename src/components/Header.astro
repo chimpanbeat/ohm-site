@@ -29,6 +29,7 @@ import { href } from '../lib/url.ts';
     </a>
     <nav class="site-header__nav" aria-label="Main">
       <a href={href('/services')}>Services</a>
+      <a href={href('/pricing')}>Pricing</a>
       <a href={href('/about')}>About</a>
       <a class="btn" href={href('/book')}>Book</a>
     </nav>
@@ -81,7 +82,8 @@ import { href } from '../lib/url.ts';
     min-height: 44px;
     padding-inline: var(--s-4);
   }
-  @media (max-width: 29rem) {
+  /* Four nav items: compact type up to 33rem (the full-size row needs about 520px). */
+  @media (max-width: 33rem) {
     .logo-full {
       width: 110px;
     }
@@ -93,7 +95,8 @@ import { href } from '../lib/url.ts';
       padding-inline: var(--s-3);
     }
   }
-  @media (max-width: 22.5rem) {
+  /* Icon-only logo up to 25rem: the compact row with the 110px logo needs about 391px. */
+  @media (max-width: 25rem) {
     .logo-full {
       display: none;
     }

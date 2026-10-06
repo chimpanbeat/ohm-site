@@ -1,5 +1,5 @@
 ---
-import { site, telHref, mailHref } from '../data/site.ts';
+import { site, mailHref } from '../data/site.ts';
 import { href } from '../lib/url.ts';
 
 const year = new Date().getFullYear();
@@ -8,7 +8,6 @@ const year = new Date().getFullYear();
 <footer class="site-footer">
   <div class="container site-footer__grid">
     <div>
-      <p><a href={telHref} class="num">{site.phone}</a></p>
       <p><a href={mailHref}>{site.email}</a></p>
       <p>{site.serviceAreaSummary}</p>
     </div>

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   pointInRing,
   pointInPolygon,
+  bboxOf,
   zoneFor,
   type Ring,
   type ZoneCollection,
@@ -93,4 +94,44 @@ test('a point in no polygon is out', () => {
   };
   assert.equal(zoneFor(50, 50, fc), 'out');
   assert.equal(zoneFor(0, 0, { type: 'FeatureCollection', features: [] }), 'out');
+});
+
+test('bboxOf: all zones combine, including every polygon of a MultiPolygon', () => {
+  const fc: ZoneCollection = {
+    type: 'FeatureCollection',
+    features: [
+      feature('home', { type: 'Polygon', coordinates: [closed(square(0, 0, 4, 3))] }),
+      feature('north', {
+        type: 'MultiPolygon',
+        coordinates: [[closed(square(10, 10, 11, 11))], [closed(square(-5, 6, -4, 20))]],
+      }),
+    ],
+  };
+  assert.deepEqual(bboxOf(fc), [-5, 0, 11, 20]);
+});
+
+test('bboxOf: a zone argument gives that zone only; an absent zone gives null', () => {
+  const fc: ZoneCollection = {
+    type: 'FeatureCollection',
+    features: [
+      feature('home', { type: 'Polygon', coordinates: [closed(square(0, 0, 4, 3))] }),
+      feature('north', { type: 'Polygon', coordinates: [closed(square(10, 10, 11, 11))] }),
+    ],
+  };
+  assert.deepEqual(bboxOf(fc, 'north'), [10, 10, 11, 11]);
+  assert.equal(bboxOf(fc, 'shared'), null);
+  assert.equal(bboxOf({ type: 'FeatureCollection', features: [] }), null);
+});
+
+test('bboxOf: a hole does not widen the box', () => {
+  const fc: ZoneCollection = {
+    type: 'FeatureCollection',
+    features: [
+      feature('home', {
+        type: 'Polygon',
+        coordinates: [closed(square(0, 0, 10, 10)), closed(square(-3, 4, 12, 6))],
+      }),
+    ],
+  };
+  assert.deepEqual(bboxOf(fc), [0, 0, 10, 10]);
 });

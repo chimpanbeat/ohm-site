@@ -22,6 +22,9 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 | 6A | opus | high | Site review fixes (Oct 5): brief, contracts, copy, 6B step file | done | 8e896d7 | Brian asked for one commit at the end |
 | 6B | sonnet | medium | Site review fixes: components, zones script, tests, README | done | 8e896d7 | |
 | 6R | opus | high | Review Phase 6, live map check, commit, push | done | 8e896d7 | Map title bar #125245, white 9.06:1. Glossary spacing nits fixed. |
+| 7A | opus | high | Brian's Oct 6 review: contracts, map architecture, copy, 7B step file | done | | Contract edits leave the build broken until 7B. Commit with Phase 7 |
+| 7B | sonnet | high | SVG service map, booking flow, pricing page, contact swap, copy | done | (Phase 7) | Deviations accepted in 7R (step Review). Screenshots in `docs/build/screens/` (gitignored) |
+| 7R | opus | high | Review Phase 7, live map check with Brian (SVG map go/no-go), commit, push | done | (Phase 7) | Brian: **go** on the SVG map (Oct 6). Review fixes: swatch colours, OSM stub filter, stale comment |
 
 ## §12 acceptance (5R, 2026-10-05)
 | Criterion | Result | Evidence |
@@ -42,17 +45,22 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 - [x] Rate label is now "Initial assessment + session" (Oct 5).
 - [x] Google key referrer (fixed by Brian, verified live Oct 5): change `https://chimpanbeat.github.io/ohm-site/*` to `https://chimpanbeat.github.io/*`. Places calls send only the origin, so on the live preview the field is blocked and falls back to the picker (found in 3R; 5A §P3a).
 - [ ] Review the About draft (`docs/build/copy-deck.md` → About). It's built only from brief §8; paragraphs 1 and 4 put those facts in your voice.
-- [ ] Is the "Initial assessment + session" required for first-time clients? If yes, Services gets one line saying so.
+- [x] Initial assessment: removed from the site (Oct 6).
 - [ ] SVG logo, if one exists (PNGs work, but an SVG would be crisper).
 - [ ] License number (license day).
 - [ ] §6 boundary descriptions vs the KML polygons: six differences listed in `steps/6A-review-fixes-contracts.md` (North vs Hwy 83, North west edge past I-25, Baptist Rd edge, Cordera NE edge, North east of Powers, Broadmoor Bluffs west side). Descriptions not edited.
 - [ ] Cordera and Wolf Ranch fixtures: replace the rough coordinates with geocoded addresses, then remove their `todo` field (6B).
 - [ ] Out-of-region fee amount. The card says a fee applies and shows no amount while `outOfRegionFee` is null.
-- [ ] Brief §4 still shows the old `travelFee.note` example. Update it to the new waiver wording?
+- [x] Brief §4 travel-fee note updated to the Oct 6 waiver (neither back-to-back session pays the fee).
+- [x] Phone number in git history: it's a business line, so leave it (Oct 6).
+- [x] SVG map go/no-go: **go** (Brian, Oct 6, 7R).
 - [x] Monument: out of the service area (decided Oct 5, 2026). Brief §6 and §14 updated (6A).
 
 ## Architecture changes
 (Opus logs any mid-build change to ARCHITECTURE.md or step files here.)
+- 2026-10-06 (7R): `fetch-osm.mjs` drops isolated road stubs (pieces of one road within 0.3 km form a cluster; clusters under 2 km are dropped). Zone swatches use `color-mix(… 35%, var(--bg-light))`, the colour each zone shows on the map.
+- 2026-10-06 (7B unblock): §B5 OSM box → `38.63,-105.09,39.17,-104.54`. `Security-Widefield` = mean of OSM `Security` + `Widefield`. `fetch-osm.mjs` joins ways before clipping (3,232 → 571 vertices). ServiceMap draws everything with no second clip. Decisions in the 7B Report.
+- 2026-10-06 (7A): Phase 7 added for Brian's Oct 6 review. Self-drawn SVG map (zones + OSM roads/places, `npm run osm`) replaces the My Maps iframe; the My Maps viewer stays as a link. A Maps JS map was drafted first, then dropped to avoid Dynamic Maps billing (rollback design kept in the 7A step file). `/pricing` + `PriceTable`, glossary removed, phone removed, `site.contact`, `--zone-*` tokens, `bboxOf` (ARCHITECTURE §C 2026-10-06).
 - 2026-10-05 (6A): Phase 6 added for Brian's site review. Map URLs built from `site.map` (adds `noprof`, `ehbc` = green-700), `outOfRegionFeeNote`, new `glossary.ts` + `Glossary`, zones script matches KML names exactly against `site.zones[key].name` (ARCHITECTURE §A1, §B1–B3, §B5).
 - 2026-10-05: added `site.mapViewerUrl`; MapEmbed adds an "Open the map in Google Maps" link (ARCHITECTURE §B3, §C).
 - 2026-10-05: added an `Effort` column to STATUS. Every handoff message names model and effort (HANDOFF §1, §3, §4).

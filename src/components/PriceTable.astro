@@ -1,0 +1,65 @@
+---
+import { site } from '../data/site.ts';
+
+const rows = Object.values(site.rates);
+---
+
+<table class="price-table">
+  <caption class="visually-hidden">Session rates</caption>
+  <thead>
+    <tr>
+      <th scope="col">Session</th>
+      <th scope="col">At my office</th>
+      <th scope="col">
+        At your place
+        <span class="note">includes ${site.travelFee.amount} travel</span>
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    {
+      rows.map((r) => (
+        <tr>
+          <th scope="row">{r.label}</th>
+          <td class="num">${r.price}</td>
+          <td class="num">${r.price + site.travelFee.amount}</td>
+        </tr>
+      ))
+    }
+  </tbody>
+</table>
+
+<style>
+  .price-table {
+    width: 100%;
+    max-width: 40rem;
+    border-collapse: collapse;
+  }
+  .price-table th,
+  .price-table td {
+    padding: var(--s-4) var(--s-2);
+    border-bottom: 1px solid var(--line-light);
+    text-align: right;
+    vertical-align: baseline;
+  }
+  .price-table th:first-child {
+    text-align: left;
+  }
+  .price-table thead th {
+    font-size: var(--fs-small);
+    font-weight: 700;
+    vertical-align: bottom;
+  }
+  .price-table tbody th {
+    font-weight: 700;
+  }
+  .price-table td {
+    font-size: var(--fs-h3);
+    font-variant-numeric: tabular-nums;
+  }
+  .note {
+    display: block;
+    font-size: var(--fs-small);
+    font-weight: 400;
+  }
+</style>

@@ -24,6 +24,7 @@ The port is fixed at **4321** because the Google key allows the referrer `http:/
 | `npm run check:wording` | Scans `dist/` for licensure wording that isn't allowed yet (run after `build`) |
 | `npm run check:contrast` | Checks the brand colour pairs against WCAG contrast minimums |
 | `npm run zones` | Converts the My Maps KML into `src/data/zones.geojson` |
+| `npm run osm` | Fetches the roads and towns for the service-area map from OpenStreetMap into `src/data/osm.geojson` (by hand, rarely) |
 | `npm run icons` | Regenerates the favicon and touch icons |
 
 ## Deploy
@@ -38,7 +39,7 @@ The preview is https://chimpanbeat.github.io/ohm-site/. It is `noindex` until th
 
 ## Updating rates, days and links
 
-Everything a visitor sees about the business is in **`src/data/site.ts`**: rates, travel fee, office and zone days, zone names, phone, email, PocketSuite links, map URLs and the deploy settings. Pages read from it; don't type a rate, day or link into a page.
+Everything a visitor sees about the business is in **`src/data/site.ts`**: rates, travel fee, office and zone days, zone names, email, `contact` (the PocketSuite lead form and chat, used when someone is outside the service area), PocketSuite booking links, the My Maps viewer URL and the deploy settings. There is no phone number on the site. Pages read from it; don't type a rate, day or link into a page.
 
 PocketSuite links that still start with `TODO_` are placeholders. Buttons using one fall back to the general PocketSuite page and carry a `data-placeholder` attribute, so you can find them in the page source. Replace the value with the tested link and the attribute goes away.
 
@@ -60,11 +61,14 @@ PocketSuite links that still start with `TODO_` are placeholders. Buttons using 
 
 ## Service-area map
 
-The embed and viewer URLs (`mapEmbedUrl`, `mapViewerUrl` in `site.ts`) are built from `site.map`: `mid`, `center`, `zoom` and `headerColor`.
+`/book` and `/book/<zone>` show a map the site draws itself, as inline SVG at build time. There are no map tiles, no map library and no Google map.
 
-- `noprof=1` hides the owner's profile.
-- `ehbc` is the title-bar colour: a 6-digit hex with no `#`, kept equal to `--green-700` (a test enforces this). It's green because My Maps sets the title in white, and white on terracotta fails AA contrast.
-- If the map is recreated (new ID), change `mid`. Edits in place keep the same ID.
+- It is built from `src/data/zones.geojson` (the three zones) and `src/data/osm.geojson` (major roads and towns). Re-exporting the zones (see above) updates it on the next build.
+- Zone colours are the `--zone-*` tokens in `tokens.css`; the area buttons use the same ones for their swatches.
+- `npm run osm` refreshes `osm.geojson` from OpenStreetMap. Run it by hand, rarely (the roads don't change), and commit the result. It exits 1 if a road or town is missing.
+- `osm.geojson` is © OpenStreetMap contributors, under the [ODbL](https://www.openstreetmap.org/copyright). The map shows the credit line.
+- Label positions are worked out at build time; `labelNudge` at the top of `src/components/ServiceMap.astro` holds the hand fixes.
+- "Open the map in Google Maps" opens the My Maps viewer. The URL is built from `site.map` in `site.ts` (`mid`, `center`, `zoom`, now 11 so all three zones show). If the My Maps map is recreated (new ID), change `mid`.
 
 ## Test addresses
 
@@ -92,7 +96,7 @@ Checked **2026-10-05**. Google changes pricing and console wording, so verify ag
 | Autocomplete Requests | The first 12 autocomplete requests of a session that ends in Place Details Essentials, plus every request in an abandoned session | 10,000 | $2.83 |
 | Autocomplete Session Usage | The 13th and later requests in a completed session | Unlimited | free |
 | Place Details Essentials | Fetching the location when a visitor picks an address | 10,000 | $5.00 |
-| Dynamic Maps | **Not used.** It bills only when a map is instantiated. The service-area map is a My Maps `<iframe>`, not Maps JS. | 10,000 | $7.00 |
+| Dynamic Maps | **Not used.** It bills only when a map is instantiated. The site draws its own SVG map; no Google map is created. | 10,000 | $7.00 |
 
 Sources:
 - https://developers.google.com/maps/documentation/javascript/session-pricing
@@ -150,7 +154,6 @@ Pages never write those terms. They call `w('key')` from `src/data/wording.ts`, 
 
 - Tested PocketSuite links: office, home, shared (keyword), north.
 - Review the About draft in `docs/build/copy-deck.md`.
-- Confirm whether the "Initial assessment + session" is required for first-time clients; if so, Services gets one line.
 - Cordera and Wolf Ranch fixtures: replace the rough coordinates with geocoded addresses, then remove their `todo` field in `tests/fixtures/addresses.json`.
 - Six differences between the brief §6 boundary descriptions and the KML polygons are listed in `docs/build/steps/6A-review-fixes-contracts.md`.
 - SVG logo, if one exists.
