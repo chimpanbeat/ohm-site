@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import BookCta from '../components/BookCta.astro';
 import RateTable from '../components/RateTable.astro';
+import Glossary from '../components/Glossary.astro';
 import { site } from '../data/site.ts';
 import { w } from '../data/wording.ts';
 ---
@@ -23,6 +24,7 @@ import { w } from '../data/wording.ts';
       <div>
         <h3>Neuromuscular therapy</h3>
         <p>Trigger point release, ischemic compression and PNF stretching, aimed at the specific muscles that refer pain or limit your range. Precise, pressure-specific work, with the reasoning explained as we go.</p>
+        <Glossary keys={['ischemicCompression', 'pnf', 'referredPain']} />
       </div>
       <div>
         <h3>Sports and athletic recovery</h3>
@@ -39,6 +41,7 @@ import { w } from '../data/wording.ts';
 
       <h2 class="gap">Pricing</h2>
       <RateTable />
+      <p>{site.rates.s60.label} at your place: ${site.rates.s60.price} + ${site.travelFee.amount} travel = ${site.rates.s60.price + site.travelFee.amount}.</p>
       <p>{site.travelFee.note}</p>
       <!-- TODO(Brian): is the initial assessment + session required for first-time clients? If yes, Opus adds one line here. -->
 

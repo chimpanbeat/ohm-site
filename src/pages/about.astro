@@ -2,6 +2,7 @@
 import { getImage } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import BookCta from '../components/BookCta.astro';
+import Glossary from '../components/Glossary.astro';
 import { w } from '../data/wording.ts';
 import portrait from '../assets/about-portrait.jpg';
 import landscape from '../assets/about-landscape.jpg';
@@ -54,6 +55,7 @@ const desktopSizes = '(min-width: 72rem) 72rem, 100vw';
       <p>My path into {w('practice')} started with my own shoulder surgery and rehab. Yoga and breathwork came next, and with them a lasting interest in how bodies move and recover.</p>
       <p>Before that, I spent 12 years as an FPGA design engineer. Debugging hardware is systematic: observe, form a hypothesis, test, write it down. I assess the body the same way, and I keep clear notes so each session builds on the last.</p>
       <p>{w('training')} Its core is neuromuscular therapy: trigger point release, ischemic compression and PNF.</p>
+      <Glossary keys={['ischemicCompression', 'pnf']} />
       <p>I've been climbing for more than five years, and I volunteer with adaptive climbing groups at CityRock. I know what a hard season does to forearms, shoulders and hips.</p>
       <p>My approach is evidence-informed and precise, and it starts from your goals. I'll explain what I find and why I'm working where I am. You should leave understanding your body a little better, with tools for your own recovery.</p>
 

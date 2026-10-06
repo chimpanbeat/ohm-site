@@ -34,13 +34,33 @@
     "approximate": true
   },
   {
+    "label": "Cordera",
+    "query": "Cordera, Colorado Springs, CO",
+    "lat": 38.9805,
+    "lng": -104.7405,
+    "expect": "north",
+    "approximate": true,
+    "todo": "TODO(Brian): brief §6 lists Cordera in North, but the polygon's NE edge may cut off its northern part. Replace lat/lng with a geocoded Cordera address, run npm test, then remove this field.",
+    "note": "Rough interior point (Opus, 6A), not geocoded."
+  },
+  {
+    "label": "Wolf Ranch",
+    "query": "Wolf Ranch, Colorado Springs, CO",
+    "lat": 38.962,
+    "lng": -104.727,
+    "expect": "north",
+    "approximate": true,
+    "todo": "TODO(Brian): brief §6 lists Wolf Ranch in North. Replace lat/lng with a geocoded Wolf Ranch address, run npm test, then remove this field.",
+    "note": "Rough interior point (Opus, 6A), not geocoded."
+  },
+  {
     "label": "Monument",
     "query": "Monument, CO",
     "lat": 39.0917,
     "lng": -104.8728,
     "expect": "out",
     "approximate": true,
-    "note": "Out for now (Brian, Oct 5 2026); possible future expansion."
+    "note": "Out of the service area (Brian, Oct 5 2026)."
   },
   {
     "label": "Falcon",

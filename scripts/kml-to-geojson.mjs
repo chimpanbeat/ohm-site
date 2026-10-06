@@ -1,8 +1,12 @@
 // KML -> src/data/zones.geojson (ARCHITECTURE §B5). No dependencies.
 // Usage: node scripts/kml-to-geojson.mjs [kmlPath] [--out path]
+// Polygon placemark names must equal site.zones[home|shared|north].name exactly
+// (case-sensitive, whitespace collapsed). An unknown polygon name stops the script.
+// Placemarks without a <Polygon> (pins etc.) are skipped and counted.
 // Emits only { type, properties: { zone }, geometry }. Descriptions, ExtendedData,
 // styles, Points and LineStrings are ignored and never written (the repo is public).
 import { readFileSync, writeFileSync } from 'node:fs';
+import { site } from '../src/data/site.ts';
 
 const args = process.argv.slice(2);
 let kmlPath = 'brief/Ohm Service Map.kml';
@@ -13,6 +17,7 @@ for (let i = 0; i < args.length; i++) {
 }
 
 const ORDER = ['home', 'shared', 'north'];
+const NAMES = new Map(ORDER.map((z) => [site.zones[z].name, z]));
 const kml = readFileSync(kmlPath, 'utf8');
 
 const count = (re, s) => (s.match(re) ?? []).length;
@@ -24,7 +29,11 @@ const skipped = {
 };
 
 const decode = (s) =>
-  s.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/&amp;/g, '&').trim();
+  s
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
+    .replace(/&amp;/g, '&')
+    .replace(/\s+/g, ' ')
+    .trim();
 
 /** "lng,lat[,alt]" triples separated by whitespace -> [lng, lat] rounded to 6 places. */
 function parseRing(text) {
@@ -53,10 +62,16 @@ const ringsOf = (polygon) => {
 const placemarks = [...kml.matchAll(/<Placemark\b[\s\S]*?<\/Placemark>/g)].map((m) => m[0]);
 const byZone = new Map();
 const unknown = [];
+let nonPolygon = 0;
 
 for (const pm of placemarks) {
+  const polygons = [...pm.matchAll(/<Polygon\b[\s\S]*?<\/Polygon>/g)].map((m) => ringsOf(m[0]));
+  if (polygons.length === 0) {
+    nonPolygon++;
+    continue;
+  }
   const name = decode(pm.match(/<name>([\s\S]*?)<\/name>/)?.[1] ?? '');
-  const zone = ORDER.find((z) => name.toLowerCase().startsWith(z));
+  const zone = NAMES.get(name);
   if (!zone) {
     unknown.push(name || '(unnamed)');
     continue;
@@ -65,17 +80,13 @@ for (const pm of placemarks) {
     console.error(`kml-to-geojson: zone "${zone}" appears more than once`);
     process.exit(1);
   }
-  const polygons = [...pm.matchAll(/<Polygon\b[\s\S]*?<\/Polygon>/g)].map((m) => ringsOf(m[0]));
-  if (polygons.length === 0) {
-    console.error(`kml-to-geojson: placemark "${name}" has no polygon`);
-    process.exit(1);
-  }
   byZone.set(zone, polygons);
 }
 
 if (unknown.length) {
-  console.error(`kml-to-geojson: unrecognised placemark names: ${unknown.join(', ')}`);
-  console.error(`Found: ${placemarks.length} placemark(s). Expected names starting with ${ORDER.join(', ')}.`);
+  const quote = (list) => list.map((n) => `"${n}"`).join(', ');
+  console.error(`kml-to-geojson: unrecognised polygon names. Found: ${quote(unknown)}`);
+  console.error(`Expected: ${quote([...NAMES.keys()].sort())}`);
   process.exit(1);
 }
 const missing = ORDER.filter((z) => !byZone.has(z));
@@ -98,5 +109,5 @@ writeFileSync(outPath, JSON.stringify({ type: 'FeatureCollection', features }, n
 console.log(`Wrote ${features.length} zones to ${outPath}: ${ORDER.join(', ')}`);
 console.log(
   `Skipped (never emitted): ${skipped.description} description, ${skipped.extendedData} ExtendedData, ` +
-    `${skipped.point} Point, ${skipped.lineString} LineString`,
+    `${skipped.point} Point, ${skipped.lineString} LineString, ${nonPolygon} non-polygon placemark(s)`,
 );

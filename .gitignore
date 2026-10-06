@@ -13,6 +13,11 @@ dist/
 brief/*
 !brief/BRIEF.md
 
+# Service-map exports, wherever they are saved. Only src/data/zones.geojson is committed.
+*.kml
+*.kmz
+*.kml.xml
+
 # OS / editor
 .DS_Store
 Thumbs.db

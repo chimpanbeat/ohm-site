@@ -24,6 +24,19 @@ export interface Zone {
   area: string;
 }
 
+// Google My Maps "Ohm Service Map". Brian cleaned the map in place (Oct 5 2026), so the ID is unchanged.
+// The /embed form allows iframing; the /viewer form sends X-Frame-Options: SAMEORIGIN, so it's only a link.
+const map = {
+  mid: '1kjLh6P3y-W-_wvvBdjYpT_CcSEnqSWc',
+  center: '38.89985450733466,-104.8154571',
+  zoom: 12,
+  // Title bar color (ehbc: 6-digit hex, no '#') = --green-700. My Maps sets the title in white: about 9:1 on green, 3.4:1 on terracotta (fails AA).
+  headerColor: '125245',
+};
+
+/** URLSearchParams encodes the ll comma as %2C, matching the URL Google gives. */
+const mapQuery = (params: Record<string, string>) => new URLSearchParams(params).toString();
+
 export const site = {
   name: 'Ohm Precision Bodywork',
   legalName: 'Ohm Precision Bodywork LLC',
@@ -51,9 +64,11 @@ export const site = {
 
   travelFee: {
     amount: 25,
-    note: 'Flat, per mobile session. Waived for back-to-back sessions at the same location.',
+    note: 'Flat, per mobile session. No travel fee for a second session booked right after the first at the same address.',
   },
   outOfRegionFee: null as number | null, // TBD. Do not display an amount while null.
+  /** Out-of-region card. Contains no amount; revisit the wording when outOfRegionFee is set. */
+  outOfRegionFeeNote: "An out-of-region fee applies; I'll quote it when you get in touch.",
 
   // PLACEHOLDERS. Brian replaces these with tested PS links. Never guess PS URLs.
   links: {
@@ -84,7 +99,7 @@ export const site = {
       name: 'North Springs',
       days: 'Wednesdays',
       linkKey: 'north',
-      // Describes the KML polygon, which is authoritative (Brian, Oct 5 2026). Monument is out for now.
+      // The KML polygon is authoritative (Brian, Oct 5 2026). Monument is out of the service area (decided Oct 5 2026).
       area: 'North of Woodmen Rd up to Baptist Rd, east of Hwy 83, including Briargate, Wolf Ranch, and Cordera. Also east of Academy Blvd between Austin Bluffs Pkwy / Templeton Gap Rd and Woodmen Rd, west of Powers Blvd.',
     },
     out: {
@@ -102,13 +117,13 @@ export const site = {
   serviceAreaSummary: 'Colorado Springs and Manitou Springs; other areas by request',
   areaServed: ['Colorado Springs', 'Manitou Springs'],
 
-  // Google My Maps "Ohm Service Map". The /embed form allows iframing; the
-  // /viewer form sends X-Frame-Options: SAMEORIGIN, so it's used only as a link.
-  // Empty mapEmbedUrl = map embed hidden.
+  // Built from `map` above. Empty mapEmbedUrl = map embed hidden.
+  map,
   mapEmbedUrl:
-    'https://www.google.com/maps/d/embed?mid=1kjLh6P3y-W-_wvvBdjYpT_CcSEnqSWc&ll=38.89985450733466%2C-104.8154571&z=12',
+    'https://www.google.com/maps/d/embed?' +
+    mapQuery({ mid: map.mid, noprof: '1', ll: map.center, z: String(map.zoom), ehbc: map.headerColor }),
   mapViewerUrl:
-    'https://www.google.com/maps/d/viewer?mid=1kjLh6P3y-W-_wvvBdjYpT_CcSEnqSWc&ll=38.89985450733466%2C-104.8154571&z=12',
+    'https://www.google.com/maps/d/viewer?' + mapQuery({ mid: map.mid, ll: map.center, z: String(map.zoom) }),
 
   deploy: {
     site: 'https://chimpanbeat.github.io',

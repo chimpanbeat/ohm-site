@@ -130,7 +130,7 @@ Rough boundary descriptions (for copy and alt text only; the polygons decide):
 
 - **Home:** inside Academy Blvd to the east and south, west to Manitou Springs, north to Garden of the Gods Rd / Austin Bluffs Pkwy. Includes Broadmoor Bluffs.
 - **Shared:** from Garden of the Gods / Austin Bluffs north to Woodmen Rd, west of Academy.
-- **North:** north of Woodmen Rd up to Baptist Rd, east of Hwy 83, including Briargate, Wolf Ranch and Cordera; also east of Academy between Austin Bluffs/Templeton Gap and Woodmen, west of Powers. Monument is out for now (possible future expansion).
+- **North:** north of Woodmen Rd up to Baptist Rd, east of Hwy 83, including Briargate, Wolf Ranch and Cordera; also east of Academy between Austin Bluffs/Templeton Gap and Woodmen, west of Powers. Monument is out of the service area (decided Oct 5, 2026).
 - **Out of region:** east of Academy Blvd, Black Forest, Falcon, Fountain, Security-Widefield.
 
 ### Zone data
@@ -262,5 +262,5 @@ Follow the brand exactly. Use your own judgment within it.
 - **Autocomplete volume:** requests bill per request, not per address. Use a minimum character count and a short debounce so a daily cap of about 300 lasts.
 - **Test the fallback:** simulate a missing or failing key and confirm the address field hides and the map and manual zone buttons show.
 - **The preview is public.** Anyone with the URL can load it before license day, so apply the §7 wording rules and `npm run check:wording` from the first deploy. In your plan, say whether the preview should be `noindex` until `licensed` is true.
-- **North boundary decided (Oct 5, 2026):** the KML polygon is authoritative, and Monument is out for now. Revisit if the zone cuts out an area Brian meant to serve.
+- **North boundary decided (Oct 5, 2026):** the KML polygon is authoritative, and Monument is out of the service area (decided Oct 5, 2026). Revisit if the zone cuts out an area Brian meant to serve.
 - *(Superseded)* **North boundary is not final.** Brian exported the KML with the current boundaries and is still deciding whether the area east of Academy, north of Austin Bluffs/Templeton Gap, and west of Powers joins the North zone. The polygons in his exported KML decide (§6). If they disagree with the boundary descriptions in §6, list the differences as `TODO(Brian)` and do not edit the descriptions yourself.

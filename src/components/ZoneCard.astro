@@ -32,6 +32,7 @@ const book = z.linkKey ? bookingUrl(z.linkKey) : null;
       <>
         <Heading tabindex="-1">That's outside my regular service area.</Heading>
         <p>I sometimes travel there by request.</p>
+        <p>{site.outOfRegionFeeNote}</p>
         <ContactButtons />
       </>
     )

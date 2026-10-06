@@ -50,11 +50,27 @@ PocketSuite links that still start with `TODO_` are placeholders. Buttons using 
 4. `npm test`
 5. Commit `src/data/zones.geojson`.
 
-Placemark names must start with `Home`, `Shared` or `North`. Only polygon geometry and the zone name are written to the geojson. Descriptions, notes and styles are never committed.
+- Polygon placemark names must equal the zone names in `site.ts` exactly: `Central & Southwest Springs`, `Mid-north Springs`, `North Springs`.
+- There is no "out" polygon. Anywhere outside the three is out.
+- Pins and other non-polygon placemarks are skipped.
+- An unknown polygon name stops the script and prints the expected names.
+- To rename a zone, rename it in both My Maps and `site.ts`.
+- Only polygon geometry and the zone name are written to the geojson. Descriptions, notes and styles are never committed.
+- The KML is gitignored (`brief/*`, `*.kml`, `*.kmz`, `*.kml.xml`). Never commit it; commit only `src/data/zones.geojson`.
+
+## Service-area map
+
+The embed and viewer URLs (`mapEmbedUrl`, `mapViewerUrl` in `site.ts`) are built from `site.map`: `mid`, `center`, `zoom` and `headerColor`.
+
+- `noprof=1` hides the owner's profile.
+- `ehbc` is the title-bar colour: a 6-digit hex with no `#`, kept equal to `--green-700` (a test enforces this). It's green because My Maps sets the title in white, and white on terracotta fails AA contrast.
+- If the map is recreated (new ID), change `mid`. Edits in place keep the same ID.
 
 ## Test addresses
 
-`tests/fixtures/addresses.json` lists known addresses with their coordinates and the zone each must land in (Old Colorado City, Broadmoor Bluffs, Garden of the Gods Rd & Centennial, Briargate, Monument, Falcon, Fountain, east of Academy). `npm test` checks every one against the real polygons.
+`tests/fixtures/addresses.json` lists known addresses with their coordinates and the zone each must land in (Old Colorado City, Broadmoor Bluffs, Garden of the Gods Rd & Centennial, Briargate, Cordera, Wolf Ranch, Monument, Falcon, Fountain, east of Academy). `npm test` checks every one against the real polygons. Monument is out of the service area.
+
+Cordera and Wolf Ranch are `todo` checks: they report as TODO, not failures, until Brian replaces the rough coordinates with geocoded addresses and removes the `todo` field.
 
 To add one, append an entry with `label`, `query`, `lat`, `lng` and `expect` (`home`, `shared`, `north` or `out`), then run `npm test`. Coordinates marked `approximate` are interior points, not exact rooftops.
 
@@ -135,6 +151,8 @@ Pages never write those terms. They call `w('key')` from `src/data/wording.ts`, 
 - Tested PocketSuite links: office, home, shared (keyword), north.
 - Review the About draft in `docs/build/copy-deck.md`.
 - Confirm whether the "Initial assessment + session" is required for first-time clients; if so, Services gets one line.
+- Cordera and Wolf Ranch fixtures: replace the rough coordinates with geocoded addresses, then remove their `todo` field in `tests/fixtures/addresses.json`.
+- Six differences between the brief §6 boundary descriptions and the KML polygons are listed in `docs/build/steps/6A-review-fixes-contracts.md`.
 - SVG logo, if one exists.
 - License number (license day).
 - Set the Google quota caps, upgrade billing, add a budget alert (see above).

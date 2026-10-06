@@ -11,6 +11,7 @@ const fixtures = JSON.parse(read('./fixtures/addresses.json')) as {
   lat: number;
   lng: number;
   expect: string;
+  todo?: string;
 }[];
 
 test('zones.geojson has exactly home, shared and north', () => {
@@ -25,8 +26,8 @@ test('zones.geojson carries no properties other than zone', () => {
   }
 });
 
-for (const { label, lat, lng, expect } of fixtures) {
-  test(`fixture: ${label} -> ${expect}`, () => {
+for (const { label, lat, lng, expect, todo } of fixtures) {
+  test(`fixture: ${label} -> ${expect}`, todo ? { todo } : {}, () => {
     assert.equal(zoneFor(lat, lng, zones), expect);
   });
 }

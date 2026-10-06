@@ -13,7 +13,13 @@ Written by Opus in step 4A (2026-10-05). **This is the only source of visible te
 - Apostrophes and quotes are straight (`'` and `"`), as in the existing components.
 
 ## Global
-No changes. Header, Footer, OfficeCard, ZoneCard, ZonePicker, MapEmbed and RateTable keep their current text (ARCHITECTURE §B3).
+Header, Footer, OfficeCard, ZonePicker and RateTable keep their current text (ARCHITECTURE §B3).
+
+**Changes in step 6A (Oct 5, site review):**
+- **ZoneCard, `out` only:** a new `<p>` after `I sometimes travel there by request.` and before the contact buttons: `{site.outOfRegionFeeNote}`. No amount is shown while `site.outOfRegionFee` is `null`.
+- **MapEmbed:** iframe `title` is `Ohm service area map`.
+- **Travel-fee note:** `{site.travelFee.note}` now ends "No travel fee for a second session booked right after the first at the same address." It's config-only, so ZoneCard and Services pick it up with no page change.
+- **Glossary:** definitions live in `src/data/glossary.ts` and render through `<Glossary keys={[…]} />` (a `<dl>`). Use the term and definition text exactly as written there.
 
 ## Alt text
 | Image | Where | Alt |
@@ -73,6 +79,7 @@ The OG image (5A) reuses the About alt text for `og:image:alt`.
 
 1. **H3:** `Neuromuscular therapy`
    **P:** `Trigger point release, ischemic compression and PNF stretching, aimed at the specific muscles that refer pain or limit your range. Precise, pressure-specific work, with the reasoning explained as we go.`
+   **Glossary** (after the P, 6A): `<Glossary keys={['ischemicCompression', 'pnf', 'referredPain']} />`
 
 2. **H3:** `Sports and athletic recovery`
    **P:** `Sports recovery for climbers, endurance athletes and anyone training hard. I focus on the areas that take the load, like a climber's forearms and shoulders, and fit sessions around your training.`
@@ -86,7 +93,8 @@ The OG image (5A) reuses the About alt text for `og:image:alt`.
 **Cream band (continued): pricing**
 - **H2:** `Pricing`
 - `<RateTable />` (its text is unchanged)
-- **P** (under the table): `{site.travelFee.note}`
+- **Worked example P** (directly under the table, 6A): `{site.rates.s60.label} at your place: ${site.rates.s60.price} + ${site.travelFee.amount} travel = ${site.rates.s60.price + site.travelFee.amount}.` Today it renders as "60-minute session at your place: $90 + $25 travel = $115." Compute the sum in the page from config; never type it.
+- **P** (under the example): `{site.travelFee.note}`
 <!-- TODO(Brian): is the initial assessment + session required for first-time clients? If yes, Opus adds one line here. -->
 
 **Cream band (continued): office vs mobile**
@@ -119,6 +127,7 @@ The OG image (5A) reuses the About alt text for `og:image:alt`.
 1. `My path into {w:practice} started with my own shoulder surgery and rehab. Yoga and breathwork came next, and with them a lasting interest in how bodies move and recover.`
 2. `Before that, I spent 12 years as an FPGA design engineer. Debugging hardware is systematic: observe, form a hypothesis, test, write it down. I assess the body the same way, and I keep clear notes so each session builds on the last.`
 3. `{w:training} Its core is neuromuscular therapy: trigger point release, ischemic compression and PNF.`
+   **Glossary** (directly after paragraph 3, 6A): `<Glossary keys={['ischemicCompression', 'pnf']} />`
 4. `I've been climbing for more than five years, and I volunteer with adaptive climbing groups at CityRock. I know what a hard season does to forearms, shoulders and hips.`
 5. `My approach is evidence-informed and precise, and it starts from your goals. I'll explain what I find and why I'm working where I am. You should leave understanding your body a little better, with tools for your own recovery.`
 
@@ -153,6 +162,7 @@ No other changes. The router text is fixed by ARCHITECTURE §B3 and §B4.
 ---
 
 ## Checks Opus ran on this deck
+- **6A additions:** the glossary, the worked example and `outOfRegionFeeNote` were checked against §7. They contain no licensed-only terms and no "treat/cure/diagnose/fix/heal" (or "health"). Each definition describes what happens in the session and makes no outcome claim. "Can be felt as a headache" describes referred pain, not something the work promises to change.
 - **§7, unlicensed:** no "massage", "massage therapist", "massage therapy", "LMT" or "licensed" outside the licensed variants in `wording.ts`. The school name appears only in `training`'s licensed variant.
 - **No medical claims:** the only "treat-", "diagnos-" words are in the scope note, which `check:wording` now strips before scanning. Also absent: cure, fix, heal, and "health" (the scan matches `heal…`).
 - **Target phrases:**
