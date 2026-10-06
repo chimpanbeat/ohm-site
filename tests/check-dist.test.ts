@@ -52,7 +52,8 @@ test('check:dist exits 2 when dist is missing', () => {
 const bad: Array<[string, (t: Tree) => void, RegExp]> = [
   ['hello.html without the robots meta', (t) => (t['hello.html'] = HELLO.replace('<meta name="robots" content="noindex">', '')), /noindex/],
   ['hello.html canonical to another page', (t) => (t['hello.html'] = HELLO.replace('/hello"', '/services"')), /canonical/],
-  ['hello.html with a script', (t) => (t['hello.html'] = HELLO.replace('</body>', '<script>1</script></body>')), /script/],
+  ['hello.html with a script src', (t) => (t['hello.html'] = HELLO.replace('</body>', '<script src="/x.js"></script></body>')), /script src/],
+  ['hello.html with two inline scripts', (t) => (t['hello.html'] = HELLO.replace('</body>', '<script>1</script><script>2</script></body>')), /2 inline scripts/],
   ['sitemap.xml listing /hello', (t) => (t['sitemap.xml'] = SITEMAP.replace('</urlset>', `<url><loc>${origin}${base}/hello</loc></url></urlset>`)), /sitemap/],
   ['another page linking to /hello', (t) => (t['index.html'] = HOME.replace('</body>', `<a href="${base}/hello">Hi</a></body>`)), /links to \/hello/],
   ['an indexable robots.txt that disallows /hello', (t) => (t['robots.txt'] = 'User-agent: *\nAllow: /\nDisallow: /hello\n'), /robots\.txt/],
@@ -67,6 +68,12 @@ for (const [name, mutate, message] of bad) {
     assert.match(r.stderr, message);
   });
 }
+
+test('check:dist allows one inline script on hello.html', () => {
+  const t = good();
+  t['hello.html'] = HELLO.replace('</body>', '<script>1</script></body>');
+  assert.equal(run(t).status, 0);
+});
 
 test('check:dist allows the whole-site Disallow: / used before launch', () => {
   const t = good();

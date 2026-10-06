@@ -1,5 +1,5 @@
-// /hello guard (ARCHITECTURE §B8, steps/9C-hello.md). Run after `npm run build`.
-// `/hello` must stay noindex, unlinked, out of the sitemap, script-free, and Home must have no splash.
+// /hello guard (ARCHITECTURE §B8, steps/9C-hello.md, 10B). Run after `npm run build`.
+// `/hello` must stay noindex, unlinked, out of the sitemap, limited to one inline script, and Home must have no splash.
 // Usage: node scripts/check-dist.mjs [--dist <dir>]. Exit 0 ok, 1 problem found, 2 dist missing.
 import { readdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
@@ -49,10 +49,14 @@ if (hello === null) {
     } catch {}
     if (path.replace(/\/+$/, '') !== HELLO_PATH) fail(`hello.html canonical is "${canonical}", expected the path ${HELLO_PATH}.`);
   }
-  // 7. No JavaScript. JSON-LD is data and allowed.
+  // 7. JavaScript: the JSON-LD data block, plus at most one inline script (the click pause), never a src.
+  let inline = 0;
   for (const m of hello.matchAll(/<script\b([^>]*)>/gi)) {
-    if (!/\btype="application\/ld\+json"/i.test(m[1])) fail('hello.html contains a <script> (it must have no JavaScript).');
+    if (/\btype="application\/ld\+json"/i.test(m[1])) continue;
+    if (/\bsrc\s*=/i.test(m[1])) fail('hello.html has a <script src> (only one inline script is allowed).');
+    else inline++;
   }
+  if (inline > 1) fail(`hello.html has ${inline} inline scripts (at most one is allowed).`);
 }
 
 // 3. Not in the sitemap.

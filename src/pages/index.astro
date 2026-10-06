@@ -46,7 +46,7 @@ const minPrice = Math.min(...Object.values(site.rates).map((r) => r.price));
       </div>
       <div>
         <h2>Why "Ohm"</h2>
-        <p>An ohm is the unit of electrical resistance. Its symbol is the Greek letter omega (Ω), the shape in my logo. I spent 12 years as an electrical engineer before changing careers, and resistance is still what I work on, now in muscle and fascia. Say the name out loud and you also hear Om, the sacred sound of yoga and meditation. Yoga is a big part of how I got here. The tagline carries both meanings.</p>
+        <p>An ohm is the unit of electrical resistance. Its symbol is the Greek letter omega (Ω). I spent 12 years as an electrical engineer before changing careers, and resistance is still what I work on, now in muscle and fascia. Say the name out loud and you also hear Om, the sacred sound of yoga and meditation. Yoga is a big part of how I got here. The tagline carries both meanings.</p>
       </div>
     </div>
   </section>
@@ -112,7 +112,7 @@ const minPrice = Math.min(...Object.values(site.rates).map((r) => r.price));
   }
   @media (min-width: 48rem) {
     .hero {
-      padding-block: var(--s-24);
+      padding-block: var(--s-16);
     }
     .hero-art {
       top: 50%;
@@ -123,9 +123,13 @@ const minPrice = Math.min(...Object.values(site.rates).map((r) => r.price));
       /* Fade the art's left edge into the hero so it doesn't read as a box. */
       mask-image: linear-gradient(to right, transparent, black 30%);
     }
-    .hero-text h1,
-    .hero-text .subline {
+    .hero-text h1 {
       max-width: 40%;
+    }
+    /* Wider than the H1 so it sets in two lines from about 1024px up; balanced so the lines are even. */
+    .hero-text .subline {
+      max-width: min(36rem, 52%);
+      text-wrap: balance;
     }
     .info {
       grid-template-columns: repeat(3, 1fr);

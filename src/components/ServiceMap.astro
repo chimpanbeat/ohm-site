@@ -32,7 +32,7 @@ const { focus, id = 'map' } = Astro.props;
 // Manual label fixes in SVG units: [dx, dy]. Keys are `zone:<key>`, `road:<name>`, `place:<name>`.
 const labelNudge: Record<string, [number, number]> = {
   'zone:home': [25, 0],
-  'place:Colorado Springs': [0, 75],
+  'place:Colorado Springs': [10, 35], // clear of the office mark (38.80, -104.85)
   'road:Academy': [75, 0],
   'road:Woodmen': [40, 0],
   'road:Templeton Gap': [75, -30],
@@ -43,10 +43,11 @@ const labelNudge: Record<string, [number, number]> = {
 // The office map is zoomed in about 3×, so the full-map nudges would throw its labels kilometres off.
 const officeNudge: Record<string, [number, number]> = {
   'road:US 24': [45, 30], // clear of the Manitou Springs label
+  'road:Garden of the Gods': [-30, 55], // clear of the "Show mobile service areas" button (top right)
 };
 
 // The office mark: the traced Ω (dMap, the 6 px simplification), W map units wide at scale 1.
-const markW = 125;
+const markW = 105;
 const [, , omegaW, omegaH] = omega.viewBox.split(' ').map(Number);
 const markH = Number(((markW * omegaH) / omegaW).toFixed(1));
 
@@ -367,6 +368,7 @@ const markProps = office ? {} : { href: href('/book/office'), tabindex: '-1', 'a
     }
   </svg>
   {!office && <button type="button" class="map-reset" hidden>Show all areas</button>}
+  {office && <a class="map-areas" href={`${href('/book')}#mobile`}>Show mobile service areas</a>}
   </div>
 
   {
@@ -432,20 +434,32 @@ const markProps = office ? {} : { href: href('/book/office'), tabindex: '-1', 'a
     color: var(--text-on-light);
   }
 
-  /* "Show all areas": over the map's top-right corner while book.ts has it zoomed. */
-  .map-reset {
+  /* "Show all areas" (zone maps, while book.ts has the map zoomed) and "Show mobile service areas" (office
+     map): over the map's top-right corner, dark so they read on the light map. */
+  .map-reset,
+  .map-areas {
     position: absolute;
     top: var(--s-2);
     right: var(--s-2);
     min-height: 44px;
     padding-inline: var(--s-3);
-    background: var(--bg-light);
-    color: var(--ink);
-    border: 1px solid var(--line-light);
+    background: var(--bg-dark);
+    color: var(--text-on-dark);
+    border: 0;
     border-radius: var(--radius);
+    box-shadow: 0 1px 4px color-mix(in srgb, var(--ink) 35%, transparent);
     font-size: var(--fs-small);
     font-weight: 700;
+    text-decoration: none;
     cursor: pointer;
+  }
+  .map-areas {
+    display: inline-flex; /* not on .map-reset: it would override that button's `hidden` */
+    align-items: center;
+  }
+  .map-reset:hover,
+  .map-areas:hover {
+    background: var(--bg-mid);
   }
 
   /* Zones: the fill takes the click; everything drawn over it lets clicks through.
@@ -466,6 +480,17 @@ const markProps = office ? {} : { href: href('/book/office'), tabindex: '-1', 'a
   /* The zones that aren't chosen keep their colour, dimmed. */
   .zone.is-muted {
     fill-opacity: 0.35;
+  }
+  /* Hover (book.ts): the areas other than the hovered one, and the office mark, step back. The hovered
+     area shows its full tint even while another area is chosen. */
+  .zone.is-dim {
+    fill-opacity: 0.35;
+  }
+  .zone.is-muted.is-hot {
+    fill-opacity: 1;
+  }
+  .map-office.is-dim {
+    opacity: 0.5;
   }
   /* Everything outside the zones. Invisible until hovered or chosen, but it takes the click. */
   .zone--out {

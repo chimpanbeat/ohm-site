@@ -124,21 +124,21 @@ a:hover {
 }
 
 .section {
-  padding-block: var(--s-16);
+  padding-block: var(--s-10);
 }
 
 /* The first section on a page sits closer to the header; Home's hero has its own padding. */
 main > .section:first-child {
-  padding-top: var(--s-8);
+  padding-top: var(--s-6);
 }
 
 @media (min-width: 48rem) {
   .section {
-    padding-block: var(--s-24);
+    padding-block: var(--s-16);
   }
 
   main > .section:first-child {
-    padding-top: var(--s-12);
+    padding-top: var(--s-10);
   }
 }
 

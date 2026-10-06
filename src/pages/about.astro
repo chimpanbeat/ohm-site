@@ -63,14 +63,25 @@ const desktopSizes = '(min-width: 72rem) 72rem, 100vw';
 
 <style>
   picture {
-    margin-bottom: var(--s-8);
+    margin-bottom: var(--s-6);
   }
+  /* The photo is cropped short so the page isn't a long scroll: he stays whole, head to feet (desktop)
+     or head to the cliff edge (phone). The fixed ratio also reserves the box, so there's no layout shift. */
   picture img {
     width: 100%;
     height: auto;
+    object-fit: cover;
+    aspect-ratio: 21 / 9;
+    object-position: 50% 60%;
     border-radius: var(--radius);
   }
+  @media (max-width: 47.99rem) {
+    picture img {
+      aspect-ratio: 1;
+      object-position: 50% 20%;
+    }
+  }
   .cta-p {
-    margin-top: var(--s-8);
+    margin-top: var(--s-6);
   }
 </style>

@@ -29,12 +29,25 @@ const [, , vbW, vbH] = omega.viewBox.split(' ').map(Number);
     <svg class="hello-omega" viewBox={omega.viewBox} style={`aspect-ratio: ${vbW} / ${vbH}`} aria-hidden="true" focusable="false">
       <path class="omega-fill" d={omega.d}></path>
       <g class="omega-glow-wrap"><path class="omega-glow" d={omega.d} pathLength="1"></path></g>
-      <path class="omega-idle" d={omega.d} pathLength="1"></path>
       <path class="omega-light" d={omega.d} pathLength="1"></path>
     </svg>
     <span class="hello-line">Take the path of least resistance</span>
   </a>
 </Base>
+
+<script is:inline>
+  // The pause before the page goes to Home, so a click shows the glow. Without JS the link just navigates.
+  const a = document.querySelector('.hello');
+  a.addEventListener('click', (e) => {
+    if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    e.preventDefault();
+    if (a.classList.contains('is-entering')) return;
+    a.classList.add('is-entering');
+    setTimeout(() => { location.href = a.href; }, 500);
+  });
+  addEventListener('pageshow', (e) => { if (e.persisted) a.classList.remove('is-entering'); });
+</script>
 
 <style>
   /* /hello never scrolls, so the global reserved scrollbar gutter would only cut the art off at the right. */
@@ -42,6 +55,9 @@ const [, , vbW, vbH] = omega.viewBox.split(' ').map(Number);
     scrollbar-gutter: auto;
   }
   .hello {
+    --omega-w: min(75vmin, 42rem); /* the Ω svg width */
+    --line-fs: max(0.8125rem, calc(var(--omega-w) / 26.54)); /* 13px floor on phones */
+    --line-ls: calc((var(--omega-w) / 1.04 - 17.84 * var(--line-fs)) / 32); /* fills the gap to the Ω's edges */
     position: relative;
     display: grid;
     place-items: center;
@@ -73,14 +89,13 @@ const [, , vbW, vbH] = omega.viewBox.split(' ').map(Number);
   }
   .hello-omega {
     position: relative;
-    width: min(50vmin, 28rem);
+    width: var(--omega-w);
     height: auto;
     overflow: visible;
   }
   .omega-fill {
     fill: var(--accent);
   }
-  .omega-idle,
   .omega-light,
   .omega-glow {
     fill: none;
@@ -89,95 +104,76 @@ const [, , vbW, vbH] = omega.viewBox.split(' ').map(Number);
     stroke-linecap: round;
     vector-effect: non-scaling-stroke;
   }
-  .omega-idle {
-    stroke-width: 2px;
-    stroke-dasharray: 0.08 0.92;
-    opacity: 0.35;
-    animation: ohm-current 7s linear infinite;
-  }
+  /* One dash, longer period than the path (pathLength 1), so it never shows twice: at 0.14 it sits just
+     before the start, at -1 it has run off the end. The lap starts and ends at the right foot's inner corner. */
   .omega-light {
     stroke-width: 3px;
-    stroke-dasharray: 0.14 0.86;
-    stroke-dashoffset: 1;
-    opacity: 0;
-    animation: ohm-signature 2.4s ease-in-out 0.3s 1 forwards;
+    opacity: 1;
+    stroke-dasharray: 0.14 1;
+    stroke-dashoffset: 0.14;
+    animation: ohm-lap 11s 0.4s infinite;
   }
   .omega-glow {
     stroke-width: 6px;
     filter: blur(6px);
-    animation: ohm-pulse 3.5s ease-in-out infinite alternate;
   }
+  /* No glow at rest: hover, keyboard focus and a click (before the page goes to Home) turn it on. */
   .omega-glow-wrap {
-    opacity: 0.45;
-    animation: ohm-settle 0.8s ease-out 3s forwards;
+    opacity: 0;
+    transition: opacity 300ms;
   }
+  .hello.is-entering .omega-glow-wrap,
+  .hello:focus-visible .omega-glow-wrap {
+    opacity: 1;
+  }
+  /* The line fades in as the first lap ends (0.4s + 4.5s) and stays. Nothing else ever changes its opacity. */
   .hello-line {
     position: relative;
     text-align: center;
-    padding-inline: var(--gutter);
-    font-size: var(--fs-h2);
     font-weight: 500;
-    letter-spacing: 0.01em;
-    color: var(--text-on-dark);
-    text-shadow: 0 0 var(--s-3) var(--bg-dark), 0 0 var(--s-6) var(--bg-dark);
+    text-transform: uppercase;
+    white-space: nowrap;
+    font-size: var(--line-fs);
+    letter-spacing: var(--line-ls);
+    text-indent: var(--line-ls); /* balances the trailing letter-space */
+    color: color-mix(in srgb, var(--text-on-dark) 75%, var(--bg-dark)); /* 6.66:1 on --bg-dark */
+    text-shadow: none;
+    padding-inline: 0;
     opacity: 0;
-    animation: ohm-reveal 0.8s ease-out 3s forwards;
+    animation: ohm-reveal 1s ease-out 4.9s forwards;
   }
 
-  @keyframes ohm-current {
-    from { stroke-dashoffset: 1; }
-    to { stroke-dashoffset: 0; }
-  }
-  @keyframes ohm-signature {
-    0% { stroke-dashoffset: 1; opacity: 0; }
-    10% { opacity: 1; }
-    85% { opacity: 1; }
-    100% { stroke-dashoffset: 0; opacity: 0; }
-  }
-  @keyframes ohm-pulse {
-    from { opacity: 0.25; }
-    to { opacity: 0.55; }
-  }
-  @keyframes ohm-settle {
-    to { opacity: 1; }
+  @keyframes ohm-lap {
+    0% { stroke-dashoffset: 0.14; animation-timing-function: ease-in-out; }
+    41% { stroke-dashoffset: -1; } /* 4.5 s of 11 s: the lap */
+    100% { stroke-dashoffset: -1; } /* rest, then the next lap */
   }
   @keyframes ohm-reveal {
     to { opacity: 1; }
   }
 
-  /* Hover (fine pointers only) and keyboard focus jump straight to the end state. */
+  /* Hovering the Ω, not the page: the whole page is the link, so .hello:hover would glow whenever the
+     pointer is anywhere in the window (10R). */
   @media (hover: hover) and (pointer: fine) {
-    .hello:hover .omega-glow-wrap,
-    .hello:hover .hello-line {
-      animation: none;
+    .hello-omega:hover .omega-glow-wrap {
       opacity: 1;
-      transition: opacity 300ms;
     }
   }
   .hello:focus-visible {
     outline: var(--focus-ring);
     outline-offset: calc(-1 * var(--s-4));
   }
-  .hello:focus-visible .omega-glow-wrap,
-  .hello:focus-visible .hello-line {
-    animation: none;
-    opacity: 1;
-    transition: opacity 300ms;
-  }
 
   @media (prefers-reduced-motion: reduce) {
-    .omega-idle,
     .omega-light {
       display: none;
     }
-    .omega-glow,
-    .omega-glow-wrap,
     .hello-line {
       animation: none;
-    }
-    .omega-glow-wrap,
-    .hello-line {
       opacity: 1;
+    }
+    .omega-glow-wrap {
+      transition: none;
     }
   }
 </style>

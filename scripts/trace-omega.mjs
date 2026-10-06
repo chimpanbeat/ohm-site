@@ -142,8 +142,62 @@ const area = (loop) => {
   return Math.abs(s / 2);
 };
 loops.sort((p, q) => area(q) - area(p));
-const outer = loops[0];
+let outer = loops[0];
 const holes = loops.length - 1;
+
+// 4b. Orientation and start. The light on /hello runs clockwise on screen (positive shoelace area, y down)
+// from the right foot's inner corner, where the hand cut-out meets the baseline on the right.
+{
+  let signed = 0;
+  for (let i = 0; i < outer.length; i++) {
+    const [x1, y1] = outer[i];
+    const [x2, y2] = outer[(i + 1) % outer.length];
+    signed += x1 * y2 - x2 * y1;
+  }
+  if (signed < 0) outer = [...outer].reverse();
+
+  const oxs = outer.map((p) => p[0]);
+  const oys = outer.map((p) => p[1]);
+  const centreX = (Math.min(...oxs) + Math.max(...oxs)) / 2;
+  const maxY = Math.max(...oys);
+  const baseline = maxY - 0.06 * (maxY - Math.min(...oys));
+  const onBase = outer.map((p) => p[1] >= baseline);
+  const n = outer.length;
+  // Runs of non-baseline vertices, walked circularly from a baseline vertex.
+  const first = onBase.indexOf(true);
+  if (first === -1) throw new Error('trace-omega: no baseline vertices');
+  const candidates = [];
+  let runStart = -1;
+  for (let k = 1; k <= n; k++) {
+    const i = (first + k) % n;
+    if (!onBase[i]) {
+      if (runStart === -1) runStart = i;
+    } else if (runStart !== -1) {
+      const last = (i - 1 + n) % n;
+      if (outer[runStart][0] > centreX && outer[last][0] < centreX) candidates.push((runStart - 1 + n) % n);
+      runStart = -1;
+    }
+  }
+  if (candidates.length !== 1) throw new Error(`trace-omega: expected one cut-out run, found ${candidates.length}`);
+  // The vertex before the run is where the cut-out edge leaves the baseline band. Walk back down that edge
+  // (y rising, x within 25) to where it meets the foot's bottom edge. The corner is the leftmost vertex
+  // within 12 of the lowest one reached: the bottom edge runs off to the right of it.
+  const from = candidates[0];
+  const [x0] = outer[from];
+  const walked = [from];
+  for (let k = 1, y = outer[from][1]; k < n; k++) {
+    const j = (from - k + n) % n;
+    const [x, yj] = outer[j];
+    if (Math.abs(x - x0) > 25 || yj < y - 2) break;
+    y = Math.max(y, yj);
+    walked.push(j);
+  }
+  const lowest = Math.max(...walked.map((j) => outer[j][1]));
+  const start = walked
+    .filter((j) => outer[j][1] >= lowest - 12)
+    .reduce((a, b) => (outer[b][0] < outer[a][0] ? b : a));
+  outer = [...outer.slice(start), ...outer.slice(0, start)];
+}
 
 // 5. Douglas-Peucker on a closed loop: split at the point farthest from point 0, simplify both halves.
 const dist = (p, a, b) => {
@@ -219,3 +273,4 @@ writeFileSync(OUT, JSON.stringify(result, null, 2) + '\n');
 console.log(`Wrote ${OUT}`);
 console.log(`  d: ${result.points} points (tolerance ${full.tol} px); dMap: ${result.pointsMap} points (tolerance ${map.tol} px)`);
 console.log(`  dropped components: ${droppedComponents}; holes ignored: ${holes}; viewBox: ${viewBox}`);
+console.log(`  start vertex (right foot's inner corner): ${full.loop[0].join(', ')}`);

@@ -59,7 +59,7 @@ export const site = {
      * (~1 km) on purpose; tests enforce it. Between North Cheyenne Cañon and the Broadmoor (8A).
      * TODO(Brian): confirm the mark sits in the right neighbourhood.
      */
-    mapArea: { lat: 38.79, lng: -104.86 },
+    mapArea: { lat: 38.8, lng: -104.85 }, // 10A: moved ~1 km NE to the office's neighbourhood (Brian)
   },
 
   rates: {

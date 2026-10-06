@@ -25,19 +25,26 @@ const year = new Date().getFullYear();
   .site-footer {
     background: var(--bg-dark);
     border-top: 1px solid var(--line-dark);
-    padding-block: var(--s-12);
+    padding-block: var(--s-6);
     font-size: var(--fs-small);
   }
   .site-footer__grid {
     display: grid;
-    gap: var(--s-8);
-  }
-  @media (min-width: 48rem) {
-    .site-footer__grid {
-      grid-template-columns: 1fr 1fr;
-    }
+    gap: var(--s-4);
   }
   .site-footer__legal {
-    margin-top: var(--s-4);
+    margin-top: var(--s-2);
+  }
+  @media (min-width: 48rem) {
+    .site-footer {
+      padding-block: var(--s-12);
+    }
+    .site-footer__grid {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--s-8);
+    }
+    .site-footer__legal {
+      margin-top: var(--s-4);
+    }
   }
 </style>

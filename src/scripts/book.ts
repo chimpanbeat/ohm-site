@@ -152,14 +152,27 @@ const isRegion = (zone: ZoneKey | null | undefined): zone is 'home' | 'shared' |
   zone === 'home' || zone === 'shared' || zone === 'north';
 
 /**
- * Linked hover: the area button and its map area light up together (is-hot). Purely visual. "out"
- * is an area like the others: its map area is everything outside the zones, and has no outline.
+ * Linked hover: the area button and its map area light up together (is-hot), and everything else on
+ * the map steps back (is-dim). Purely visual. "out" is an area like the others: its map area is
+ * everything outside the zones, and has no outline. Hovering the office mark ('office') dims all
+ * three areas.
  */
-function hot(zone: ZoneKey | null | undefined): void {
-  for (const el of mobile?.querySelectorAll('.is-hot') ?? []) el.classList.remove('is-hot');
-  if (!zone) return;
+function hot(zone: ZoneKey | 'office' | null | undefined): void {
+  for (const el of mobile?.querySelectorAll('.is-hot, .is-dim') ?? []) el.classList.remove('is-hot', 'is-dim');
+  if (!zone || !svg) return;
+  const fills = svg.querySelectorAll<SVGPathElement>('path.zone:not(.zone--out)');
+  const mark = svg.querySelector('.map-office');
+  if (zone === 'office') {
+    for (const fill of fills) fill.classList.add('is-dim');
+    return;
+  }
   mobile?.querySelector(`.zone-picker a[data-zone="${zone}"]`)?.classList.add('is-hot');
-  svg?.querySelector(zone === 'out' ? '.zone--out' : `[data-zone="${zone}"].zone-line`)?.classList.add('is-hot');
+  svg.querySelector(zone === 'out' ? '.zone--out' : `[data-zone="${zone}"].zone-line`)?.classList.add('is-hot');
+  for (const fill of fills) {
+    if (fill.dataset.zone === zone) fill.classList.add('is-hot');
+    else fill.classList.add('is-dim');
+  }
+  mark?.classList.add('is-dim');
 }
 
 /**
@@ -173,6 +186,23 @@ function goOffice(): void {
   choose('office');
   office.scrollIntoView({ block: 'start' });
   const heading = $('office-h');
+  if (!heading) return;
+  if (!heading.hasAttribute('tabindex')) heading.setAttribute('tabindex', '-1');
+  heading.focus();
+}
+
+/**
+ * The office map's "Show mobile service areas" (and a `#mobile` link): switch to "At your place" with
+ * the full map and no chosen area, scroll its section into view and focus its heading.
+ */
+function goMobile(): void {
+  const radio = whereSet?.querySelector<HTMLInputElement>('input[name="where"][value="mobile"]');
+  if (!radio || !mobile) return;
+  radio.checked = true;
+  choose('mobile');
+  deselect();
+  mobile.scrollIntoView({ block: 'start' });
+  const heading = $('mobile-h');
   if (!heading) return;
   if (!heading.hasAttribute('tabindex')) heading.setAttribute('tabindex', '-1');
   heading.focus();
@@ -438,11 +468,21 @@ function init(): void {
     else select(zonePath.dataset.zone as ZoneKey, 'pick');
   });
 
+  // The office map's link to the mobile map (a plain link to /book#mobile without JS).
+  office.addEventListener('click', (e) => {
+    if (!(e.target as Element).closest('.map-areas')) return;
+    if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return; // let the browser open a tab
+    e.preventDefault();
+    goMobile();
+  });
+
   // Linked hover. The pointer drives it by what is under it; keyboard focus drives it only when the
   // browser shows a focus ring (a mouse click also focuses a button, and that must not stick).
   mobile.addEventListener('pointerover', (e) => {
-    const el = (e.target as Element).closest<HTMLElement | SVGElement>('.zone-picker a[data-zone], path.zone[data-zone]');
-    hot((el?.dataset.zone as ZoneKey | undefined) ?? null);
+    const el = (e.target as Element).closest<HTMLElement | SVGElement>(
+      '.zone-picker a[data-zone], path.zone[data-zone], .map-office',
+    );
+    hot(!el ? null : el.classList.contains('map-office') ? 'office' : (el.dataset.zone as ZoneKey | undefined));
   });
   mobile.addEventListener('pointerleave', () => hot(null));
   mobile.addEventListener('focusin', (e) => {
@@ -452,6 +492,14 @@ function init(): void {
   mobile.addEventListener('focusout', (e) => {
     if ((e.target as Element).closest('.zone-picker a[data-zone]')) hot(null);
   });
+
+  if (location.hash === '#mobile') {
+    goMobile();
+    // The browser's own fragment handling blurs the heading after this script has run; focus it again.
+    if (document.readyState !== 'complete') {
+      addEventListener('load', () => $('mobile-h')?.focus({ preventScroll: true }), { once: true });
+    }
+  }
 }
 
 init();

@@ -27,7 +27,7 @@ The port is fixed at **4321** because the Google key allows the referrer `http:/
 | `npm run osm` | Fetches the roads and towns for the service-area map from OpenStreetMap into `src/data/osm.geojson` (by hand, rarely) |
 | `npm run terrain` | Builds the hillshade for the service-area map from USGS elevation into `src/assets/terrain.webp` (by hand, rarely) |
 | `npm run omega` | Traces the Ω from `src/assets/icon.png` into `src/data/omega.json` (by hand, rarely) |
-| `npm run check:dist` | Checks `dist/` keeps `/hello` noindex, unlinked, out of the sitemap and script-free (run after `build`) |
+| `npm run check:dist` | Checks `dist/` keeps `/hello` noindex, unlinked, out of the sitemap and limited to one inline script (run after `build`) |
 | `npm run icons` | Regenerates the favicon and touch icons |
 
 ## Deploy
@@ -79,13 +79,18 @@ PocketSuite links that still start with `TODO_` are placeholders. Buttons using 
 
 ## `/hello` entrance page
 
-`/hello` is a full-screen welcome page: the Ω lit by a slow light, the body graphic, and the line "Take the path of least resistance". It is one big link to Home. It has no JavaScript.
+`/hello` is a full-screen welcome page: the Ω lit by a slow light, the body graphic, and the line "Take the path of least resistance". It is one big link to Home.
+
+- **The light** is one dash that runs once clockwise round the Ω's outline from the right foot's inner corner (a 4.5 s lap, starting 0.4 s in), then repeats every 11 s. It's pure CSS (`ohm-lap`).
+- **The line** fades in at 4.9 s, as the first lap ends, and stays. It is upper case, sized so it spans exactly the Ω's width (`--omega-w`, `--line-fs`, `--line-ls` on `.hello`; the constants are DM Sans metrics for this exact string, so re-measure them if the line or the font changes).
+- **The glow** is off at rest. Hover (fine pointers), keyboard focus and a click turn it on.
+- **The click pause:** one small inline script holds a plain click or Enter for 0.5 s so the glow shows before the page goes to Home. Modified clicks (Ctrl, Cmd, Shift, Alt, middle button) and reduced motion skip it. Without JavaScript the link simply navigates at once, and the light and the line still work.
 
 - **Where to use it:** print (business cards), QR codes, social bios and referrals link to `/hello`. Search, Google Maps and the Google Business Profile link to `/`, so those visitors go straight to prices and booking.
 - **Use the exact lowercase URL with no trailing slash.** `/hello/` works (it redirects through `public/hello/index.html`), but the slash form costs a hop and a flash. Generate QR codes after the custom domain is live, not from the `github.io` address.
 - **Why it's `noindex`, unlinked and out of the sitemap:** a full-screen splash for people arriving from search can count against the site in Google's ranking, and search visitors don't want one. `/hello` is only for people who chose to come. It can't be blocked in `robots.txt`, because Google has to crawl it to see the `noindex`.
-- `npm run check:dist` enforces all of this after the build (CI runs it before publishing): the `noindex` meta, a self canonical, no `<script>` (the JSON-LD data block aside), no mention in the sitemap or `robots.txt`, no link to it from any other page, and no splash on Home.
-- `npm run omega` traces the Ω from `src/assets/icon.png` into `src/data/omega.json`, until JohnMark's SVG replaces it. To switch, put the SVG's outline path (one closed `d`) and `viewBox` in `omega.json`, with a simplified `dMap` for the maps.
+- `npm run check:dist` enforces all of this after the build (CI runs it before publishing): the `noindex` meta, a self canonical, at most one inline `<script>` and never a `<script src>` (the JSON-LD data block aside), no mention in the sitemap or `robots.txt`, no link to it from any other page, and no splash on Home.
+- `npm run omega` traces the Ω from `src/assets/icon.png` into `src/data/omega.json`, until JohnMark's SVG replaces it. To switch, put the SVG's outline path (one closed `d`) and `viewBox` in `omega.json`, with a simplified `dMap` for the maps. The path must run clockwise on screen and start at the right foot's inner corner (the script rotates the contour there: the baseline vertex where the hand cut-out meets the right foot), because the light starts and ends at the first vertex; `tests/omega.test.ts` checks it.
 
 ## Test addresses
 

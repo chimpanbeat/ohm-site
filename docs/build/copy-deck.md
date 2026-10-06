@@ -82,7 +82,7 @@ No splash on Home (9A batch 5: it's on `/hello`, below).
    **P:** `Each session starts with a short assessment: where it hurts, how you move, and what you want to get back to. Then I work on the muscles and trigger points that limit that movement, using neuromuscular techniques, trigger point therapy and {w:deepTissue}. The aim is to reduce resistance in the tissue and restore movement. You leave knowing what I found, with a few things to do on your own between sessions.`
 
 3. **H2:** `Why "Ohm"`
-   **P** (8A; 9A adds the second sentence): `An ohm is the unit of electrical resistance. Its symbol is the Greek letter omega (Ω), the shape in my logo. I spent 12 years as an electrical engineer before changing careers, and resistance is still what I work on, now in muscle and fascia. Say the name out loud and you also hear Om, the sacred sound of yoga and meditation. Yoga is a big part of how I got here. The tagline carries both meanings.`
+   **P** (8A; 9A adds the second sentence; 10A drops "the shape in my logo"): `An ohm is the unit of electrical resistance. Its symbol is the Greek letter omega (Ω). I spent 12 years as an electrical engineer before changing careers, and resistance is still what I work on, now in muscle and fascia. Say the name out loud and you also hear Om, the sacred sound of yoga and meditation. Yoga is a big part of how I got here. The tagline carries both meanings.`
 
 **Green CTA band**
 - **H2:** `Book a session`
@@ -200,6 +200,7 @@ No splash on Home (9A batch 5: it's on `/hello`, below).
 - **Address label** (built in `book.ts`) (9A: colon added): `Not sure? Enter your address:`
 - **Map hint** (`.map-hint`, un-hidden by book.ts) (9A): `Tap an area on the map or a button above to choose it. Tap it again to see all areas. The Ohm symbol marks my office; tap it for office sessions.`
 - **Reset button** (8A, over the map's top-right corner, shown while any area is chosen, including outside (9A)): `Show all areas`
+- **Office map button** (10A, over the office map's top-right corner, always shown; on `/book` and `/book/office`): `Show mobile service areas`
 - **Google Maps button** (8A, replaces the small link; directly under the map): `Open in Google Maps`, with an external-link icon and visually hidden ` (opens in a new tab)`.
 - **Map `<title>`:** `Service area map`. **`<desc>`:** `Map of Colorado Springs showing my three service areas, Central & Southwest Springs, Mid-north Springs and North Springs, with the major roads that border them.` Build the zone names from `site.zones` (don't type them).
 - **Map labels:** zone names from `site.zones[key].name`; road short names and place names as listed in ARCHITECTURE §B4.
@@ -221,7 +222,7 @@ The entrance page for cards, QR codes and social bios (ARCHITECTURE §B8). `noin
 - `description`: same as Home: `Neuromuscular therapy in Colorado Springs for climbers, runners and active people. Trigger point therapy and sports recovery, at your place or my office.`
 
 **Page**
-- Visible line (fades in at 3s): `Take the path of least resistance` (Brian). It's the same in both licensure states, so there's no `wording.ts` key.
+- Visible line (fades in when the light finishes its first lap, 10A; shown in capitals by CSS): `Take the path of least resistance` (Brian). It's the same in both licensure states, so there's no `wording.ts` key.
 - Visually hidden, before it (part of the link's accessible name): `Enter Ohm Precision Bodywork. `
 - The images are decorative (`alt=""`, and the SVG is `aria-hidden`).
 - Trailing-slash redirect page (`public/hello/index.html`): `<title>Ohm Precision Bodywork</title>`, link text `Continue`.

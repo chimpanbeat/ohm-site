@@ -32,6 +32,9 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 | 9B | sonnet | high | Office badge, terrain + minor roads, clickable outside, dimming, layout fixes, copy | done | 726290a | Deviations accepted in 9R. Terrain image was broken (3-channel blur buffer); Opus fixed `make-terrain.mjs` and regenerated |
 | 9C | sonnet | high | `/hello` entrance page (no JS, noindex), traced Ω (`npm run omega`), `check:dist` in CI, trailing-slash redirect; Part 2: map office mark = bare Ω + "Ohm Office" | done | 726290a | After 9B. Step file `9C-hello.md`. Part 2 added after Brian saw 9B's badge |
 | 9R | opus | high | Review Phase 9 (9B + 9C; terrain strength and the splash with Brian), delete `--zone-muted` and `radiusKm`, commit, push | done | 726290a | Opus fixed: terrain bug, `/hello` scrollbar gutter. Terrain opacity 0.6 pending Brian's look |
+| 10A | opus | high | Brian's review of Phase 9: `/hello` motion and line, office mark and map buttons, hover dimming, spacing; 10B step file | done | PHASE10 | Batches 1–2 + line pick (C, Ω width). Brian: "go" (Oct 6). |
+| 10B | sonnet | high | `/hello` light/line/glow/click pause, Ω start rotation, office mark + map buttons, hover dimming, site-wide spacing | done | PHASE10 | Step file `10B-hello-map-spacing.md` Deviations accepted in 10R |
+| 10R | opus | high | Review Phase 10 (`/hello` motion with Brian), commit, push | done | PHASE10 | Opus fixed: `/hello` hover glow scoped to the Ω (the page is one link) |
 
 ## §12 acceptance (5R, 2026-10-05)
 | Criterion | Result | Evidence |
@@ -72,6 +75,8 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 
 ## Architecture changes
 (Opus logs any mid-build change to ARCHITECTURE.md or step files here.)
+- 2026-10-06 (10R): `/hello` hover glow is `.hello-omega:hover`, not `.hello:hover` (ARCHITECTURE §B8).
+- 2026-10-06 (10A): Phase 10 added for Brian's review of Phase 9. Spacing (`--s-10`), office mark position and size, `Show mobile service areas`, hover dimming, dark map buttons, `/hello` motion and line, one inline script on `/hello` (`check:dist` rule 7 relaxed) (ARCHITECTURE §C 10A).
 - 2026-10-06 (9R): `--zone-muted` and `office.mapArea.radiusKm` deleted (ARCHITECTURE §B1, §B3). `make-terrain.mjs`: take one channel back after the blur (sharp returns three), blur 1, `alphaQuality` 50. `/hello` turns the scrollbar gutter off for itself.
 - 2026-10-06 (after 9B): Brian wants the map office marker as just the Ω, larger, labelled "Ohm Office" on all views. Added to 9C as Part 2 (uses the traced path; `omega.json` gains `dMap`). ARCHITECTURE §B4 "Office mark".
 - 2026-10-06 (9A, batch 5): the splash moves off Home to its own page, `/hello` (noindex, unlinked, no JS), for card, QR and social traffic; reason: Google's intrusive-interstitial signal and search visitors' friction. Step 9C rewritten as `steps/9C-hello.md` (the batch-4 `9C-splash.md` was never run and is deleted). ARCHITECTURE §B8 rewritten; `check:dist` added to CI.
