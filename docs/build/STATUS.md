@@ -35,9 +35,9 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 | 10A | opus | high | Brian's review of Phase 9: `/hello` motion and line, office mark and map buttons, hover dimming, spacing; 10B step file | done | 517a029 | Batches 1–2 + line pick (C, Ω width). Brian: "go" (Oct 6). |
 | 10B | sonnet | high | `/hello` light/line/glow/click pause, Ω start rotation, office mark + map buttons, hover dimming, site-wide spacing | done | 517a029 | Step file `10B-hello-map-spacing.md` Deviations accepted in 10R |
 | 10R | opus | high | Review Phase 10 (`/hello` motion with Brian), commit, push | done | 517a029 | Opus fixed: `/hello` hover glow scoped to the Ω (the page is one link) |
-| 11A | opus | high | Brian's review of Phase 10: `/hello` speed (and the mobile speed bug), spacing, About photo, Why Ohm copy; 11B step file | done | | Batches 1–2. Cause of the fast phone light: `non-scaling-stroke` + `pathLength`. Why Ohm copy done by Opus. Uncommitted; commit with Phase 11 |
-| 11B | sonnet | medium | `/hello` light fix (no non-scaling stroke) and 3s lap, tighter spacing, About photo at text width | done | PENDING | Step file `11B-light-fix-spacing-about.md`. Accepted in 11R; Home +16px at 375 is the Why Ohm paragraph split |
-| 11R | opus | medium | Review Phase 11, commit, push | done | PENDING | No changes needed |
+| 11A | opus | high | Brian's review of Phase 10: `/hello` speed (and the mobile speed bug), spacing, About photo, Why Ohm copy; 11B step file | done | f13b4a3 | Batches 1–2. Cause of the fast phone light: `non-scaling-stroke` + `pathLength`. Why Ohm copy done by Opus |
+| 11B | sonnet | medium | `/hello` light fix (no non-scaling stroke) and 3s lap, tighter spacing, About photo at text width | done | f13b4a3 | Step file `11B-light-fix-spacing-about.md`. Accepted in 11R; Home +16px at 375 is the Why Ohm paragraph split |
+| 11R | opus | medium | Review Phase 11, commit, push | done | f13b4a3 | No changes needed |
 
 ## §12 acceptance (5R, 2026-10-05)
 | Criterion | Result | Evidence |
