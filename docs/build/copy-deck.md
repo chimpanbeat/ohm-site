@@ -193,7 +193,7 @@ No splash on Home (9A batch 5: it's on `/hello`, below).
 - `description`: `Find the right booking link for an office or mobile session in Colorado Springs and Manitou Springs.`
 - The `/book/[zone]` pages have their own (Oct 6, after the final audit), built from `site.ts`; `title` ends ` · Ohm Precision Bodywork`:
   - home, shared, north: `Book in {zone.name}` / `Book a mobile session at your place in {zone.name}. I'm there {zone.days}.`
-  - office: `Book at my office` / `Book a session at my office in {officeArea}. I'm there {office.days}.`
+  - office: `Book at my office` / `My office in {officeArea}. I'm there {office.days}.` (kept under ~155 characters for search snippets)
   - out: `{zones.out.name}` / `I can sometimes travel outside my regular area by request. Get in touch, or book a session at my office.`
 
 **Intro P** (directly under the H1, before the `#where` fieldset):
