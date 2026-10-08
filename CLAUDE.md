@@ -24,3 +24,24 @@ Exception: if Brian explicitly asks for something outside the step plan (a quest
 ## Commands
 - `npm run dev`: dev server on http://localhost:4321/ohm-site/ (port 4321 is required by the Google key referrer).
 - `npm run build`, `npm test`, `npm run check:wording`, `npm run zones`.
+
+## Messaging with the planning chats
+
+Brian plans the site in claude.ai chats (Project "Massage Business Plan 2026"). **Chats read this repo but never write to it.** They keep a master list ("Ohm site: master list") with IDs T-### (Brian's to-dos), D-### (decisions) and H-### (changes for Code). Opus is the only committer. Use the next unused ID; never renumber or reuse one.
+
+Two channels, nothing else (no outbox, no processed folders):
+
+- **Down: `docs/build/incoming-handoff.md`.** Brian saves the chats' export over it, or pastes items into an Opus session, which saves them there verbatim.
+  - **Opus** processes it first in every session (after the model gate) and at every `A` and `R` step. For each H-### it applies the item to the brief, `ARCHITECTURE.md`, `site.ts`, the copy deck or step files; logs it under STATUS.md → "Architecture changes" with the H-ID and the files touched; deletes it from the file; and commits.
+  - **If an H-### is already logged in the change log, skip it and delete it from the file.** The export always carries every item not yet flowed, so repeats are normal.
+  - An item marked `blocks:<step>` must be applied before that step runs; `blocks:license-day` before the license-day cutover.
+  - If every STATUS row is `done` and items are waiting, the next step is Opus: open a new phase (`NA: apply H-…`, then `NB` and `NR` if code is needed). A pure config or copy value can go in as a quick fix (the exception above), still logged and committed.
+  - **Sonnet** never edits the file. It reads it at the start of every step. If an item affects or blocks the step, it sets the row to `blocked`, names the H-ID under Report → Questions for Opus, and stops.
+- **Up: `docs/build/STATUS.md`.** Keep these sections current. **Commit STATUS.md with each phase** so the chats read the current version.
+  1. "Open TODO(Brian)": `- [ ] T-### | needed by <date> | blocks <step, license-day, D-### or —> | what`. Tick when done; never delete.
+  2. "Needs a decision": table with ID, Type, What, Needed by, Where it shows / proposed text or link, State (`open` · `needs-review` · `approved` · `changed` · `done`), Answer.
+  3. "Architecture changes": the change log, newest first.
+
+  Sonnet lists new TODOs and decisions in its step Report. Opus moves them into STATUS.md with the next unused T- or D-ID at review, and whenever it stops to ask Brian something.
+
+**Public repo:** neither file ever holds secrets, client names, health information, session notes, the office street address, business-plan financials or PocketSuite admin details.

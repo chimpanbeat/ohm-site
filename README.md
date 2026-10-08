@@ -174,11 +174,4 @@ Pages never write those terms. They call `w('key')` from `src/data/wording.ts`, 
 
 ## TODO(Brian)
 
-- Tested PocketSuite links: office, home, shared (keyword), north.
-- Review the About draft in `docs/build/copy-deck.md`.
-- Cordera and Wolf Ranch fixtures: replace the rough coordinates with geocoded addresses, then remove their `todo` field in `tests/fixtures/addresses.json`.
-- Six differences between the brief §6 boundary descriptions and the KML polygons are listed in `docs/build/steps/6A-review-fixes-contracts.md`.
-- SVG logo, if one exists.
-- License number (license day).
-- Set the Google quota caps, upgrade billing, add a budget alert (see above).
-- Confirm which licensure fields belong in the JSON-LD on license day (`Base.astro`).
+Open items live in `docs/build/STATUS.md` → Open TODO(Brian) and Needs a decision.

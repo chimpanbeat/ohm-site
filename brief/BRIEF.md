@@ -170,7 +170,7 @@ Rough boundary descriptions (for copy and alt text only; the polygons decide):
 - Before implementing, check Google's current Places pricing and usage documentation and note in the README which SKUs the implementation uses.
 - The API key goes in an env var (`PUBLIC_GOOGLE_MAPS_KEY`). It is public by design; its protection is the restrictions below.
 - Write the README steps for Brian to:
-  - Confirm the key's HTTP referrer restrictions. Brian has already set `https://chimpanbeat.github.io/ohm-site/*` and `http://localhost:4321/*`; the production domain is added on license day (§10).
+  - Confirm the key's HTTP referrer restrictions. Brian has already set the origin-wide `https://chimpanbeat.github.io/*` (fixed by Brian, verified Oct 5, 2026; see T-006) and `http://localhost:4321/*`; the production domain is added on license day (§10).
   - Confirm the key is restricted to the Maps JavaScript API and Places API (New) only (already set).
   - Set daily quota caps after the Google Cloud account is upgraded from the free trial (the console blocks quota edits during the trial; see §14). Suggested: `AutocompletePlacesRequest` per day 300, `GetPlaceRequest` per day 100, Maps JavaScript API map loads per day 100. Verify the quota names and numbers against the console and Google's current docs.
 - Load the Maps script only on `/book`, and only after the visitor chooses mobile.

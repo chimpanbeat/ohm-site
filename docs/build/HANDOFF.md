@@ -37,6 +37,8 @@ Run this at the start of every session, every step, and every "continue".
 
 Sonnet may implement the *bodies* in `geo.ts` (step 2A) but must not change its exported names or types.
 
+**Planning-chat inbox:** Opus processes `docs/build/incoming-handoff.md` first in every session (after the model gate) and updates the STATUS sections "Open TODO(Brian)" and "Needs a decision" at each review or phase. Sonnet reads the inbox at the start of every step and escalates (row → `blocked`) if an item affects it. Rules: `CLAUDE.md` → "Messaging with the planning chats".
+
 ## 3. Sonnet: doing a step
 
 1. Read the step file fully, then the `ARCHITECTURE.md` sections it cites. Read the brief sections it cites.
