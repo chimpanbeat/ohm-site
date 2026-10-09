@@ -15,5 +15,3 @@ Format:
     One to four sentences, with the source (who decided or which chat found it).
 
 ## Items
-
-(none)

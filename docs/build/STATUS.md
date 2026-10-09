@@ -91,6 +91,7 @@ States: `open` (no proposal yet) · `needs-review` · `approved` · `changed` ·
 
 ## Architecture changes
 (Opus logs any mid-build change to ARCHITECTURE.md or step files here.)
+- 2026-10-09 (H-005): fact: the planning chats moved to their own Claude Project, "Ohm Site". CLAUDE.md → Messaging with the planning chats now names it; no other repo line named the old Project. The master list keeps its name and link. Files: CLAUDE.md, docs/build/STATUS.md, docs/build/incoming-handoff.md.
 - 2026-10-08 (H-001): planning-chat messaging installed: `docs/build/incoming-handoff.md` (down), STATUS "Open TODO(Brian)" with T-IDs and new "Needs a decision" (D-001–D-009) (up), `CLAUDE.md` → Messaging with the planning chats, pointer lines in HANDOFF.md §2 and STATUS.md. Eight design TODOs moved to Needs a decision; T-017, T-018 and D-009 added. Stale lines fixed: BRIEF §6 key referrer; README TODO list now points to STATUS. Files: CLAUDE.md, README.md, brief/BRIEF.md, docs/build/HANDOFF.md, docs/build/STATUS.md, docs/build/incoming-handoff.md.
 - 2026-10-08 (H-002): asset, blocks license-day: tested PocketSuite links for office, home, shared (keyword) and north come from Brian (T-001). Until then booking buttons fall back to the general PS page. Recorded on T-001. Files: docs/build/STATUS.md.
 - 2026-10-08 (H-003): asset, blocks license-day: the license number comes from Brian on license day (T-011); `licensed` stays false until then. Recorded on T-011. Files: docs/build/STATUS.md.

@@ -27,7 +27,7 @@ Exception: if Brian explicitly asks for something outside the step plan (a quest
 
 ## Messaging with the planning chats
 
-Brian plans the site in claude.ai chats (Project "Massage Business Plan 2026"). **Chats read this repo but never write to it.** They keep a master list ("Ohm site: master list") with IDs T-### (Brian's to-dos), D-### (decisions) and H-### (changes for Code). Opus is the only committer. Use the next unused ID; never renumber or reuse one.
+Brian plans the site in claude.ai chats (Project "Ohm Site"). **Chats read this repo but never write to it.** They keep a master list ("Ohm site: master list") with IDs T-### (Brian's to-dos), D-### (decisions) and H-### (changes for Code). Opus is the only committer. Use the next unused ID; never renumber or reuse one.
 
 Two channels, nothing else (no outbox, no processed folders):
 
