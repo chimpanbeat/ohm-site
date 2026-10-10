@@ -404,6 +404,7 @@ Copy into `src/assets/`, renamed to kebab-case. Only these are committed:
 | `logo/Logo_Stack.png` | `logo-stack.png` | 404 / footer if needed |
 | `logo/Icon.png` | `icon.png` | Header on very narrow screens |
 | `logo/Icon.png` + `logo/Icon_Background.png` | (inputs to `npm run icons`, read from `brief/`, not copied) | `favicon-32.png` = `Icon.png` centered at 80% on a `#0C3F35` square (anatomy detail is unreadable at 32px). `apple-touch-icon.png` (180px) and `icon-512.png` = `Icon_Background.png` resized |
+| `ohm-logo-stacked@2x.png` (Brian, Oct 9) | `public/img/email-sig-logo.png` (144×174, served as-is, not via `astro:assets`) | Email signatures only (shown at 72×87). No page links to it. **Path is stable** (sent emails reference `/img/email-sig-logo.png`); replace in place if T-009 changes the logo (H-006) |
 
 - Images go through `astro:assets` `<Image>` / `<Picture>` with `formats={['avif','webp']}`, explicit `widths`/`sizes`, and `alt` text.
 - The logo gets `alt="Ohm Precision Bodywork"`. Decorative art gets `alt=""`.
