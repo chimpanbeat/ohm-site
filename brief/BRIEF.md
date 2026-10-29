@@ -63,7 +63,7 @@ export const site = {
     s90:     { label: "90-minute session", minutes: 90, price: 120 },
   },
   travelFee: { amount: 25, note: "Flat, per mobile session. Book two sessions back to back at the same place, like you and your partner, and neither one has a travel fee." },
-  outOfRegionFee: null,            // TBD. Do not display an amount while null.
+  outOfRegionFee: null,            // stays null: no amount or range on the site; travel outside the service area is quoted before booking (Oct 29, 2026)
   contact: {
     lead: "https://pocketsuite.io/lead/ohm-precision-bodywork",
     chat: "https://pocketsuite.io/chat/ohm-precision-bodywork",
@@ -126,7 +126,7 @@ Packages and the friends-and-family rate are **not** shown on the site.
 3.  **Result card.** Shows the zone's plain-language name, the days I'm in that area, the travel fee note, and one primary button to that zone's PS link.
     - Example: "You're in my Central & Southwest area. I'm there Tuesdays and Fridays."
     - The visitor stays on the page; the map stays visible.
-4.  **Out of region:** from an address, "That address is outside my regular service area."; from the button, "Outside my regular service area". Then "I can sometimes travel outside my regular area by request." Show a PocketSuite lead form button, a PocketSuite chat button, and an email link. No booking link, no phone.
+4.  **Out of region:** from an address, "That address is outside my regular service area."; from the button, "Outside my regular service area". Then "I can sometimes travel outside my regular area by request." and a line saying travel outside the service area is quoted before booking, with no amount or range (Oct 29, 2026). Show a PocketSuite lead form button, a PocketSuite chat button, and an email link. No booking link, no phone.
 5.  **Map** (Oct 6, 2026): the site draws its own map (an SVG built at compile time) of the zones from `zones.geojson`, plus the major roads that bound them and nearby town names from OpenStreetMap. No map service and no per-view cost. Brian is trying it; the fallback plan is a Google Maps JavaScript map.
     - Zone names are labelled on the map, and the zone colours match the zone buttons.
     - The first view fits all zones (the old My Maps view was zoomed in too far).

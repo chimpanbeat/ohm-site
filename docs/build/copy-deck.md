@@ -39,13 +39,14 @@ Header, Footer, OfficeCard, ZonePicker and ZoneCard keep their current text (ARC
   - Heading, `via='address'`: `That address is outside my regular service area.`
   - Heading, `via='pick'` (picker button and `/book/out`): `Outside my regular service area`
   - Then `I can sometimes travel outside my regular area by request.` (replaces "I sometimes travel there by request."), then `{site.outOfRegionFeeNote}`, then ContactButtons.
+  - `{site.outOfRegionFeeNote}` (I-023, Oct 29): `I'll quote travel outside my service area before you book.` No amount or range; `outOfRegionFee` stays null. (Was "An out-of-region fee applies; I'll quote it when you get in touch.")
 - **ZonePicker:** no built-in heading. `/book/[zone]` passes `heading="Not sure? Pick your area."`; `/book` passes none (its H2 introduces the list).
 - **Travel-fee note:** `{site.travelFee.note}` is now "Flat, per mobile session. Book two sessions back to back at the same place, like you and your partner, and neither one has a travel fee." Config-only.
 - **Glossary:** removed from the site (`glossary.ts` and `Glossary` are deleted). Trigger points are explained in the Services prose instead.
 
 - **Map:** the My Maps iframe (`MapEmbed`) is replaced by our own SVG map (`ServiceMap`); its text is under Book → Mobile section.
 
-**Earlier (6A):** `{site.outOfRegionFeeNote}` on the out card.
+**Earlier (6A):** `{site.outOfRegionFeeNote}` on the out card (text since I-023: see ZoneCard, `out` above).
 
 ## Alt text
 | Image | Where | Alt |
@@ -246,6 +247,7 @@ The entrance page for cards, QR codes and social bios (ARCHITECTURE §B8). `noin
 ---
 
 ## Checks Opus ran on this deck
+- **I-023 (Oct 29):** the new `outOfRegionFeeNote` has no digit, `$`, range, licensed-only term or "treat/cure/diagnose/fix/heal".
 - **7A additions:** the neuromuscular paragraphs, Pricing page, out card, contact and map text. No licensed-only terms and no "massage". No "treat/cure/diagnose/fix/heal/health": the outcome line is phrased as an aim ("The aim is less pain and more freedom to move"), and "can show up as a headache" describes referred pain, not a promised result. No phone number. Prices are all computed from `site`. The map text (title, desc, hint, credit) is descriptive only, with no outcome language.
 - **6A additions:** the glossary, the worked example and `outOfRegionFeeNote` were checked against §7. They contain no licensed-only terms and no "treat/cure/diagnose/fix/heal" (or "health"). Each definition describes what happens in the session and makes no outcome claim. "Can be felt as a headache" describes referred pain, not something the work promises to change.
 - **§7, unlicensed:** no "massage", "massage therapist", "massage therapy", "LMT" or "licensed" outside the licensed variants in `wording.ts`. The school name appears only in `training`'s licensed variant.

@@ -72,9 +72,13 @@ export const site = {
     // Back-to-back pair: neither session pays the fee (Brian, Oct 6 2026).
     note: 'Flat, per mobile session. Book two sessions back to back at the same place, like you and your partner, and neither one has a travel fee.',
   },
-  outOfRegionFee: null as number | null, // TBD. Do not display an amount while null.
-  /** Out-of-region card. Contains no amount; revisit the wording when outOfRegionFee is set. */
-  outOfRegionFeeNote: "An out-of-region fee applies; I'll quote it when you get in touch.",
+  // Stays null: the site shows no amount or range for out-of-region travel (Brian, Oct 29 2026, I-023).
+  outOfRegionFee: null as number | null,
+  /**
+   * Out-of-region card. No amount or range: some quotes run above the old range, so travel
+   * outside the service area is quoted before booking (Brian, Oct 29 2026, I-023).
+   */
+  outOfRegionFeeNote: "I'll quote travel outside my service area before you book.",
 
   /** PocketSuite contact pages (Brian, Oct 6 2026). Real URLs, not booking links. */
   contact: {
