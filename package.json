@@ -19,7 +19,6 @@
     "icons": "node scripts/make-icons.mjs",
     "omega": "node scripts/trace-omega.mjs",
     "check:dist": "node scripts/check-dist.mjs",
-    "policies:pdf": "node scripts/make-policies-pdf.mjs",
     "check:secrets": "node tools/check-secrets.mjs",
     "check": "npm run build && npm test && npm run check:wording && npm run check:contrast && npm run check:dist && npm run check:secrets",
     "shots": "node tools/shots.mjs --base /ohm-site",
@@ -29,6 +28,7 @@
     "astro": "^7.3.5"
   },
   "devDependencies": {
-    "playwright": "^1.64.1"
+    "playwright": "^1.64.1",
+    "unpdf": "^2.0.0"
   }
 }

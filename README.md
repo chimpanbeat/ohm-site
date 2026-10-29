@@ -28,7 +28,6 @@ The port is fixed at **4321** because the Google key allows the referrer `http:/
 | `npm run terrain` | Builds the hillshade for the service-area map from USGS elevation into `src/assets/terrain.webp` (by hand, rarely) |
 | `npm run omega` | Traces the Ω from `src/assets/icon.png` into `src/data/omega.json` (by hand, rarely) |
 | `npm run check:dist` | Checks `dist/` keeps `/hello` noindex, unlinked, out of the sitemap and limited to one inline script (run after `build`) |
-| `npm run policies:pdf` | Builds the site and prints `/client-policies` to `public/ohm-client-policies.pdf` |
 | `npm run icons` | Regenerates the favicon and touch icons |
 
 ## Deploy
@@ -49,7 +48,7 @@ The office badge (the Ω) on the maps sits on `site.office.mapArea` (`lat`, `lng
 
 Booking links are PocketSuite items pages filtered by a keyword, `https://pocketsuite.io/book/ohm-precision-bodywork/items?keyword=<key>`, for `office`, `central`, `midnorth` and `north`. Only Brian changes them.
 
-The client policies text is in `src/data/client-policies.ts` (a contract file; changes come from Brian). After changing it, a rate or the travel fee in `site.ts`, or the `/client-policies` page, run `npm run policies:pdf` and commit `public/ohm-client-policies.pdf` and `src/data/client-policies.pdf.json`. A test fails until you do.
+The client policies text is in `src/data/client-policies.ts` (a contract file; changes come from Brian). The PDF, `public/ohm-client-policies.pdf`, is built in Brian's doc kit from the same text, not from the page. After changing the text, a rate or the travel fee in `site.ts`, rebuild it there, save it over `public/ohm-client-policies.pdf` and commit it. A test reads the PDF's text and fails while any sentence of the source is missing from it.
 
 ## Re-exporting zones
 

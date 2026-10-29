@@ -1,9 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { extractText, getDocumentProxy } from 'unpdf';
 import { site, mailHref } from '../src/data/site.ts';
 import {
   clientPolicies,
@@ -122,27 +122,71 @@ test('7. the Colorado notice is verbatim and sits beside the surcharge line', ()
   ]);
 });
 
-const pdfMeta = () => JSON.parse(readFileSync(join(root, 'src/data/client-policies.pdf.json'), 'utf8'));
-const sha = (b: Buffer | string) => createHash('sha256').update(b).digest('hex');
-const STALE = 'run npm run policies:pdf';
+// 8. The committed PDF is the doc kit's branded build (I-043). Its extracted text must carry every sentence of the source.
+const STALE = 'rebuild the PDF in the doc kit from src/data/client-policies.ts and save it as public/ohm-client-policies.pdf';
+const pdfPath = join(root, 'public/ohm-client-policies.pdf');
+const pdfBytes = existsSync(pdfPath) ? readFileSync(pdfPath) : Buffer.alloc(0);
+// Typographic quotes to straight, a word broken at a hyphen across lines rejoined, whitespace collapsed.
+const norm = (s: string) =>
+  s
+    .replace(/[‘’]/g, "'")
+    .replace(/[“”]/g, '"')
+    .replace(/ /g, ' ')
+    .replace(/(\w-)[ \t]*\r?\n\s*(?=\w)/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim();
+async function readPdf(bytes: Buffer) {
+  const doc = await getDocumentProxy(new Uint8Array(bytes));
+  const links: string[] = [];
+  for (let p = 1; p <= doc.numPages; p++) {
+    for (const a of await (await doc.getPage(p)).getAnnotations()) if (a.url || a.unsafeUrl) links.push(String(a.url || a.unsafeUrl));
+  }
+  const { text } = await extractText(doc, { mergePages: true });
+  return { text: norm(text), links };
+}
+const pdf = pdfBytes.length ? await readPdf(pdfBytes) : { text: '', links: [] as string[] };
 
-test('8. the committed PDF and hash file match the source text', () => {
-  const meta = pdfMeta();
-  assert.equal(meta.version, clientPolicies.version, STALE);
-  assert.equal(meta.date, clientPolicies.date, STALE);
-  const source = sha(JSON.stringify(clientPolicies));
-  assert.equal(meta.sourceSha256, source, `source text changed: ${STALE}`);
-  const pdfPath = join(root, 'public/ohm-client-policies.pdf');
-  assert.ok(existsSync(pdfPath), STALE);
-  const pdf = readFileSync(pdfPath);
-  assert.equal(pdf.subarray(0, 5).toString('latin1'), '%PDF-', STALE);
-  assert.ok(pdf.length < 400 * 1024, `PDF is ${pdf.length} bytes: ${STALE}`);
-  assert.equal(meta.pdfSha256, sha(pdf), `PDF file changed: ${STALE}`);
-  // A one-bullet change would be caught.
+type Doc = typeof clientPolicies;
+const runText = (r: string | ({ text: string } | string)[]) => (typeof r === 'string' ? r : r.map((x) => (typeof x === 'string' ? x : x.text)).join(''));
+// Every printed unit of the source: intro, titles, paragraphs, bullets (with lead), table heads and rows, notice columns.
+function units(d: Doc): string[] {
+  const out = [d.intro];
+  for (const s of d.sections) {
+    out.push(s.title);
+    for (const b of s.blocks) {
+      if (b.type === 'paragraph') out.push(runText(b.text));
+      else if (b.type === 'bullets') for (const i of b.items) out.push(i.lead ? `${i.lead} ${runText(i.text)}` : runText(i.text));
+      else if (b.type === 'table') out.push(b.head.join(' '), ...b.rows.map((r) => r.join(' ')));
+      else if (b.type === 'notice') for (const c of b.columns) out.push(c.head, c.text);
+    }
+  }
+  return out;
+}
+const sentences = (d: Doc) => units(d).flatMap((u) => norm(u).split(/(?<=[.?!])\s+(?=[A-Z0-9])/));
+const missing = (d: Doc) => sentences(d).filter((s) => !pdf.text.includes(s));
+
+test('8. the committed PDF carries every sentence of the source text, and nothing private', () => {
+  assert.ok(pdfBytes.length, `public/ohm-client-policies.pdf missing: ${STALE}`);
+  assert.equal(pdfBytes.subarray(0, 5).toString('latin1'), '%PDF-', STALE);
+  assert.ok(pdfBytes.length < 400 * 1024, `PDF is ${pdfBytes.length} bytes; keep it under 400 KB`);
+  assert.deepEqual(missing(clientPolicies), [], `sentences missing from the PDF: ${STALE}`);
+  assert.ok(pdf.text.includes(ZELLE), 'the I-037 Zelle line');
+  assert.ok(pdf.text.includes(FASTEST), 'the I-037 Communication sentence');
+  assert.ok(pdf.text.includes(`Version ${clientPolicies.version}`), `version: ${STALE}`);
+  const longDate = new Date(`${clientPolicies.date}T00:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+  assert.ok(pdf.text.includes(longDate), `date ${longDate}: ${STALE}`);
+  // No phone number, Zelle address, other email, placeholder or phone link.
+  assert.doesNotMatch(pdf.text, PHONE);
+  assert.deepEqual([...new Set((pdf.text.match(/[\w.+-]+@[\w-]+\.[\w.]+/g) ?? []).map((e) => e.replace(/\.+$/, '')))], [site.email]);
+  assert.doesNotMatch(pdf.text, /\bTODO\b|\bTBD\b|\bXX+\b|Drafting|lorem ipsum|[[\]{}]/i);
+  assert.doesNotMatch(pdf.text, /\bhome[\s-]+(?:visits?|office|mobile)\b/i);
+  assert.deepEqual(pdf.links.filter((u) => /^(?:tel|sms):/i.test(u)), []);
+  // Sequence: a one-bullet change to the source leaves exactly that sentence missing from the PDF.
   const copy = structuredClone(clientPolicies);
   const b = copy.sections[1].blocks[0] as { items: { text: string }[] };
   b.items[0].text += ' x';
-  assert.notEqual(sha(JSON.stringify(copy)), meta.sourceSha256);
+  assert.equal(missing(copy).length, 1);
+  assert.deepEqual(missing(clientPolicies), []);
 });
 
 // Dist tests: skipped when the site has not been built (deploy.yml runs npm test before the build).
@@ -172,7 +216,7 @@ test('10. version line, PDF link and hidden controls', { skip }, () => {
   const html = read('client-policies.html');
   assert.ok(text(html).includes('Version 1.4 · Oct 29, 2026'));
   assert.ok(html.includes(`href="${base}${policiesPdfPath}"`));
-  assert.ok(existsSync(join(dist, 'ohm-client-policies.pdf')), 'dist carries the PDF: rebuild after npm run policies:pdf');
+  assert.ok(existsSync(join(dist, 'ohm-client-policies.pdf')), 'dist carries the PDF: run npm run build');
   assert.match(html, /<div\b[^>]*class="[^"]*policies-controls[^"]*"[^>]*\bhidden\b/);
   for (const label of ['Expand all', 'Collapse all']) {
     const btn = html.match(new RegExp(`<button\\b([^>]*)>\\s*${label}\\s*</button>`));

@@ -273,7 +273,7 @@ The policy text is the Client Policies doc v1.4 (Oct 29, 2026, Brian, final), cl
 **Page (not in the doc)**
 - `title`: `Client policies · Ohm Precision Bodywork`
 - `description`: `Booking, payment, cancellation, late arrival, package and conduct policies for sessions with Ohm Precision Bodywork in Colorado Springs.`
-- **Print-only line** (above the H1, shown only in print and the PDF): `{site.name} · {host}`
+- **Print-only line** (above the H1, shown only when the page is printed): `{site.name} · {host}`
 - **H1:** `Client policies`
 - **Version line** (directly under the H1 divider): `Version {clientPolicies.version} · {clientPolicies.displayDate}` → `Version 1.4 · Oct 29, 2026`
 - **Intro P:** `{clientPolicies.intro}` (doc text, below)
@@ -281,7 +281,7 @@ The policy text is the Client Policies doc v1.4 (Oct 29, 2026, Brian, final), cl
 - **Buttons** (shipped `hidden`, shown by `policies.ts`): `Expand all`, `Collapse all`
 - **Section link** (first in each open section's body): visible `#`, `aria-label` `Link to {section.title}` (e.g. `Link to Cancelling and rescheduling`)
 - **Table captions** (visually hidden): `Session prices`; `Package prices`
-- **PDF footer** (each page, from `make-policies-pdf.mjs`): `{site.name} · Client policies, version {clientPolicies.version} · Page {n} of {total}` (Chromium's `pageNumber` / `totalPages` spans)
+- **PDF footer**: set by the doc kit since I-043 (not site copy); the PDF's words must match the policy text above.
 - **CTA:** `<BookCta />`
 
 **Link lines elsewhere**

@@ -91,7 +91,7 @@ The friends-and-family rate is **not** shown on the site. Packages appear only o
 | `/pricing`  | Pricing            | Rates at the office and at your place (with the travel fee), and the travel-fee rule. Added Oct 6, 2026. |
 | `/about`    | About Brian        | Uses the provided photos. Draft copy from §8, marked for Brian's review.    |
 | `/book`     | Booking router     | The core feature (§6).                                                      |
-| `/client-policies` | Client policies | The client agreement says the policies are posted on the site. The Client Policies doc, v1.4 (Oct 29, 2026), client-facing sections only, with two changes for the public page: the Zelle line asks clients to request Zelle details (no Zelle address), and the first Communication sentence points to the contact form and chat. One collapsible section per policy, closed at first; Expand all / Collapse all; a link to a section opens it. Version and date at the top, and a PDF printed from the same text. No phone number. Linked from the footer, Services, Pricing and Book; in the sitemap. Added Oct 29, 2026 (I-037). |
+| `/client-policies` | Client policies | The client agreement says the policies are posted on the site. The Client Policies doc, v1.4 (Oct 29, 2026), client-facing sections only, with two changes for the public page: the Zelle line asks clients to request Zelle details (no Zelle address), and the first Communication sentence points to the contact form and chat. One collapsible section per policy, closed at first; Expand all / Collapse all; a link to a section opens it. Version and date at the top, and a branded PDF of the same text (built in the doc kit, I-043). No phone number. Linked from the footer, Services, Pricing and Book; in the sitemap. Added Oct 29, 2026 (I-037). |
 | `/404`      | Not found          | Plain, with a link to `/book`.                                              |
 
 **Services page content:**
@@ -274,7 +274,7 @@ Every AC is covered by a test or a named screenshot check.
 - [ ] **AC-5** Lighthouse mobile scores of 90+ for performance, accessibility, best practices, and SEO.
 - [ ] **AC-6** No hardcoded rates, days, links, or zone names outside `src/data/`.
 - [ ] **AC-7** README covers: local dev, deploy, updating rates and links, re-exporting zones, the Google key setup, and the DNS cutover.
-- [ ] **AC-8** `/client-policies` and `ohm-client-policies.pdf` come from one source text (`src/data/client-policies.ts`, the Client Policies doc v1.4): the PDF is printed from the page, and a test fails when the committed PDF is older than the text. Both show the version and date (Version 1.4 · Oct 29, 2026). Both I-037 changes are in place (the Zelle line and the first Communication sentence). Neither has a phone number or a Zelle address (added Oct 29, 2026, I-037).
+- [ ] **AC-8** `/client-policies` and `ohm-client-policies.pdf` come from one source text (`src/data/client-policies.ts`, the Client Policies doc v1.4): the PDF is the doc kit's branded build of that text (I-043), and a test extracts its text and fails while any sentence of the source is missing from it. Both show the version and date (page: Version 1.4 · Oct 29, 2026; PDF: Effective: October 29, 2026, Version 1.4). Both I-037 changes are in place (the Zelle line and the first Communication sentence). Neither has a phone number or a Zelle address (added Oct 29, 2026, I-037).
 
 ## 13. Working agreement
 
