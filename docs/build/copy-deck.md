@@ -163,7 +163,8 @@ No splash on Home (9A batch 5: it's on `/hello`, below).
 
 **Header section** (on `--green-900`)
 - **H1:** `Pricing`
-- **Intro P** (8A): `Same session rates at my office or at your place. Mobile sessions add a flat ${site.travelFee.amount} travel fee.`
+- **Intro P** (8A; I-046, Oct 29): `Same session rates at my office or at your place. Mobile sessions add a flat ${site.travelFee.amount} travel fee, and one fee covers up to {terms.groupMax:word} back-to-back sessions at the same address.`
+  - `{terms.groupMax:word}` = `terms.groupMax` (import `terms` from `src/data/client-policies.ts`) rendered as a lowercase English word: 4 → `four`. Never type `four` or `4`; map the number to its word (same lookup as the `words` map in `tests/site.test.ts`). Today it renders: `Same session rates at my office or at your place. Mobile sessions add a flat $25 travel fee, and one fee covers up to four back-to-back sessions at the same address.`
 
 **Cream band**
 - `<PriceTable />` (9A: header labels at body size, top-aligned on one line). Its text: caption `Session rates`; column headers `Session`, `At my office`, `At your place` with the small second line `includes ${site.travelFee.amount} travel`; row labels from `{site.rates.*.label}`; prices `${price}` and `${price + site.travelFee.amount}`, computed. Today: 60-minute session $90 / $115; 90-minute session $120 / $145.
@@ -216,8 +217,8 @@ No splash on Home (9A batch 5: it's on `/hello`, below).
   - office: `Book at my office` / `My office in {officeArea}. I'm there {office.days}.` (kept under ~155 characters for search snippets)
   - out: `{zones.out.name}` / `I can sometimes travel outside my regular area by request. Get in touch, or book a session at my office.`
 
-**Intro P** (directly under the H1, before the `#where` fieldset):
-`Tell me where you want your session and I'll point you to the right booking page. Scheduling, intake forms and payment are all handled on PocketSuite.`
+**Intro P** (directly under the H1, before the `#where` fieldset) (I-045, Oct 29):
+`Tell me where you want your session and I'll point you to the right booking page. Scheduling and intake forms are handled on PocketSuite. You'll put a card on file when you book, and after the session you can pay by card, cash or Zelle.`
 
 **Credential block** (step 12, `/book` only, not `/book/[zone]`): `<Credentials />` directly after the intro P, before the `#where` fieldset. Text in Global → step 12.
 
@@ -389,11 +390,12 @@ Payment methods and the Colorado card-surcharge notice, shown near the booking b
 | `/pricing` | CTA section, directly above `<BookCta />` | default |
 | `/client-policies` | Not shown (unchanged; its `booking` section already has the text) | |
 
-Unchanged elsewhere: the Pricing intro (`Mobile sessions add a flat ${site.travelFee.amount} travel fee.`) and the Book intro (`… payment are all handled on PocketSuite.`).
+The Pricing intro (→ Pricing, I-046) and the Book intro (→ Book, I-045) were reworded after step 15; the notice itself is unchanged.
 
 ---
 
 ## Checks Opus ran on this deck
+- **I-045, I-046 (Oct 29):** both sentences are Brian's exact text. They restate Client Policies `booking` bullets 2 and 3 (card on file at booking, charged after the session; cash, Zelle, cards) and `mobile-visits` bullet 2 (one fee, up to `terms.groupMax` back-to-back sessions, same address); no new fact. The fee and the count are references. No Zelle address, no surcharge figure, no licensed-only term, no "treat/cure/diagnose/fix/heal/health".
 - **Step 15 prep (I-041, Oct 29):** the payment notice adds no new sentence: the methods line is Client Policies `booking` bullets 3 and 4, the surcharge line and the statutory notice are the policy's notice texts, and `Colorado notice` is its existing head. No Zelle address, phone, ACH or bank transfer; Venmo and PayPal appear only as not accepted. No licensed-only term, no "treat/cure/diagnose/fix/heal/health". `/book/office` gets the notice too (it shows a booking button); flagged to Brian.
 - **Step 14 (I-037, Oct 29):** the Client Policies text is Brian's approved doc, so it is not reworded for voice. No phone number, no `tel:`/`sms:`, no Zelle address, no bracketed placeholder, no drafting notes. "text or call me" / "text me" kept (Brian's decision). No "home visit", "home office", "Home mobile"; no zone names. "massage" appears once (packages refund), allowed while licensed (BRIEF §7). "health" appears twice and trips the medical-word warning (accepted). No "treat/cure/diagnose/fix"; "I can't guarantee results" is the opposite of a promise. Every rate, fee, minute count, the domain and the email are references. New page copy (meta, H1, labels, link lines) restates the doc and adds no fact.
 - **Step 13 (I-040, Oct 29):** no page text in the deck says "home visit", "home office" or "Home mobile" (they appear only in the rule above); no zone name with "Springs". The only literal zone names were in the map `<desc>`, now `Central, Mid-north and North` (built from `site.zones`).

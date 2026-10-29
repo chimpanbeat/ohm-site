@@ -4,7 +4,9 @@ import BookCta from '../components/BookCta.astro';
 import PaymentNotice from '../components/PaymentNotice.astro';
 import PriceTable from '../components/PriceTable.astro';
 import { site } from '../data/site.ts';
+import { terms } from '../data/client-policies.ts';
 import { href } from '../lib/url.ts';
+const countWords = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
 ---
 
 <Base
@@ -14,7 +16,7 @@ import { href } from '../lib/url.ts';
   <section class="section">
     <div class="container">
       <h1>Pricing</h1>
-      <p>Same session rates at my office or at your place. Mobile sessions add a flat ${site.travelFee.amount} travel fee.</p>
+      <p>Same session rates at my office or at your place. Mobile sessions add a flat ${site.travelFee.amount} travel fee, and one fee covers up to {countWords[terms.groupMax]} back-to-back sessions at the same address.</p>
     </div>
   </section>
 
