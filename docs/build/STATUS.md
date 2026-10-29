@@ -1,10 +1,27 @@
 # Build status
 
-Run the model gate (`HANDOFF.md` §1) before doing anything. The **first row that isn't `done`** is the next step. Every handoff names both the model and the effort level from its row. A `blocked` row always goes to Opus.
+Tier: M · Method: v3.2 · Profile: static-site · Repo: public · Launch: none set (the license is active since Oct 12, 2026; launch waits on I-001 and I-018)
 
-Open items use T-/D-/H- IDs; see CLAUDE.md → Messaging with the planning chats.
+The first row that isn't `done` or `dropped` is the next step; Brian runs its Command after `/clear`. This file is the only source of progress; the master list's Build status is derived from it. Items (I-###) and Method feedback live in the master list, not here. A slip of more than a day gets a note to Brian on what it does to launch.
 
-States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` · `done`
+States: `todo` · `doing` · `blocked` · `done` · `dropped`
+
+| Step | Scope | Effort | Command | State | Commit |
+|---|---|---|---|---|---|
+| 0–11R | Method v1 build (history below) | — | — | done | f13b4a3 |
+| U | Upgrade to method v3.2, tier M (I-042) | medium | — | done | (this commit) |
+| 12 | I-035: licensed wording (wording.ts, site.ts, footer, About, Home, BRIEF §7, check:wording). Contract change: the architect writes the step file | high | /next-high | todo | |
+| 13 | I-040: rename the "home" zone to Central (keys, booking tags, wording, check:wording) | medium | /next | blocked: I-040 (Brian renames the PocketSuite tags first) | |
+| 14 | I-037: /client-policies page and PDF from one source text | high | /next-high | blocked: I-037 (policy text from Brian) | |
+| 15 | I-041: payment methods and the card surcharge notice (Book, Services & Pricing, /client-policies) | medium | /next | blocked: I-041 (wording vs the statute); after 14 | |
+| V | Visual pass with Brian at 375 and 1280 px | medium | /next | todo | |
+| PL | Pre-launch review against AC-1–AC-7, Lighthouse | high | /next-high | todo | |
+| L | Launch: I-001 tested links, I-018 domain cutover, `deploy.live` on (`docs/runbooks/launch.md`) | high | /next-high | blocked: I-001, I-018 | |
+| F1 | I-038: /faq page | — | — | blocked: I-038 (Brian opens it after launch) | |
+| F2 | I-039: /hello breathing text | — | — | blocked: I-039 (not designed) | |
+
+## History (method v1)
+Rows from the v1 build, unchanged. The Model column is from the v1 Opus/Sonnet split.
 
 | ID | Model | Effort | Step | State | Commit | Notes |
 |---|---|---|---|---|---|---|
@@ -52,51 +69,17 @@ States: `todo` · `in-progress` · `review` · `changes-requested` · `blocked` 
 | No hardcoded rates, days, links or zone names outside `src/data/` | **Pass** | grep for rates, day names, `pocketsuite` and zone names outside `src/data/`: none. No raw hex outside `tokens.css`. |
 | README covers dev, deploy, rates/links, zones, Google key, DNS cutover | **Pass** | `README.md` §§ Local dev → License-day checklist. Google/DNS facts match Pinned facts, re-checked live in 5R. |
 
-## Open TODO(Brian)
-Format: `- [ ] T-### | needed by <date> | blocks <step, license-day, D-### or —> | what`. Tick when done; never delete. Use the next unused ID; never renumber or reuse one. Decisions go in "Needs a decision" below.
-
-- [ ] T-001 | needed by license day | blocks license-day | Tested PocketSuite links: office, home, shared (keyword), north. Until then, buttons fall back to the general PS page. (H-002)
-- [x] T-002 | — | — | Google My Maps URL (supplied Oct 5; embed and viewer forms in `site.ts`).
-- [x] T-003 | — | — | Monument: out for now, as possible future expansion. Removed from the zone name, footer and `areaServed` (Oct 5).
-- [x] T-004 | — | — | North zone: the polygon is authoritative. The descriptions in `site.ts` and the brief were rewritten to match (Oct 5).
-- [x] T-005 | — | — | Rate label is now "Initial assessment + session" (Oct 5).
-- [x] T-006 | — | — | Google key referrer (fixed by Brian, verified live Oct 5): change `https://chimpanbeat.github.io/ohm-site/*` to `https://chimpanbeat.github.io/*`. Places calls send only the origin, so on the live preview the field is blocked and falls back to the picker (found in 3R; 5A §P3a).
-- [x] T-007 | — | — | About bio: Brian wrote his own (Oct 6, 8A).
-- [x] T-008 | — | — | Initial assessment: removed from the site (Oct 6).
-- [ ] T-009 | needed by — | blocks D-001, D-003 | **Get updated graphics and SVGs from JohnMark** (Oct 6, 9A): the Ω (replaces the traced `omega.json` on `/hello`), the header logo, the icon, and the body graphic. Until then `/hello` uses a path traced from `icon.png`. (Replaces "SVG logo, if one exists".)
-- [ ] T-010 | needed by custom domain live | blocks — | Cards, QR codes and social bios: use the exact lowercase `…/hello` (no trailing slash; the slash form redirects). Generate QR codes after the custom domain is live, not from the `github.io` preview URL. Search, Maps and the Google Business Profile use `/`.
-- [ ] T-011 | needed by license day | blocks license-day | License number (license day). (H-003)
-- [ ] T-012 | needed by — | blocks — | Cordera and Wolf Ranch fixtures: replace the rough coordinates with geocoded addresses, then remove their `todo` field (6B).
-- [x] T-013 | — | — | Brief §4 travel-fee note updated to the Oct 6 waiver (neither back-to-back session pays the fee).
-- [x] T-014 | — | — | Phone number in git history: it's a business line, so leave it (Oct 6).
-- [x] T-015 | — | — | SVG map go/no-go: **go** (Brian, Oct 6, 7R).
-- [x] T-016 | — | — | Monument: out of the service area (decided Oct 5, 2026). Brief §6 and §14 updated (6A).
-- [ ] T-017 | needed by Dec 15, 2026 (unsure: the trial ends about Jan 3, 2027; confirm in the console) | blocks — | Google Cloud: set the quota caps, upgrade from the free trial, then add a budget alert, in the README order. If the trial lapses, the key stops working and `/book` falls back to the zone buttons. (Was in the README TODO list.)
-- [ ] T-018 | needed by license day | blocks license-day | Custom-domain cutover: Pages custom domain, Porkbun records, add the domain to the key's referrers, Enforce HTTPS (README → License-day checklist).
-
-## Needs a decision
-States: `open` (no proposal yet) · `needs-review` · `approved` · `changed` · `done`. Brian answers in the planning chats; the answer arrives as an H-item. Opus updates State and Answer when it applies it. Never delete a row.
-
-| ID | Type | What | Needed by | Where it shows / proposed text or link | State | Answer |
-|---|---|---|---|---|---|---|
-| D-001 | design | `/hello` defaults Opus chose (9A, unanswered) | After T-009 | `/hello`. Proposed: body graphic `graphic-green.png`; Ω filled terracotta with a cream light on its edge | needs-review | |
-| D-002 | copy | `/hello` title and description | Before cards or QR codes are printed (T-010) | Link previews for cards, QR codes, social bios. Proposed (copy deck → Hello): "Ohm Precision Bodywork · Take the path of least resistance" + the Home description | needs-review | |
-| D-003 | design | Home hero with the Ω and body graphic | After T-009 | Home. Proposal in `steps/9C-hello.md` (not built) | open | |
-| D-004 | content | §6 boundary descriptions vs the KML polygons | — | Book zone cards, map alt text. Six differences in `steps/6A-review-fixes-contracts.md` (North vs Hwy 83, North west edge past I-25, Baptist Rd edge, Cordera NE edge, North east of Powers, Broadmoor Bluffs west side). Descriptions not edited | needs-review | |
-| D-005 | business | Out-of-region fee amount | — | Book out-of-region card: says a fee applies and shows no amount while `outOfRegionFee` is null. Decided in the business plan, not here | open | |
-| D-006 | design | Office mark on the map (`site.office.mapArea`, 38.8, −104.85 since 10A) | — | `/book` maps. Proposed: keep it; confirm the Ω sits in the right neighbourhood | needs-review | |
-| D-007 | design | Terrain strength on the map | — | `/book` maps. Proposed: keep opacity 0.6 (9R screenshots `9R-terrain-{full,central,office}.png`), or stronger, or lighter | needs-review | |
-| D-008 | design | Office map context (8R): only the zone-border roads and town names show around the mark; nothing names Cheyenne Cañon or the Broadmoor | — | `/book` office map. Add local roads and landmark labels? Needs a `fetch-osm.mjs` change | open | |
-| D-009 | launch | Licensure fields in the JSON-LD on license day | License day | Page source (`Base.astro`). Proposed: license number only, as coded now (H-004) | needs-review | |
-
+## Change log
+Every applied item and every change to ARCHITECTURE, contracts or the plan, newest first: `- <date> (<I-### or step>): what changed. Files: …`
+- 2026-10-29 (I-042): upgraded from method v1.x to v3.2, tier M (UPGRADE.md notes v2.0–v3.2). Retired HANDOFF.md, incoming-handoff.md, the STATUS T-/D-sections and the model gate; items live in the master list as I-###. Added the v3.2 harness (.claude settings, hooks, agents, skills), check.yml CI, dependabot, RECOVERY.md, the step template, the runbooks, tools (check-secrets, method-metrics, shots) and `npm run check`; Playwright as a devDependency (Brian, Oct 29). Stack rules in ARCHITECTURE §D; BRIEF §12 numbered AC-1–AC-7; plan re-made for tier M (rows 12–F2). The public business email lines carry `secrets-scan: allow`. `tools/shots.mjs` gains `--base` (the site serves under `/ohm-site`) and resolves `<route>.html` before `<route>/index.html` as Pages does (the `/hello/` redirect page made `/hello` loop); worth taking into the template. No app code or deploy change. Files: CLAUDE.md, .gitignore, .nvmrc, package.json, package-lock.json, .claude/**, .github/workflows/check.yml, .github/dependabot.yml, tools/*, brief/BRIEF.md, docs/build/{ARCHITECTURE,STATUS,RECOVERY}.md, docs/build/steps/_template.md, docs/runbooks/*, src/data/site.ts (comment only); deleted docs/build/{HANDOFF,incoming-handoff}.md.
 ## Architecture changes
 (Opus logs any mid-build change to ARCHITECTURE.md or step files here.)
-- 2026-10-09 (H-006): asset: email-signature logo at `public/img/email-sig-logo.png`, from Brian's `ohm-logo-stacked@2x.png` resized to 144×174 (displayed at 72×87). Unlinked; path must stay stable; replace in place if T-009 changes the logo. Until the DNS cutover it serves at `chimpanbeat.github.io/ohm-site/img/email-sig-logo.png`; the ohmprecisionbodywork.com URL works after cutover. Files: public/img/email-sig-logo.png, docs/build/ARCHITECTURE.md, docs/build/STATUS.md, docs/build/incoming-handoff.md.
-- 2026-10-09 (H-005): fact: the planning chats moved to their own Claude Project, "Ohm Site". CLAUDE.md → Messaging with the planning chats now names it; no other repo line named the old Project. The master list keeps its name and link. Files: CLAUDE.md, docs/build/STATUS.md, docs/build/incoming-handoff.md.
-- 2026-10-08 (H-001): planning-chat messaging installed: `docs/build/incoming-handoff.md` (down), STATUS "Open TODO(Brian)" with T-IDs and new "Needs a decision" (D-001–D-009) (up), `CLAUDE.md` → Messaging with the planning chats, pointer lines in HANDOFF.md §2 and STATUS.md. Eight design TODOs moved to Needs a decision; T-017, T-018 and D-009 added. Stale lines fixed: BRIEF §6 key referrer; README TODO list now points to STATUS. Files: CLAUDE.md, README.md, brief/BRIEF.md, docs/build/HANDOFF.md, docs/build/STATUS.md, docs/build/incoming-handoff.md.
-- 2026-10-08 (H-002): asset, blocks license-day: tested PocketSuite links for office, home, shared (keyword) and north come from Brian (T-001). Until then booking buttons fall back to the general PS page. Recorded on T-001. Files: docs/build/STATUS.md.
-- 2026-10-08 (H-003): asset, blocks license-day: the license number comes from Brian on license day (T-011); `licensed` stays false until then. Recorded on T-011. Files: docs/build/STATUS.md.
-- 2026-10-08 (H-004): risk, blocks license-day: the licensure fields for the JSON-LD are undecided (D-009); the code publishes the license number only. Recorded as D-009. Files: docs/build/STATUS.md.
+- 2026-10-09 (I-033): asset: email-signature logo at `public/img/email-sig-logo.png`, from Brian's `ohm-logo-stacked@2x.png` resized to 144×174 (displayed at 72×87). Unlinked; path must stay stable; replace in place if I-009 changes the logo. Until the DNS cutover it serves at `chimpanbeat.github.io/ohm-site/img/email-sig-logo.png`; the ohmprecisionbodywork.com URL works after cutover. Files: public/img/email-sig-logo.png, docs/build/ARCHITECTURE.md, docs/build/STATUS.md, docs/build/incoming-handoff.md. <!-- secrets-scan: allow (a file name, not an address) -->
+- 2026-10-09 (I-032): fact: the planning chats moved to their own Claude Project, "Ohm Site". CLAUDE.md → Messaging with the planning chats now names it; no other repo line named the old Project. The master list keeps its name and link. Files: CLAUDE.md, docs/build/STATUS.md, docs/build/incoming-handoff.md.
+- 2026-10-08 (I-028): planning-chat messaging installed: `docs/build/incoming-handoff.md` (down), STATUS "Open TODO(Brian)" with T-IDs and new "Needs a decision" (I-019–I-027) (up), `CLAUDE.md` → Messaging with the planning chats, pointer lines in HANDOFF.md §2 and STATUS.md. Eight design TODOs moved to Needs a decision; I-017, I-018 and I-027 added. Stale lines fixed: BRIEF §6 key referrer; README TODO list now points to STATUS. Files: CLAUDE.md, README.md, brief/BRIEF.md, docs/build/HANDOFF.md, docs/build/STATUS.md, docs/build/incoming-handoff.md.
+- 2026-10-08 (I-029): asset, blocks license-day: tested PocketSuite links for office, home, shared (keyword) and north come from Brian (I-001). Until then booking buttons fall back to the general PS page. Recorded on I-001. Files: docs/build/STATUS.md.
+- 2026-10-08 (I-030): asset, blocks license-day: the license number comes from Brian on license day (I-011); `licensed` stays false until then. Recorded on I-011. Files: docs/build/STATUS.md.
+- 2026-10-08 (I-031): risk, blocks license-day: the licensure fields for the JSON-LD are undecided (I-027); the code publishes the license number only. Recorded as I-027. Files: docs/build/STATUS.md.
 - 2026-10-06 (final audit, Brian's go): `/book/[zone]` pages get their own `title` and `description`, built from `site.ts` (copy deck → Book). `/book` keeps its own. The audit found nothing else to fix.
 - 2026-10-06 (after 11R, Brian's quick fix): no hover tooltips on the maps. The map's name moves from the svg `<title>` to a `hidden` `<span>` that `aria-labelledby` still reads; the office mark's `<title>` is gone (the link is `aria-hidden` and the visible label says "Ohm Office") (ARCHITECTURE §B4).
 - 2026-10-06 (11A): Phase 11 added for Brian's review of Phase 10. `/hello` light without `non-scaling-stroke` (it broke `pathLength` dashes: 1.23× fast on desktop, 2.5× on phones), 3s lap; sections 32/48, `.section--end`, hero and footer padding; About photo at the text measure, 16:9; Why Ohm split and linked (ARCHITECTURE §C 11A).

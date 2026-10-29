@@ -45,7 +45,7 @@ export const site = {
   licenseNumber: '', // shown in footer only when licensed && non-empty
 
   // No phone number on the site (Brian, Oct 6 2026). Contact is PocketSuite lead form, chat, or email.
-  email: 'brian@ohmprecisionbodywork.com',
+  email: 'brian@ohmprecisionbodywork.com', // secrets-scan: allow
   city: 'Colorado Springs',
   region: 'CO',
 

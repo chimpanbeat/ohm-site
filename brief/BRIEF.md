@@ -22,7 +22,7 @@ PocketSuite (PS) handles booking, availability, intake forms, contracts, payment
   5.  Military and veterans (secondary).
 
   Site copy (Brian, Oct 6 2026): Home "Who it's for" names active people broadly (climbers, runners, cyclists, lifters, hikers, non-athletes) plus persistent pain and injury/surgery recovery. It deliberately doesn't name desk workers or veterans, and neither does the home hero line or meta description (8A).
-- **Contact:** <brian@ohmprecisionbodywork.com> · ohmprecisionbodywork.com · PocketSuite lead form and chat (links in §4). **No phone number on the site** (decided Oct 6, 2026).
+- **Contact:** <brian@ohmprecisionbodywork.com> · ohmprecisionbodywork.com · PocketSuite lead form and chat (links in §4). **No phone number on the site** (decided Oct 6, 2026). <!-- secrets-scan: allow -->
 
 ## 2. Non-goals
 
@@ -56,7 +56,7 @@ Put all business facts in `src/data/site.ts`, a typed object that pages read fro
 export const site = {
   licensed: false,                 // flips wording rules (§7). Default false.
   licenseNumber: "",               // shown in footer only when licensed && non-empty
-  email: "brian@ohmprecisionbodywork.com",   // no phone (Oct 6, 2026)
+  email: "brian@ohmprecisionbodywork.com",   // no phone (Oct 6, 2026) // secrets-scan: allow
   officeArea: "Southwest Colorado Springs, in the Cheyenne Canyon / Broadmoor area", // exact address sent after booking; the /book map shows an approximate circle (Oct 6)
   rates: {                         // no initial assessment rate (removed Oct 6, 2026)
     s60:     { label: "60-minute session", minutes: 60, price: 90 },
@@ -170,7 +170,7 @@ Rough boundary descriptions (for copy and alt text only; the polygons decide):
 - Before implementing, check Google's current Places pricing and usage documentation and note in the README which SKUs the implementation uses.
 - The API key goes in an env var (`PUBLIC_GOOGLE_MAPS_KEY`). It is public by design; its protection is the restrictions below.
 - Write the README steps for Brian to:
-  - Confirm the key's HTTP referrer restrictions. Brian has already set the origin-wide `https://chimpanbeat.github.io/*` (fixed by Brian, verified Oct 5, 2026; see T-006) and `http://localhost:4321/*`; the production domain is added on license day (§10).
+  - Confirm the key's HTTP referrer restrictions. Brian has already set the origin-wide `https://chimpanbeat.github.io/*` (fixed by Brian, verified Oct 5, 2026; see I-006) and `http://localhost:4321/*`; the production domain is added on license day (§10).
   - Confirm the key is restricted to the Maps JavaScript API and Places API (New) only (already set).
   - Set daily quota caps after the Google Cloud account is upgraded from the free trial (the console blocks quota edits during the trial; see §14). Suggested: `AutocompletePlacesRequest` per day 300, `GetPlaceRequest` per day 100, Maps JavaScript API map loads per day 100. Verify the quota names and numbers against the console and Google's current docs.
 - Load the Maps script only on `/book`, and only after the visitor chooses mobile.
@@ -251,18 +251,20 @@ Follow the brand exactly. Use your own judgment within it.
 
 ## 12. Acceptance criteria
 
-- [ ] All four zones and the office route to the correct config link. Out-of-region shows contact options only.
-- [ ] Test addresses:
+Every AC is covered by a test or a named screenshot check.
+
+- [ ] **AC-1** All four zones and the office route to the correct config link. Out-of-region shows contact options only.
+- [ ] **AC-2** Test addresses:
   - Home: Old Colorado City; Broadmoor Bluffs.
   - Shared: near Garden of the Gods Rd & Centennial.
   - North: Briargate. Out: Monument.
   - Out of region: Falcon; Fountain; east of Academy.
   - Commit the address list as a fixture and document it in the README.
-- [ ] Without JavaScript or the API key, the map and manual zone buttons still work.
-- [ ] `npm run check:wording` passes with `licensed: false`.
-- [ ] Lighthouse mobile scores of 90+ for performance, accessibility, best practices, and SEO.
-- [ ] No hardcoded rates, days, links, or zone names outside `src/data/`.
-- [ ] README covers: local dev, deploy, updating rates and links, re-exporting zones, the Google key setup, and the DNS cutover.
+- [ ] **AC-3** Without JavaScript or the API key, the map and manual zone buttons still work.
+- [ ] **AC-4** `npm run check:wording` passes with `licensed: false`.
+- [ ] **AC-5** Lighthouse mobile scores of 90+ for performance, accessibility, best practices, and SEO.
+- [ ] **AC-6** No hardcoded rates, days, links, or zone names outside `src/data/`.
+- [ ] **AC-7** README covers: local dev, deploy, updating rates and links, re-exporting zones, the Google key setup, and the DNS cutover.
 
 ## 13. Working agreement
 

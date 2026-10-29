@@ -1,0 +1,12 @@
+{
+  "protected": [
+    "src/data/site.ts",
+    "src/data/wording.ts",
+    "src/lib/geo.ts",
+    "src/styles/tokens.css",
+    "astro.config.mjs",
+    "brief/BRIEF.md",
+    "docs/build/ARCHITECTURE.md",
+    "docs/build/copy-deck.md"
+  ]
+}

@@ -174,4 +174,4 @@ Pages never write those terms. They call `w('key')` from `src/data/wording.ts`, 
 
 ## TODO(Brian)
 
-Open items live in `docs/build/STATUS.md` → Open TODO(Brian) and Needs a decision.
+Open items (to-dos, decisions and queued changes, I-###) live in the master list's Items (link in `CLAUDE.md`). Build progress is in `docs/build/STATUS.md`.

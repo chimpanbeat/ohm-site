@@ -1,6 +1,6 @@
 # Architecture
 
-Owner: Opus. Sonnet reads this but doesn't edit it. If something here is wrong or missing, escalate (HANDOFF §3).
+Owner: the architect subagent. The main session reads this and never edits it; the contract guard enforces it (`.claude/hooks/protected.json`). If something here is wrong or missing, escalate to the architect (`docs/build/RECOVERY.md` rung d).
 Brief references (§n) point to `brief/BRIEF.md`.
 
 ---
@@ -404,7 +404,7 @@ Copy into `src/assets/`, renamed to kebab-case. Only these are committed:
 | `logo/Logo_Stack.png` | `logo-stack.png` | 404 / footer if needed |
 | `logo/Icon.png` | `icon.png` | Header on very narrow screens |
 | `logo/Icon.png` + `logo/Icon_Background.png` | (inputs to `npm run icons`, read from `brief/`, not copied) | `favicon-32.png` = `Icon.png` centered at 80% on a `#0C3F35` square (anatomy detail is unreadable at 32px). `apple-touch-icon.png` (180px) and `icon-512.png` = `Icon_Background.png` resized |
-| `ohm-logo-stacked@2x.png` (Brian, Oct 9) | `public/img/email-sig-logo.png` (144×174, served as-is, not via `astro:assets`) | Email signatures only (shown at 72×87). No page links to it. **Path is stable** (sent emails reference `/img/email-sig-logo.png`); replace in place if T-009 changes the logo (H-006) |
+| `ohm-logo-stacked@2x.png` (Brian, Oct 9) | `public/img/email-sig-logo.png` (144×174, served as-is, not via `astro:assets`) | Email signatures only (shown at 72×87). No page links to it. **Path is stable** (sent emails reference `/img/email-sig-logo.png`); replace in place if I-009 changes the logo (I-033) <!-- secrets-scan: allow --> |
 
 - Images go through `astro:assets` `<Image>` / `<Picture>` with `formats={['avif','webp']}`, explicit `widths`/`sizes`, and `alt` text.
 - The logo gets `alt="Ohm Precision Bodywork"`. Decorative art gets `alt=""`.
@@ -432,8 +432,30 @@ The spec of record is `steps/9C-hello.md`; this is the summary.
 
 ---
 
+## D. Stack rules (method v3.2, static-site profile)
+
+Each rule is marked **check** (enforced by `npm run check`) or **convention** (checked at review). A convention gets a check only after it has been broken twice.
+
+- **convention** Astro, static output, TypeScript strict. No JavaScript except where a feature needs it (§B4 booking router, §B8 `/hello`).
+- **convention** GitHub Pages via `.github/workflows/deploy.yml`; every push to `main` deploys the preview at `chimpanbeat.github.io/ohm-site`. The custom domain is cut over on launch day (README → License-day checklist). Nothing reaches production without Brian.
+- **convention** Single sources: business facts in `src/data/site.ts`, wording in `src/data/wording.ts`, tokens in `src/styles/tokens.css`, copy in `docs/build/copy-deck.md`. No page hardcodes a rate, day, link or zone name; no raw hex outside `tokens.css`.
+- **convention** Contract files are listed in `.claude/hooks/protected.json`; only the architect, or a step file that lists them under `## Files`, changes them. `geo.ts` bodies may change, never its exported names or types.
+- **convention** `noindex` until launch: `indexable` in `site.ts` is `site.licensed && site.deploy.live`, and the launch sets `deploy.live`.
+- **check** `check:wording`: licensure wording rules (BRIEF §7) on the built HTML.
+- **check** `check:contrast`: every text/background token pair meets WCAG AA.
+- **check** `check:dist`: titles, descriptions, canonicals, noindex and inline-script rules on the built HTML (§B5).
+- **check** `check:secrets` (`tools/check-secrets.mjs`): no credential files, keys, tokens or email addresses in git. The public business address carries `secrets-scan: allow`.
+- **check** `npm test`: routing, zones, geometry, map and script tests.
+- **check** Lighthouse mobile ≥ 90 in all four categories on the key pages, at the pre-launch review (AC-5).
+- **convention** Evidence: `npm run shots` captures every built route at 375 and 1280 px into `docs/build/screens/` (gitignored); every AC is covered by a test or a named screenshot.
+- **convention** Public repo: never commit `.env`, the KML, client data, anything under `brief/` except `BRIEF.md`, the office street address, business-plan financials or PocketSuite admin details.
+- **convention** The visitor's address never leaves the browser except in the Google request: no logging, no storage, no URL params, no analytics.
+- **convention** Unknown facts become `TODO(Brian):` comments plus an open todo in the master list. Never invent facts, copy claims, testimonials or credentials. New dependencies need Brian's OK.
+
+---
+
 ## C. Architecture changes log
-Record any change to this file here with the date and reason.
+Record any change to this file here with the date and reason. From method v3.2 (Oct 29, 2026) new entries go in `docs/build/STATUS.md` → Change log; this section is history.
 - 2026-10-06 (Opus, 11A): Brian's review of Phase 10. `/hello`: the light loses `non-scaling-stroke` (the cause of the fast phone animation) and the lap is 3s (§B8). Spacing: sections 32/48, `.section--end`, hero 40/48, footer 32 on desktop (§A3). About photo at the text measure, 16:9 (§A5). Home Why Ohm: two paragraphs, "how I got here" links to About (copy deck).
 - 2026-10-06 (Opus, 10A): Brian's review of Phase 9. Spacing tightened site-wide (`--s-10` token; sections 40/64px, first section 24/40px, Home hero 64px desktop), About photo cropped shorter, compact mobile footer (§A3–A5). Office mark ~105 units and moved to 38.80, −104.85; office map gets `Show mobile service areas`; hover dims everything but the hovered area or mark; dark map buttons (§B2, §B4). `/hello`: the light starts at the right foot's inner corner and runs clockwise, slower, repeating every 11s; glow only on hover, focus and the click pause (a small inline script, so `check:dist` allows one inline script); the Ω 50% bigger; the line in spaced capitals spanning the Ω (§A3, §B5, §B8). `omega.json` `d`/`dMap` start at that corner (`npm run omega`). Copy: Why Ohm drops "the shape in my logo"; Home subline on two lines from ~1024px.
 - 2026-10-06 (Opus, 9A): Brian's review of Phase 8. First section top padding halved and `scrollbar-gutter: stable` (§A3). About: H1 before the picture (§A5). Office map zoomed out to the Central & SW view; the circle becomes the Ω office badge, also on zone maps as a link to the office (§B3, §B4). Terrain shading (`npm run terrain`, USGS 3DEP) and unlabelled minor roads (`npm run osm`) (§B1, §B4, §B5). Muted zones dim in their own colour instead of going grey. `out` gets a clickable map area and full button parity, `--zone-out-tint` (§B2–B4). Boundary line adds email; address label gains a colon (§B4). Static maps clip their roads; new SVG size budgets. Batch 2: PriceTable header at body size, top-aligned (§B3); Services reordered (office/mobile first, footnote link to `/pricing`, "Specialties"; the Pricing section is gone) (§A5, copy deck). Batch 3: bigger header logo (§A4); Ω sentence in Why Ohm. Batch 4 (a Home overlay splash) was superseded the same day by batch 5: the splash is its own page, `/hello` (new §B8), noindex for good, unlinked, not in the sitemap, and no JS. It exists because of Google's intrusive-interstitial signal and search visitors' need for price and booking; cards, QR codes and social bios link to it, and search, Maps and GBP link to `/`. Adds `Base bare`, `omega.json` + `npm run omega`, `npm run check:dist` (in CI), and `public/hello/index.html` for the trailing slash. §A3 motion exception for `/hello` only. Home and the header logo are unchanged. After 9B (Brian): the map office badge becomes a bare, larger Ω (the traced `dMap` path) labelled `Ohm Office` on every map view; built in 9C Part 2 (§B4).

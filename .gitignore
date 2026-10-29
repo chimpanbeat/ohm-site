@@ -30,3 +30,8 @@ Thumbs.db
 .playwright-mcp/
 lighthouse/
 docs/build/screens/
+
+# Claude Code local files
+.claude/settings.local.json
+CLAUDE.local.md
+*.log
