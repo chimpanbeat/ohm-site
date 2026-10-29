@@ -11,9 +11,9 @@ States: `todo` · `doing` · `blocked` · `done` · `dropped`
 | 0–11R | Method v1 build (history below) | — | — | done | f13b4a3 |
 | U | Upgrade to method v3.2, tier M (I-042) | medium | — | done | (this commit) |
 | 12 | I-035: licensed wording (wording.ts, site.ts, footer, About, /book, BRIEF §7, check:wording; Home text unchanged). Contract change: the architect writes the step file | high | /next-high | done | (this commit) |
-| 13 | I-040: rename the "home" zone to Central (keys, booking tags, wording, check:wording) | medium | /next | blocked: I-040 (Brian renames the PocketSuite tags first) | |
-| 14 | I-037: /client-policies page and PDF from one source text | high | /next-high | blocked: I-037 (policy text from Brian) | |
-| 15 | I-041: payment methods and the card surcharge notice (Book, Services & Pricing, /client-policies) | medium | /next | blocked: I-041 (wording vs the statute); after 14 | |
+| 13 | I-040: rename the "home" zone to Central (keys, booking tags, wording, check:wording) | medium | /next | todo | |
+| 14 | I-037: /client-policies page and PDF from one source text | high | /next-high | todo | |
+| 15 | I-041: payment methods and the card surcharge notice (Book, Services & Pricing, /client-policies) | medium | /next | todo | |
 | V | Visual pass with Brian at 375 and 1280 px | medium | /next | todo | |
 | PL | Pre-launch review against AC-1–AC-7, Lighthouse | high | /next-high | todo | |
 | L | Launch: I-001 tested links, I-018 domain cutover, `deploy.live` on (`docs/runbooks/launch.md`) | high | /next-high | blocked: I-001, I-018 | |
