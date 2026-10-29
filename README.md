@@ -46,7 +46,7 @@ Everything a visitor sees about the business is in **`src/data/site.ts`**: rates
 
 The office badge (the Ω) on the maps sits on `site.office.mapArea` (`lat`, `lng`). It is approximate on purpose: keep the coordinates to 2 decimals (a test enforces it), and never put the real address there.
 
-PocketSuite links that still start with `TODO_` are placeholders. Buttons using one fall back to the general PocketSuite page and carry a `data-placeholder` attribute, so you can find them in the page source. Replace the value with the tested link and the attribute goes away.
+Booking links are PocketSuite items pages filtered by a keyword, `https://pocketsuite.io/book/ohm-precision-bodywork/items?keyword=<key>`, for `office`, `central`, `midnorth` and `north`. Only Brian changes them.
 
 ## Re-exporting zones
 
@@ -56,7 +56,7 @@ PocketSuite links that still start with `TODO_` are placeholders. Buttons using 
 4. `npm test`
 5. Commit `src/data/zones.geojson`.
 
-- Polygon placemark names must equal the zone names in `site.ts` exactly: `Central & Southwest Springs`, `Mid-north Springs`, `North Springs`.
+- Polygon placemark names must equal the zone names in `site.ts` exactly: `Central`, `Mid-north`, `North`.
 - There is no "out" polygon. Anywhere outside the three is out.
 - Pins and other non-polygon placemarks are skipped.
 - An unknown polygon name stops the script and prints the expected names.
@@ -98,7 +98,7 @@ PocketSuite links that still start with `TODO_` are placeholders. Buttons using 
 
 Cordera and Wolf Ranch are `todo` checks: they report as TODO, not failures, until Brian replaces the rough coordinates with geocoded addresses and removes the `todo` field.
 
-To add one, append an entry with `label`, `query`, `lat`, `lng` and `expect` (`home`, `shared`, `north` or `out`), then run `npm test`. Coordinates marked `approximate` are interior points, not exact rooftops.
+To add one, append an entry with `label`, `query`, `lat`, `lng` and `expect` (`central`, `midnorth`, `north` or `out`), then run `npm test`. Coordinates marked `approximate` are interior points, not exact rooftops.
 
 ## Google key setup
 
@@ -149,7 +149,7 @@ These names come from a Feb 2026 setup guide and match the brief, but Google's d
 
 ## License-day checklist
 
-1. Brian has the tested PocketSuite links in `site.links` (office, home, shared, north).
+1. Brian has tested the PocketSuite links in `site.links` (office, central, midnorth, north).
 2. `licensed` is already `true` (step 12). Leave `licenseNumber` empty: the license number is never published.
 3. `npm run build && npm run check:wording && npm test`.
 4. Add `https://ohmprecisionbodywork.com/*` to the key's referrers (harmless to do early).

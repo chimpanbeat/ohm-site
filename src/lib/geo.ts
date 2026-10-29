@@ -61,7 +61,7 @@ export function bboxOf(fc: ZoneCollection, zone?: Exclude<ZoneKey, 'out'>): BBox
 
 /**
  * The zone for a coordinate. When polygons overlap, site.zonePrecedence decides
- * (shared over home or north). A point in no polygon is 'out'.
+ * (midnorth over central or north). A point in no polygon is 'out'.
  */
 export function zoneFor(lat: number, lng: number, fc: ZoneCollection): ZoneKey {
   const pt: LngLat = [lng, lat];

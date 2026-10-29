@@ -14,9 +14,9 @@ const fixtures = JSON.parse(read('./fixtures/addresses.json')) as {
   todo?: string;
 }[];
 
-test('zones.geojson has exactly home, shared and north', () => {
+test('zones.geojson has exactly central, midnorth and north', () => {
   assert.equal(zones.features.length, 3);
-  assert.deepEqual(zones.features.map((f) => f.properties.zone).sort(), ['home', 'north', 'shared']);
+  assert.deepEqual(zones.features.map((f) => f.properties.zone).sort(), ['central', 'midnorth', 'north']);
 });
 
 test('zones.geojson carries no properties other than zone', () => {

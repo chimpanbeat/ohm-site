@@ -47,25 +47,25 @@ const { current, heading } = Astro.props;
     margin-top: var(--s-8);
   }
   /* Each zone button is its map area: the same opaque tint ServiceMap fills the area with. */
-  a[data-zone='home'] {
-    --tint: var(--zone-home-tint);
+  a[data-zone='central'] {
+    --tint: var(--zone-central-tint);
   }
-  a[data-zone='shared'] {
-    --tint: var(--zone-shared-tint);
+  a[data-zone='midnorth'] {
+    --tint: var(--zone-midnorth-tint);
   }
   a[data-zone='north'] {
     --tint: var(--zone-north-tint);
   }
-  a[data-zone='home'],
-  a[data-zone='shared'],
+  a[data-zone='central'],
+  a[data-zone='midnorth'],
   a[data-zone='north'] {
     background: var(--tint);
     border-color: var(--tint);
     color: var(--ink);
   }
   /* Hover keeps the tint; only the underline changes. */
-  a[data-zone='home']:hover,
-  a[data-zone='shared']:hover,
+  a[data-zone='central']:hover,
+  a[data-zone='midnorth']:hover,
   a[data-zone='north']:hover {
     background: var(--tint);
     border-color: var(--tint);

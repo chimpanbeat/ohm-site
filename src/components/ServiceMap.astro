@@ -31,7 +31,7 @@ const { focus, id = 'map' } = Astro.props;
 
 // Manual label fixes in SVG units: [dx, dy]. Keys are `zone:<key>`, `road:<name>`, `place:<name>`.
 const labelNudge: Record<string, [number, number]> = {
-  'zone:home': [25, 0],
+  'zone:central': [25, 0],
   'place:Colorado Springs': [10, 35], // clear of the office mark (38.80, -104.85)
   'road:Academy': [75, 0],
   'road:Woodmen': [40, 0],
@@ -63,9 +63,9 @@ const box = focused ? bboxOf(zones, focused) : null;
 const { mapArea } = site.office;
 // The office mark sits on the (deliberately vague, 2-decimal) office point.
 const [officeX, officeY] = frame.project(mapArea.lng, mapArea.lat);
-// Office mode: the Central & Southwest zoom, widened so the mark is never at an edge.
+// Office mode: the Central zoom, widened so the mark is never at an edge.
 const view = office
-  ? frame.include(frame.viewFor(bboxOf(zones, 'home')!), officeX, officeY, 120)
+  ? frame.include(frame.viewFor(bboxOf(zones, 'central')!), officeX, officeY, 120)
   : box
     ? frame.viewFor(box)
     : full;
@@ -469,11 +469,11 @@ const markProps = office ? {} : { href: href('/book/office'), tabindex: '-1', 'a
     fill-opacity: 1;
     stroke: none;
   }
-  .zone--home {
-    fill: var(--zone-home-tint);
+  .zone--central {
+    fill: var(--zone-central-tint);
   }
-  .zone--shared {
-    fill: var(--zone-shared-tint);
+  .zone--midnorth {
+    fill: var(--zone-midnorth-tint);
   }
   .zone--north {
     fill: var(--zone-north-tint);
@@ -514,11 +514,11 @@ const markProps = office ? {} : { href: href('/book/office'), tabindex: '-1', 'a
     vector-effect: non-scaling-stroke;
     pointer-events: none;
   }
-  .zone-line--home {
-    stroke: var(--zone-home);
+  .zone-line--central {
+    stroke: var(--zone-central);
   }
-  .zone-line--shared {
-    stroke: var(--zone-shared);
+  .zone-line--midnorth {
+    stroke: var(--zone-midnorth);
   }
   .zone-line--north {
     stroke: var(--zone-north);

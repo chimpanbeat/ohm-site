@@ -4,7 +4,7 @@
     "query": "2400 W Colorado Ave, Colorado Springs, CO",
     "lat": 38.8467,
     "lng": -104.8606,
-    "expect": "home",
+    "expect": "central",
     "approximate": true
   },
   {
@@ -12,18 +12,18 @@
     "query": "Broadmoor Bluffs, Colorado Springs, CO",
     "lat": 38.772,
     "lng": -104.845,
-    "expect": "home",
+    "expect": "central",
     "approximate": true,
-    "note": "Interior point, about 1.1 km from the nearest zone edge. The home polygon's west edge runs near -104.86, so the far west of the neighbourhood is outside it."
+    "note": "Interior point, about 1.1 km from the nearest zone edge. The central polygon's west edge runs near -104.86, so the far west of the neighbourhood is outside it."
   },
   {
     "label": "Garden of the Gods Rd & Centennial Blvd",
     "query": "Centennial Blvd & Vindicator Dr, Colorado Springs, CO",
     "lat": 38.918,
     "lng": -104.842,
-    "expect": "shared",
+    "expect": "midnorth",
     "approximate": true,
-    "note": "The intersection itself sits on the home/shared boundary, so the point is moved about 2.4 km north along Centennial Blvd."
+    "note": "The intersection itself sits on the central/midnorth boundary, so the point is moved about 2.4 km north along Centennial Blvd."
   },
   {
     "label": "Briargate",
@@ -85,6 +85,6 @@
     "lng": -104.7414,
     "expect": "out",
     "approximate": true,
-    "note": "Academy & Platte itself sits on the home boundary, so the point is moved about 1.7 km east along Platte to Murray Blvd."
+    "note": "Academy & Platte itself sits on the central boundary, so the point is moved about 1.7 km east along Platte to Murray Blvd."
   }
 ]

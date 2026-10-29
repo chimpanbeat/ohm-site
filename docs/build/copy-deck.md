@@ -15,6 +15,11 @@ Written by Opus in step 4A (2026-10-05). **This is the only source of visible te
 ## Global
 Header, Footer, OfficeCard, ZonePicker and ZoneCard keep their current text (ARCHITECTURE §B3) except for the changes below.
 
+**Changes in step 13 (I-040, Oct 29: zones renamed):**
+- Zone names come from `site.zones[key].name`: `Central`, `Mid-north`, `North` (no "Springs"); keys `central`, `midnorth`, `north`, `out`. The ZoneCard heading, `/book/[zone]` meta, map labels and map `<desc>` change only through those names. No other text changes.
+- Services → office vs mobile P: `my home office` becomes `my office`.
+- Wording rule (BRIEF §7, Brian): a session at the client's place is a "mobile visit", at Brian's space an "office session". Never "home visit", "home office" or "Home mobile" (`check:wording` fails on them). Existing "mobile session" text stays as written.
+
 **Changes in step 12 (I-035, Oct 29: licensed wording):**
 - `licensed` turns true, so every `{w:key}` on the site renders its licensed variant from `wording.ts` (`{w:deepTissue}` on Services, `{w:notSpa}` and `{w:training}` change). **Home is unchanged** (Brian, Oct 29: "leave the home page alone"): `{w:heroLine}` stays `Reduce resistance. Restore movement.` and Home's `{w:deepTissueHome}` stays `deep tissue work` (both keys have equal variants). Home still shows the footer credential block. No page text changes by hand for this.
 - **Credential block** (`<Credentials />`, ARCHITECTURE §B3), two lines:
@@ -116,7 +121,7 @@ No splash on Home (9A batch 5: it's on `/hello`, below).
 
 **Cream band: office vs mobile** (9A: now first)
 - **H2:** `At my office or at your place`
-- **P:** `Sessions are at my home office or at your place. The office is in {site.officeArea}, and I'm there {site.office.days}. For mobile sessions I come to you, with a ${site.travelFee.amount} travel fee*, and the days depend on your part of town. The booking page works out which area you're in and sends you to the right booking link.` (The `*` is `<span aria-hidden="true">*</span>`.)
+- **P:** `Sessions are at my office or at your place. The office is in {site.officeArea}, and I'm there {site.office.days}. For mobile sessions I come to you, with a ${site.travelFee.amount} travel fee*, and the days depend on your part of town. The booking page works out which area you're in and sends you to the right booking link.` (The `*` is `<span aria-hidden="true">*</span>`.)
 - **Footnote P** (small text, directly after): `* See [rates and the travel fee](/pricing).`
 
 **Cream band: specialties** (9A: was "Session types")
@@ -203,7 +208,7 @@ No splash on Home (9A batch 5: it's on `/hello`, below).
 - `title`: `Book a session · Ohm Precision Bodywork`
 - `description`: `Find the right booking link for an office or mobile session in Colorado Springs and Manitou Springs.`
 - The `/book/[zone]` pages have their own (Oct 6, after the final audit), built from `site.ts`; `title` ends ` · Ohm Precision Bodywork`:
-  - home, shared, north: `Book in {zone.name}` / `Book a mobile session at your place in {zone.name}. I'm there {zone.days}.`
+  - central, midnorth, north: `Book in {zone.name}` / `Book a mobile session at your place in {zone.name}. I'm there {zone.days}.`
   - office: `Book at my office` / `My office in {officeArea}. I'm there {office.days}.` (kept under ~155 characters for search snippets)
   - out: `{zones.out.name}` / `I can sometimes travel outside my regular area by request. Get in touch, or book a session at my office.`
 
@@ -219,7 +224,7 @@ No splash on Home (9A batch 5: it's on `/hello`, below).
 - **Reset button** (8A, over the map's top-right corner, shown while any area is chosen, including outside (9A)): `Show all areas`
 - **Office map button** (10A, over the office map's top-right corner, always shown; on `/book` and `/book/office`): `Show mobile service areas`
 - **Google Maps button** (8A, replaces the small link; directly under the map): `Open in Google Maps`, with an external-link icon and visually hidden ` (opens in a new tab)`.
-- **Map `<title>`:** `Service area map`. **`<desc>`:** `Map of Colorado Springs showing my three service areas, Central & Southwest Springs, Mid-north Springs and North Springs, with the major roads that border them.` Build the zone names from `site.zones` (don't type them).
+- **Map `<title>`:** `Service area map`. **`<desc>`:** `Map of Colorado Springs showing my three service areas, Central, Mid-north and North, with the major roads that border them.` Build the zone names from `site.zones` (don't type them).
 - **Map labels:** zone names from `site.zones[key].name`; road short names and place names as listed in ARCHITECTURE §B4.
 - **Credit line** (small, under the map) (9A): `Roads and places © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright). Terrain: USGS 3DEP.`
 - ~~**Link:** `Open the map in Google Maps`~~ → replaced by the Google Maps button above (8A), still → `{site.mapViewerUrl}`
@@ -259,6 +264,7 @@ The entrance page for cards, QR codes and social bios (ARCHITECTURE §B8). `noin
 ---
 
 ## Checks Opus ran on this deck
+- **Step 13 (I-040, Oct 29):** no page text in the deck says "home visit", "home office" or "Home mobile" (they appear only in the rule above); no zone name with "Springs". The only literal zone names were in the map `<desc>`, now `Central, Mid-north and North` (built from `site.zones`).
 - **Step 12 (I-035, Oct 29):** the credential block's licensed-only words ("LMT", "Licensed") live only in `wording.ts`. No license number anywhere in the deck. "CNMT" and the Oct 12, 2026 license are from I-035 (Brian). No "treat/cure/diagnose/fix/heal".
 - **I-023 (Oct 29):** the new `outOfRegionFeeNote` has no digit, `$`, range, licensed-only term or "treat/cure/diagnose/fix/heal".
 - **7A additions:** the neuromuscular paragraphs, Pricing page, out card, contact and map text. No licensed-only terms and no "massage". No "treat/cure/diagnose/fix/heal/health": the outcome line is phrased as an aim ("The aim is less pain and more freedom to move"), and "can show up as a headache" describes referred pain, not a promised result. No phone number. Prices are all computed from `site`. The map text (title, desc, hint, credit) is descriptive only, with no outcome language.

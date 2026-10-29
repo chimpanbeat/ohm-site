@@ -45,6 +45,7 @@ function visibleText(html) {
 
 const FORBIDDEN = /\bmassage\s+therap(?:ist|y)\b|\bLMT\b|\blicensed\b/i;
 const MEDICAL = /\b(?:treat|cure|diagnos|fix|heal)\w*/i;
+const HOME_PHRASE = /\bhome[\s-]+(?:visits?|office|mobile)\b/i;
 const NUMBER_LABEL = /\blicen[cs]e\s*(?:no\b\.?|number\b|#)/i;
 const JSON_LD = /<script\b[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/gi;
 const [CREDENTIAL, LICENSED_IN] = [wording.credential[1], wording.licensedIn[1]];
@@ -89,6 +90,8 @@ for (const file of walk(DIST)) {
   for (const m of raw.matchAll(JSON_LD)) {
     if (/"hasCredential"|"identifier"/.test(m[1])) fail(`${rel}: JSON-LD carries a credential or identifier (I-035)`);
   }
+  const home = text.match(HOME_PHRASE);
+  if (home) fail(`${rel}: "${home[0]}" ... ${context(text, home.index, home[0].length)} (I-040)`);
   const label = text.match(NUMBER_LABEL);
   if (label) fail(`${rel}: "${label[0]}" ... ${context(text, label.index, label[0].length)}`);
 

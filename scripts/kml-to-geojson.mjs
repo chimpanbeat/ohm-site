@@ -1,6 +1,6 @@
 // KML -> src/data/zones.geojson (ARCHITECTURE §B5). No dependencies.
 // Usage: node scripts/kml-to-geojson.mjs [kmlPath] [--out path]
-// Polygon placemark names must equal site.zones[home|shared|north].name exactly
+// Polygon placemark names must equal site.zones[central|midnorth|north].name exactly
 // (case-sensitive, whitespace collapsed). An unknown polygon name stops the script.
 // Placemarks without a <Polygon> (pins etc.) are skipped and counted.
 // Emits only { type, properties: { zone }, geometry }. Descriptions, ExtendedData,
@@ -16,7 +16,7 @@ for (let i = 0; i < args.length; i++) {
   else kmlPath = args[i];
 }
 
-const ORDER = ['home', 'shared', 'north'];
+const ORDER = ['central', 'midnorth', 'north'];
 const NAMES = new Map(ORDER.map((z) => [site.zones[z].name, z]));
 const kml = readFileSync(kmlPath, 'utf8');
 

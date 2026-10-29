@@ -3,8 +3,9 @@
 // Values change only on Brian's instruction. No page may hardcode a rate, day,
 // link, or zone label; read it from here.
 
-export type ZoneKey = 'home' | 'shared' | 'north' | 'out';
-export type LinkKey = 'office' | 'home' | 'shared' | 'north' | 'general';
+// Zone keys since step 13 (I-040, Brian, Oct 29 2026).
+export type ZoneKey = 'central' | 'midnorth' | 'north' | 'out';
+export type LinkKey = 'office' | 'central' | 'midnorth' | 'north';
 
 export interface Rate {
   label: string;
@@ -14,7 +15,7 @@ export interface Rate {
 
 export interface Zone {
   key: ZoneKey;
-  /** Client-facing name, e.g. "Central & Southwest Springs". */
+  /** Client-facing name, e.g. "Central". Must equal the KML polygon name exactly (npm run zones). */
   name: string;
   /** Days Brian is in this area, as display text. */
   days: string;
@@ -93,33 +94,36 @@ export const site = {
     chat: 'https://pocketsuite.io/chat/ohm-precision-bodywork',
   },
 
-  // PLACEHOLDERS. Brian replaces these with tested PS links. Never guess PS URLs.
+  /**
+   * PocketSuite booking links: the items page filtered by a keyword tag, one per link key
+   * (Brian, Oct 29 2026, I-040). Never guess PS URLs; only Brian changes these.
+   */
   links: {
-    office: 'TODO_PS_OFFICE',
-    home: 'TODO_PS_HOME_REGION',
-    shared: 'TODO_PS_SHARED_KEYWORD',
-    north: 'TODO_PS_NORTH',
-    general: 'https://pocketsuite.io/book/ohm-precision-bodywork',
+    office: 'https://pocketsuite.io/book/ohm-precision-bodywork/items?keyword=office',
+    central: 'https://pocketsuite.io/book/ohm-precision-bodywork/items?keyword=central',
+    midnorth: 'https://pocketsuite.io/book/ohm-precision-bodywork/items?keyword=midnorth',
+    north: 'https://pocketsuite.io/book/ohm-precision-bodywork/items?keyword=north',
   } satisfies Record<LinkKey, string>,
 
   zones: {
-    home: {
-      key: 'home',
-      name: 'Central & Southwest Springs',
+    // Names drop "Springs" (Brian, Oct 29 2026, I-040); area and days text unchanged, except out.area 'outside North Springs' becomes 'outside North' (not rendered).
+    central: {
+      key: 'central',
+      name: 'Central',
       days: 'Tuesdays and Fridays',
-      linkKey: 'home',
+      linkKey: 'central',
       area: 'Inside Academy Blvd to the east and south, west to Manitou Springs, north to Garden of the Gods Rd / Austin Bluffs Pkwy. Includes Broadmoor Bluffs.',
     },
-    shared: {
-      key: 'shared',
-      name: 'Mid-north Springs',
+    midnorth: {
+      key: 'midnorth',
+      name: 'Mid-north',
       days: 'Tuesdays, Wednesdays, and Fridays',
-      linkKey: 'shared',
+      linkKey: 'midnorth',
       area: 'From Garden of the Gods Rd / Austin Bluffs Pkwy north to Woodmen Rd, west of Academy Blvd.',
     },
     north: {
       key: 'north',
-      name: 'North Springs',
+      name: 'North',
       days: 'Wednesdays',
       linkKey: 'north',
       // The KML polygon is authoritative (Brian, Oct 5 2026). Monument is out of the service area (decided Oct 5 2026).
@@ -130,12 +134,12 @@ export const site = {
       name: 'Outside my regular area',
       days: 'By request',
       linkKey: null,
-      area: 'East of Academy Blvd outside North Springs, Monument, Black Forest, Falcon, Fountain, Security-Widefield.',
+      area: 'East of Academy Blvd outside North, Monument, Black Forest, Falcon, Fountain, Security-Widefield.',
     },
   } satisfies Record<ZoneKey, Zone>,
 
   /** If a point is in more than one polygon, the first listed wins. None = 'out'. */
-  zonePrecedence: ['shared', 'home', 'north'] as const,
+  zonePrecedence: ['midnorth', 'central', 'north'] as const,
 
   serviceAreaSummary: 'Colorado Springs and Manitou Springs; other areas by request',
   areaServed: ['Colorado Springs', 'Manitou Springs'],
@@ -157,19 +161,11 @@ export const site = {
 /** Search engines may index only once licensed and on the production domain (brief §14). */
 export const indexable: boolean = site.licensed && site.deploy.live;
 
-export const isPlaceholder = (url: string): boolean => url.startsWith('TODO_');
-
-/**
- * The booking URL for a link key. Placeholder links fall back to the general
- * PS page so the preview never shows a dead button.
- */
-export function bookingUrl(key: LinkKey): { href: string; placeholder: boolean } {
-  const url = site.links[key];
-  return isPlaceholder(url)
-    ? { href: site.links.general, placeholder: true }
-    : { href: url, placeholder: false };
+/** The PocketSuite booking URL for a link key (step 13: no placeholder fallback). */
+export function bookingUrl(key: LinkKey): string {
+  return site.links[key];
 }
 
 export const mailHref = `mailto:${site.email}`;
 
-export const zoneOrder: ZoneKey[] = ['home', 'shared', 'north', 'out'];
+export const zoneOrder: ZoneKey[] = ['central', 'midnorth', 'north', 'out'];

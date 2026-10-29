@@ -1,6 +1,6 @@
 # Ohm Precision Bodywork — Website Brief
 
-Owner: Brian Clarke · Prepared Oct 4, 2026 · Updated Oct 5, 2026 (§6 key and quota details, new §14, repo is public) · Updated Oct 6, 2026 (no phone on the site, initial assessment removed, Pricing page, days, travel-fee waiver, interactive map) · Updated Oct 29, 2026 (licensed wording, I-035; out-of-region travel quoted, I-023) · Target: deployable preview this week
+Owner: Brian Clarke · Prepared Oct 4, 2026 · Updated Oct 5, 2026 (§6 key and quota details, new §14, repo is public) · Updated Oct 6, 2026 (no phone on the site, initial assessment removed, Pricing page, days, travel-fee waiver, interactive map) · Updated Oct 29, 2026 (licensed wording, I-035; out-of-region travel quoted, I-023; zones renamed Central, Mid-north, North and real booking links, I-040) · Target: deployable preview this week
 
 ## 1. What this site is for
 
@@ -10,7 +10,7 @@ PocketSuite (PS) handles booking, availability, intake forms, contracts, payment
 
 ### The business
 
-- **Ohm Precision Bodywork LLC.** Solo clinical bodywork practice in Colorado Springs, CO. Mobile-first (sessions at the client's location), plus a home office.
+- **Ohm Precision Bodywork LLC.** Solo clinical bodywork practice in Colorado Springs, CO. Mobile-first (sessions at the client's location), plus an office.
 - **Tagline:** "Reduce resistance. Restore movement."
 - **Name meaning (usable in copy):** Ohm is the electrical unit of resistance, a nod to Brian's 12 years as an electrical engineer (say "electrical engineer", not "FPGA design engineer": Brian, Oct 6 2026) and to the tissue resistance he works on. It also sounds like *Om*, the sacred sound of yoga and meditation; yoga and breathwork are part of how he got here. The tagline carries both meanings.
 - **Positioning:** clinical and results-oriented, not spa. Precise but human. Analytical clients (athletes, engineers, active people) respond to clear, evidence-based explanations rather than generic wellness language.
@@ -32,7 +32,7 @@ Do not build any of the following:
 - A CMS, backend, database, or serverless functions.
 - Analytics that capture addresses.
 - Storage or transmission of a visitor's address anywhere other than the Google autocomplete call.
-- Any guessing of PocketSuite URLs. Use the placeholders in config until Brian supplies tested links.
+- Any guessing of PocketSuite URLs. Use only the links Brian supplies (in config since Oct 29, 2026, I-040).
 
 ## 3. Stack and hosting
 
@@ -69,12 +69,11 @@ export const site = {
     lead: "https://pocketsuite.io/lead/ohm-precision-bodywork",
     chat: "https://pocketsuite.io/chat/ohm-precision-bodywork",
   },
-  links: {                         // PLACEHOLDERS. Brian replaces these with tested PS links.
-    office:  "TODO_PS_OFFICE",
-    home:    "TODO_PS_HOME_REGION",
-    shared:  "TODO_PS_SHARED_KEYWORD",
-    north:   "TODO_PS_NORTH",
-    general: "https://pocketsuite.io/book/ohm-precision-bodywork",
+  links: {                         // PS items page filtered by keyword tag (Brian, Oct 29, 2026, I-040)
+    office:   "https://pocketsuite.io/book/ohm-precision-bodywork/items?keyword=office",
+    central:  "https://pocketsuite.io/book/ohm-precision-bodywork/items?keyword=central",
+    midnorth: "https://pocketsuite.io/book/ohm-precision-bodywork/items?keyword=midnorth",
+    north:    "https://pocketsuite.io/book/ohm-precision-bodywork/items?keyword=north",
   },
   zones: { /* see §6 */ },
 };
@@ -125,7 +124,7 @@ Packages and the friends-and-family rate are **not** shown on the site.
     - On selection, get the latitude/longitude and test it against the zone polygons.
     - The matching zone button is highlighted, whether chosen by button or by address.
 3.  **Result card.** Shows the zone's plain-language name, the days I'm in that area, the travel fee note, and one primary button to that zone's PS link.
-    - Example: "You're in my Central & Southwest area. I'm there Tuesdays and Fridays."
+    - Example: "You're in my Central area. I'm there Tuesdays and Fridays."
     - The visitor stays on the page; the map stays visible.
 4.  **Out of region:** from an address, "That address is outside my regular service area."; from the button, "Outside my regular service area". Then "I can sometimes travel outside my regular area by request." and a line saying travel outside the service area is quoted before booking, with no amount or range (Oct 29, 2026). Show a PocketSuite lead form button, a PocketSuite chat button, and an email link. No booking link, no phone.
 5.  **Map** (Oct 6, 2026): the site draws its own map (an SVG built at compile time) of the zones from `zones.geojson`, plus the major roads that bound them and nearby town names from OpenStreetMap. No map service and no per-view cost. Brian is trying it; the fallback plan is a Google Maps JavaScript map.
@@ -135,24 +134,26 @@ Packages and the friends-and-family rate are **not** shown on the site.
     - Everything outside the zones is the "outside my regular area" area: hovering or clicking it works like the zone buttons, and choosing it dims all three zones (Oct 6, 2026).
     - A pin marks the entered address.
     - Light terrain shading (USGS elevation data) and a layer of smaller roads give context (Oct 6, 2026).
-    - Brian's Ω logo marks the office area on every map; on the service map, clicking it switches to "At my office". The office map uses the same zoom as the Central & Southwest view.
+    - Brian's Ω logo marks the office area on every map; on the service map, clicking it switches to "At my office". The office map uses the same zoom as the Central view.
     - It works without JavaScript or the key: the static map shows, and `/book/<zone>` shows it focused on that zone.
     - "Open the map in Google Maps" links to Brian's My Maps viewer. The My Maps iframe is no longer embedded.
 6.  A "Near a boundary or can't find your address? Chat with me or send me an email" line (PocketSuite chat and email). Boundaries are approximate.
 
 ### Zones
 
-| Key      | Client-facing name (draft)  | Days                         | PS link                                                             |
-|----------|-----------------------------|------------------------------|---------------------------------------------------------------------|
-| `home`   | Central & Southwest Springs | Tue, Fri                     | `links.home`                                                        |
-| `shared` | Mid-north Springs           | Tue, Wed, Fri                | `links.shared`, a keyword link showing both home and north services |
-| `north`  | North Springs               | Wed                          | `links.north`                                                       |
-| `out`    | Outside regular area        | By request                   | contact only                                                        |
+Keys and names since Oct 29, 2026 (I-040; were `home` "Central & Southwest Springs" and `shared` "Mid-north Springs"). Zone names never contain "Springs". The KML polygon names must equal these names exactly.
+
+| Key        | Client-facing name   | Days          | PS link          |
+|------------|----------------------|---------------|------------------|
+| `central`  | Central              | Tue, Fri      | `links.central`  |
+| `midnorth` | Mid-north            | Tue, Wed, Fri | `links.midnorth` |
+| `north`    | North                | Wed           | `links.north`    |
+| `out`      | Outside regular area | By request    | contact only     |
 
 Rough boundary descriptions (for copy and alt text only; the polygons decide):
 
-- **Home:** inside Academy Blvd to the east and south, west to Manitou Springs, north to Garden of the Gods Rd / Austin Bluffs Pkwy. Includes Broadmoor Bluffs.
-- **Shared:** from Garden of the Gods / Austin Bluffs north to Woodmen Rd, west of Academy.
+- **Central:** inside Academy Blvd to the east and south, west to Manitou Springs, north to Garden of the Gods Rd / Austin Bluffs Pkwy. Includes Broadmoor Bluffs.
+- **Mid-north:** from Garden of the Gods / Austin Bluffs north to Woodmen Rd, west of Academy.
 - **North:** north of Woodmen Rd up to Baptist Rd, east of Hwy 83, including Briargate, Wolf Ranch and Cordera; also east of Academy between Austin Bluffs/Templeton Gap and Woodmen, west of Powers. Monument is out of the service area (decided Oct 5, 2026).
 - **Out of region:** east of Academy Blvd, Black Forest, Falcon, Fountain, Security-Widefield.
 
@@ -160,7 +161,7 @@ Rough boundary descriptions (for copy and alt text only; the polygons decide):
 
 - Brian will provide a KML export of his Google My Map. Convert it to `src/data/zones.geojson` with a script committed to the repo (`npm run zones`), so a re-export is a one-command update. Document this in the README.
 - Each polygon has a `zone` property matching the keys above.
-- If a point is in more than one polygon, use this precedence: `shared` over `home` or `north`.
+- If a point is in more than one polygon, use this precedence: `midnorth` over `central` or `north`.
 - A point in no polygon is `out`.
 - The export may contain more than zone polygons (pins, placemark notes, a home location). The `npm run zones` script must keep only the polygons and their `zone` names, and nothing else may be committed to the repo from the KML.
 
@@ -199,6 +200,8 @@ Brian's Colorado massage therapist license was issued Oct 12, 2026 and is active
 - **Never publish the license number:** not in visible text, page source, attributes or JSON-LD. `licenseNumber` stays empty and nothing renders it. Visitors verify the license by name on the DORA site.
 
 **Build guard:** `npm run check:wording` scans the built HTML and fails CI: when `licensed` is false, on any forbidden term; when true, if a page with a footer lacks the credential block and verify link, or About or `/book` lacks its own copy; and always, if a license number or a credential identifier appears in the HTML or JSON-LD.
+
+**Session places (Brian, Oct 29, 2026, I-040), always:** a session at the client's place is a "mobile visit"; a session at Brian's space is an "office session". Never "home visit", "home office" or "Home mobile". Zone names never contain "Springs". `check:wording` fails on the three banned phrases.
 
 **Always, regardless of license status:** no medical claims. Never say "treat", "cure", "diagnose", "fix", or "heal" as promises. Prefer "reduce", "support", "restore movement", and "work with". This is a scope-of-practice issue, not just style.
 
@@ -258,8 +261,8 @@ Every AC is covered by a test or a named screenshot check.
 
 - [ ] **AC-1** All four zones and the office route to the correct config link. Out-of-region shows contact options only.
 - [ ] **AC-2** Test addresses:
-  - Home: Old Colorado City; Broadmoor Bluffs.
-  - Shared: near Garden of the Gods Rd & Centennial.
+  - Central (`central`): Old Colorado City; Broadmoor Bluffs.
+  - Mid-north (`midnorth`): near Garden of the Gods Rd & Centennial.
   - North: Briargate. Out: Monument.
   - Out of region: Falcon; Fountain; east of Academy.
   - Commit the address list as a fixture and document it in the README.

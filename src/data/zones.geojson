@@ -4,7 +4,7 @@
     {
       "type": "Feature",
       "properties": {
-        "zone": "home"
+        "zone": "central"
       },
       "geometry": {
         "type": "Polygon",
@@ -105,7 +105,7 @@
     {
       "type": "Feature",
       "properties": {
-        "zone": "shared"
+        "zone": "midnorth"
       },
       "geometry": {
         "type": "Polygon",

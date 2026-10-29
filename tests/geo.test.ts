@@ -51,31 +51,31 @@ test('MultiPolygon matches any of its polygons', () => {
   const fc: ZoneCollection = {
     type: 'FeatureCollection',
     features: [
-      feature('home', {
+      feature('central', {
         type: 'MultiPolygon',
         coordinates: [[closed(square(0, 0, 1, 1))], [closed(square(10, 10, 11, 11))]],
       }),
     ],
   };
-  assert.equal(zoneFor(0.5, 0.5, fc), 'home');
-  assert.equal(zoneFor(10.5, 10.5, fc), 'home');
+  assert.equal(zoneFor(0.5, 0.5, fc), 'central');
+  assert.equal(zoneFor(10.5, 10.5, fc), 'central');
   assert.equal(zoneFor(5, 5, fc), 'out');
 });
 
-test('overlapping zones resolve by precedence: shared wins', () => {
+test('overlapping zones resolve by precedence: midnorth wins', () => {
   const big = [closed(square(0, 0, 10, 10))];
   const fc: ZoneCollection = {
     type: 'FeatureCollection',
     features: [
       feature('north', { type: 'Polygon', coordinates: big }),
-      feature('home', { type: 'Polygon', coordinates: big }),
-      feature('shared', { type: 'Polygon', coordinates: big }),
+      feature('central', { type: 'Polygon', coordinates: big }),
+      feature('midnorth', { type: 'Polygon', coordinates: big }),
     ],
   };
-  assert.equal(zoneFor(5, 5, fc), 'shared');
+  assert.equal(zoneFor(5, 5, fc), 'midnorth');
 
-  const noShared: ZoneCollection = { type: 'FeatureCollection', features: fc.features.slice(0, 2) };
-  assert.equal(zoneFor(5, 5, noShared), 'home');
+  const noMidnorth: ZoneCollection = { type: 'FeatureCollection', features: fc.features.slice(0, 2) };
+  assert.equal(zoneFor(5, 5, noMidnorth), 'central');
 });
 
 test('zoneFor takes (lat, lng) and maps to [lng, lat]', () => {
@@ -90,7 +90,7 @@ test('zoneFor takes (lat, lng) and maps to [lng, lat]', () => {
 test('a point in no polygon is out', () => {
   const fc: ZoneCollection = {
     type: 'FeatureCollection',
-    features: [feature('home', { type: 'Polygon', coordinates: [closed(square(0, 0, 1, 1))] })],
+    features: [feature('central', { type: 'Polygon', coordinates: [closed(square(0, 0, 1, 1))] })],
   };
   assert.equal(zoneFor(50, 50, fc), 'out');
   assert.equal(zoneFor(0, 0, { type: 'FeatureCollection', features: [] }), 'out');
@@ -100,7 +100,7 @@ test('bboxOf: all zones combine, including every polygon of a MultiPolygon', () 
   const fc: ZoneCollection = {
     type: 'FeatureCollection',
     features: [
-      feature('home', { type: 'Polygon', coordinates: [closed(square(0, 0, 4, 3))] }),
+      feature('central', { type: 'Polygon', coordinates: [closed(square(0, 0, 4, 3))] }),
       feature('north', {
         type: 'MultiPolygon',
         coordinates: [[closed(square(10, 10, 11, 11))], [closed(square(-5, 6, -4, 20))]],
@@ -114,12 +114,12 @@ test('bboxOf: a zone argument gives that zone only; an absent zone gives null', 
   const fc: ZoneCollection = {
     type: 'FeatureCollection',
     features: [
-      feature('home', { type: 'Polygon', coordinates: [closed(square(0, 0, 4, 3))] }),
+      feature('central', { type: 'Polygon', coordinates: [closed(square(0, 0, 4, 3))] }),
       feature('north', { type: 'Polygon', coordinates: [closed(square(10, 10, 11, 11))] }),
     ],
   };
   assert.deepEqual(bboxOf(fc, 'north'), [10, 10, 11, 11]);
-  assert.equal(bboxOf(fc, 'shared'), null);
+  assert.equal(bboxOf(fc, 'midnorth'), null);
   assert.equal(bboxOf({ type: 'FeatureCollection', features: [] }), null);
 });
 
@@ -127,7 +127,7 @@ test('bboxOf: a hole does not widen the box', () => {
   const fc: ZoneCollection = {
     type: 'FeatureCollection',
     features: [
-      feature('home', {
+      feature('central', {
         type: 'Polygon',
         coordinates: [closed(square(0, 0, 10, 10)), closed(square(-3, 4, 12, 6))],
       }),

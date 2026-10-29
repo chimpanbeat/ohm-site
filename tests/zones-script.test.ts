@@ -35,9 +35,9 @@ function run(kml: string) {
 test('valid KML: three zones in order, nothing but the zone name emitted', () => {
   const r = run(
     kmlOf(
-      polygonPlacemark('<![CDATA[Central & Southwest Springs]]>', -105),
-      polygonPlacemark('Mid-north\n  Springs', -104),
-      polygonPlacemark('North Springs', -103),
+      polygonPlacemark('<![CDATA[Central]]>', -105),
+      polygonPlacemark('  Mid-north\n  ', -104),
+      polygonPlacemark('North', -103),
       `<Placemark><name>Home base</name><description>secret note</description>` +
         `<ExtendedData><Data name="k"><value>v</value></Data></ExtendedData>` +
         `<Point><coordinates>-104.5,38.5,0</coordinates></Point></Placemark>`,
@@ -48,7 +48,7 @@ test('valid KML: three zones in order, nothing but the zone name emitted', () =>
   const out = JSON.parse(raw);
   assert.deepEqual(
     out.features.map((f: { properties: unknown }) => f.properties),
-    [{ zone: 'home' }, { zone: 'shared' }, { zone: 'north' }],
+    [{ zone: 'central' }, { zone: 'midnorth' }, { zone: 'north' }],
   );
   assert.ok(!raw.includes('secret note'));
   assert.ok(!raw.includes('Home base'));
@@ -57,19 +57,32 @@ test('valid KML: three zones in order, nothing but the zone name emitted', () =>
 test('unknown polygon name stops the script and lists the expected names', () => {
   const r = run(
     kmlOf(
-      polygonPlacemark('Central &amp; Southwest Springs', -105),
-      polygonPlacemark('Mid-north Springs', -104),
+      polygonPlacemark('Central', -105),
+      polygonPlacemark('Mid-north', -104),
       polygonPlacemark('North Region', -103),
     ),
   );
   assert.equal(r.status, 1);
   assert.match(r.stderr, /North Region/);
-  assert.match(r.stderr, /Mid-north Springs/);
+  assert.match(r.stderr, /Mid-north/);
 });
 
 test('a missing zone stops the script', () => {
   const r = run(
-    kmlOf(polygonPlacemark('Central &amp; Southwest Springs', -105), polygonPlacemark('North Springs', -103)),
+    kmlOf(polygonPlacemark('Central', -105), polygonPlacemark('North', -103)),
   );
   assert.equal(r.status, 1);
+});
+
+test('the old "... Springs" names are rejected and the error lists the new ones', () => {
+  const r = run(
+    kmlOf(
+      polygonPlacemark('Central &amp; Southwest Springs', -105),
+      polygonPlacemark('Mid-north', -104),
+      polygonPlacemark('North', -103),
+    ),
+  );
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /Central & Southwest Springs|Central &amp; Southwest Springs/);
+  for (const n of ['Central', 'Mid-north', 'North']) assert.match(r.stderr, new RegExp(n));
 });

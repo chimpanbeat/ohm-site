@@ -148,8 +148,8 @@ function deselect(): void {
   if (lostFocus) document.querySelector<HTMLElement>('#mobile .zone-picker a')?.focus();
 }
 
-const isRegion = (zone: ZoneKey | null | undefined): zone is 'home' | 'shared' | 'north' =>
-  zone === 'home' || zone === 'shared' || zone === 'north';
+const isRegion = (zone: ZoneKey | null | undefined): zone is 'central' | 'midnorth' | 'north' =>
+  zone === 'central' || zone === 'midnorth' || zone === 'north';
 
 /**
  * Linked hover: the area button and its map area light up together (is-hot), and everything else on

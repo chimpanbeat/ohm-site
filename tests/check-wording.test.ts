@@ -106,3 +106,49 @@ test('a missing --dist exits 2', () => {
   const r = spawnSync(process.execPath, [script, '--dist', join(tmpdir(), 'no-such-wording-dir')], { encoding: 'utf8' });
   assert.equal(r.status, 2);
 });
+
+// A tree that passes on its own in both states: no credential, no licensed-only words.
+const cleanTree = (body: string, file = 'services.html'): Tree => ({ [file]: `<!doctype html><html><body><main>${body}</main></body></html>` });
+// The licensed good tree with the same body on one page.
+const licensedTree = (body: string, file = 'services.html'): Tree => ({ ...good(), [file]: page(1, body) });
+const both = (body: string, file = 'services.html') => [
+  { licensed: false, tree: cleanTree(body, file) },
+  { licensed: true, tree: licensedTree(body, file) },
+];
+
+test('either state: "home office", "home visits", "home-office" and "Home mobile" fail and name the file (I-040)', () => {
+  assert.equal(run(cleanTree('<p>Sessions are at my office.</p>'), false).status, 0);
+  for (const phrase of ['my home office', 'Home visits', 'home-office', 'Home mobile']) {
+    for (const { licensed, tree } of both(`<p>Sessions are at ${phrase} or at your place.</p>`)) {
+      const r = run(tree, licensed);
+      assert.equal(r.status, 1, `${phrase} ${licensed}`);
+      assert.match(r.stderr, /services\.html/);
+      assert.match(r.stderr, /I-040/);
+    }
+  }
+});
+
+test('either state: the banned phrase in alt or meta fails; inside script or style it passes', () => {
+  for (const [body, status] of [
+    ['<img alt="a home office" src="x.png">', 1],
+    ['<meta name="description" content="Home visits in town">', 1],
+    ['<script>var a = "home office";</script><style>/* home visit */</style>', 0],
+  ] as const) {
+    for (const { licensed, tree } of both(body)) assert.equal(run(tree, licensed).status, status, `${body} ${licensed}`);
+  }
+});
+
+test('either state: "home page", the logo label, "mobile visit" and "office session" pass', () => {
+  const body =
+    '<a aria-label="Ohm Precision Bodywork, home">Ohm Precision Bodywork</a><nav aria-label="Main">x</nav><img alt="Office desk" src="x.png">' +
+    '<p>Go back to the home page. A mobile visit or an office session.</p>';
+  for (const { licensed, tree } of both(body, '404.html')) assert.equal(run(tree, licensed).status, 0, String(licensed));
+});
+
+test('either state: a tree with "my home office" fails, then passes once rewritten to "my office"', () => {
+  for (const licensed of [true, false]) {
+    const at = (phrase: string) => both(`<p>Sessions are at ${phrase}.</p>`).find((b) => b.licensed === licensed)!.tree;
+    assert.equal(run(at('my home office'), licensed).status, 1);
+    assert.equal(run(at('my office'), licensed).status, 0);
+  }
+});

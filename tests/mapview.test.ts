@@ -8,7 +8,7 @@ const zones = JSON.parse(
   readFileSync(new URL('../src/data/zones.geojson', import.meta.url), 'utf8'),
 ) as ZoneCollection;
 const frame = makeFrame(zones);
-const regions = ['home', 'shared', 'north'] as const;
+const regions = ['central', 'midnorth', 'north'] as const;
 
 /** Every outer-ring vertex of a zone (or of all zones), projected. */
 function vertices(zone?: (typeof regions)[number]): [number, number][] {
