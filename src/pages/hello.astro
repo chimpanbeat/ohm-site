@@ -141,7 +141,9 @@ const [, , vbW, vbH] = omega.viewBox.split(' ').map(Number);
     text-shadow: none;
     padding-inline: 0;
     opacity: 0;
-    animation: ohm-reveal 1s ease-out 3.4s forwards;
+    animation:
+      ohm-reveal 1s ease-out 3.4s forwards,
+      ohm-breathe 6s ease-in-out 4.4s infinite; /* a slow breath once the line is in: 3 s in, 3 s out */
   }
 
   @keyframes ohm-lap {
@@ -151,6 +153,10 @@ const [, , vbW, vbH] = omega.viewBox.split(' ').map(Number);
   }
   @keyframes ohm-reveal {
     to { opacity: 1; }
+  }
+  @keyframes ohm-breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
   }
 
   /* Hovering the Ω, not the page: the whole page is the link, so .hello:hover would glow whenever the
