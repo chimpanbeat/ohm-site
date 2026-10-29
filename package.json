@@ -25,7 +25,7 @@
     "metrics": "node tools/method-metrics.mjs"
   },
   "dependencies": {
-    "astro": "^7.3.5"
+    "astro": "^7.4.2"
   },
   "devDependencies": {
     "playwright": "^1.64.1",
