@@ -6,6 +6,7 @@ import ZoneCard from '../../components/ZoneCard.astro';
 import ZonePicker from '../../components/ZonePicker.astro';
 import ServiceMap from '../../components/ServiceMap.astro';
 import { site, zoneOrder, mailHref } from '../../data/site.ts';
+import { href } from '../../lib/url.ts';
 
 const key = import.meta.env.PUBLIC_GOOGLE_MAPS_KEY ?? '';
 ---
@@ -19,6 +20,7 @@ const key = import.meta.env.PUBLIC_GOOGLE_MAPS_KEY ?? '';
       <h1>Book a session</h1>
       <p>Tell me where you want your session and I'll point you to the right booking page. Scheduling, intake forms and payment are all handled on PocketSuite.</p>
       <Credentials />
+      <p>Booking means you agree to my <a href={href('/client-policies')}>client policies</a>.</p>
 
       <fieldset id="where" hidden>
         <legend>Where do you want your session?</legend>

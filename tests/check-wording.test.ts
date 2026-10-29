@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { site } from '../src/data/site.ts';
 import { wording } from '../src/data/wording.ts';
+import { clientPolicies } from '../src/data/client-policies.ts';
 
 const script = fileURLToPath(new URL('../scripts/check-wording.mjs', import.meta.url));
 
@@ -136,6 +137,18 @@ test('either state: the banned phrase in alt or meta fails; inside script or sty
   ] as const) {
     for (const { licensed, tree } of both(body)) assert.equal(run(tree, licensed).status, status, `${body} ${licensed}`);
   }
+});
+
+test('either state: the client policies text passes (warning on "health"), and "my home office" in it fails', () => {
+  const flat = (x: unknown): string =>
+    typeof x === 'string' ? x : Array.isArray(x) ? x.map(flat).join(' ') : x && typeof x === 'object' && 'href' in x ? String(x.text) : x && typeof x === 'object' ? Object.values(x).map(flat).join(' ') : '';
+  const body = `<p>${flat(clientPolicies).replaceAll('&', '&amp;')}</p>`;
+  for (const { licensed, tree } of both(body, 'client-policies.html')) {
+    const r = run(tree, licensed);
+    assert.equal(r.status, 0, `${licensed}: ${r.stderr}`);
+    assert.match(r.stderr + r.stdout, /medical-claim word "health"/);
+  }
+  for (const { licensed, tree } of both(`${body}<p>my home office</p>`, 'client-policies.html')) assert.equal(run(tree, licensed).status, 1, String(licensed));
 });
 
 test('either state: "home page", the logo label, "mobile visit" and "office session" pass', () => {

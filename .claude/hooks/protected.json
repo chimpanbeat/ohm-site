@@ -2,6 +2,7 @@
   "protected": [
     "src/data/site.ts",
     "src/data/wording.ts",
+    "src/data/client-policies.ts",
     "src/lib/geo.ts",
     "src/styles/tokens.css",
     "astro.config.mjs",

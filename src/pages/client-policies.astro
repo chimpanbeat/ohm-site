@@ -1,0 +1,261 @@
+---
+import Base from '../layouts/Base.astro';
+import BookCta from '../components/BookCta.astro';
+import { site } from '../data/site.ts';
+import { clientPolicies, policiesPdfPath, type Block, type Rich } from '../data/client-policies.ts';
+import { href } from '../lib/url.ts';
+
+const host = new URL(site.deploy.customDomain).host;
+const runs = (t: Rich) => (typeof t === 'string' ? [t] : t);
+---
+
+<Base
+  title="Client policies · Ohm Precision Bodywork"
+  description="Booking, payment, cancellation, late arrival, package and conduct policies for sessions with Ohm Precision Bodywork in Colorado Springs."
+>
+  <section class="section">
+    <div class="container">
+      <p class="print-only">{site.name} · {host}</p>
+      <h1>Client policies</h1>
+      <p class="policies-version">Version {clientPolicies.version} · {clientPolicies.displayDate}</p>
+      <p>{clientPolicies.intro}</p>
+      <p class="policies-pdf"><a href={href(policiesPdfPath)}>Download the policies (PDF)</a></p>
+    </div>
+  </section>
+
+  <section class="section band-light">
+    <div class="container policies">
+      <div class="policies-controls" hidden>
+        <button type="button" class="btn btn--quiet" data-policies="expand">Expand all</button>
+        <button type="button" class="btn btn--quiet" data-policies="collapse">Collapse all</button>
+      </div>
+
+      {
+        clientPolicies.sections.map((s) => (
+          <details class="policy" id={s.id}>
+            <summary>
+              <h2>{s.title}</h2>
+            </summary>
+            <div class="policy__body">
+              <a class="policy__anchor" href={`#${s.id}`} aria-label={`Link to ${s.title}`}>
+                #
+              </a>
+              {s.blocks.map((b: Block) => {
+                if (b.type === 'paragraph') {
+                  return (
+                    <p>
+                      {runs(b.text).map((r) => (typeof r === 'string' ? r : <a href={r.href}>{r.text}</a>))}
+                    </p>
+                  );
+                }
+                if (b.type === 'bullets') {
+                  return (
+                    <ul>
+                      {b.items.map((i) => (
+                        <li>
+                          {i.lead && <strong>{i.lead} </strong>}
+                          {runs(i.text).map((r) => (typeof r === 'string' ? r : <a href={r.href}>{r.text}</a>))}
+                        </li>
+                      ))}
+                    </ul>
+                  );
+                }
+                if (b.type === 'table') {
+                  return (
+                    <table>
+                      <caption class="visually-hidden">{b.caption}</caption>
+                      <thead>
+                        <tr>
+                          {b.head.map((h) => (
+                            <th scope="col">{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {b.rows.map(([first, ...rest]) => (
+                          <tr>
+                            <th scope="row">{first}</th>
+                            {rest.map((c) => (
+                              <td>{c}</td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  );
+                }
+                return (
+                  <div class="notice">
+                    {b.columns.map((c) => (
+                      <div>
+                        <p>
+                          <strong>{c.head}</strong>
+                        </p>
+                        <p>{c.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          </details>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="section section--end">
+    <div class="container">
+      <BookCta />
+    </div>
+  </section>
+</Base>
+
+<script>
+  import '../scripts/policies.ts';
+</script>
+
+<style>
+  .print-only {
+    display: none;
+  }
+  .policies-version {
+    font-weight: 700;
+  }
+  .policies-pdf {
+    margin-top: var(--s-4);
+  }
+  .policies-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2);
+    margin-bottom: var(--s-6);
+  }
+  .policies-controls[hidden] {
+    display: none;
+  }
+  /* .btn--quiet is made for dark bands; on the cream band it takes the ink colour. */
+  .policies-controls .btn--quiet {
+    border-color: var(--text-on-light);
+    color: var(--text-on-light);
+  }
+  .policies-controls .btn--quiet:hover {
+    background: var(--text-on-light);
+    color: var(--bg-light);
+  }
+
+  .policy {
+    border-bottom: 1px solid var(--line-light);
+  }
+  .policy:first-of-type {
+    border-top: 1px solid var(--line-light);
+  }
+  .policy summary {
+    cursor: pointer;
+    padding-block: var(--s-4);
+  }
+  .policy summary h2 {
+    display: inline;
+    font-size: var(--fs-h3);
+  }
+  .policy__body {
+    position: relative;
+    padding-bottom: var(--s-6);
+  }
+  .policy__body > * + * {
+    margin-top: var(--s-4);
+  }
+  .policy__anchor {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin-top: 0;
+    padding: var(--s-1) var(--s-3);
+    text-decoration: none;
+    font-weight: 700;
+  }
+  .policy__body ul {
+    padding-left: var(--s-6);
+    max-width: var(--measure);
+  }
+  .policy__body li + li {
+    margin-top: var(--s-2);
+  }
+  table {
+    width: 100%;
+    max-width: 40rem;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+  }
+  th,
+  td {
+    padding: var(--s-3) var(--s-2);
+    border-bottom: 1px solid var(--line-light);
+    text-align: left;
+    vertical-align: top;
+  }
+  .notice {
+    display: grid;
+    gap: var(--s-4);
+    padding: var(--s-4);
+    border: 1px solid var(--line-light);
+    border-radius: var(--radius);
+  }
+  .notice p + p {
+    margin-top: var(--s-2);
+  }
+  @media (min-width: 48rem) {
+    .notice {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--s-8);
+    }
+  }
+
+  @media print {
+    :global(.site-header),
+    :global(.site-footer),
+    :global(.skip-link),
+    .policies-pdf,
+    .policies-controls,
+    .policy__anchor,
+    .section--end {
+      display: none;
+    }
+    .policy summary {
+      list-style: none;
+    }
+    .policy summary::-webkit-details-marker {
+      display: none;
+    }
+    .print-only {
+      display: block;
+    }
+    :global(body),
+    .section,
+    .band-light {
+      background: none;
+    }
+    :global(body),
+    :global(h1),
+    :global(a),
+    .section,
+    .band-light {
+      color: var(--ink);
+    }
+    :global(body) {
+      font-size: 11pt;
+    }
+    .section {
+      padding-block: var(--s-4);
+    }
+    .policy summary,
+    h2 {
+      break-after: avoid;
+    }
+    table,
+    .notice,
+    li {
+      break-inside: avoid;
+    }
+  }
+</style>

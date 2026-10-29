@@ -1,6 +1,6 @@
 # Ohm Precision Bodywork — Website Brief
 
-Owner: Brian Clarke · Prepared Oct 4, 2026 · Updated Oct 5, 2026 (§6 key and quota details, new §14, repo is public) · Updated Oct 6, 2026 (no phone on the site, initial assessment removed, Pricing page, days, travel-fee waiver, interactive map) · Updated Oct 29, 2026 (licensed wording, I-035; out-of-region travel quoted, I-023; zones renamed Central, Mid-north, North and real booking links, I-040) · Target: deployable preview this week
+Owner: Brian Clarke · Prepared Oct 4, 2026 · Updated Oct 5, 2026 (§6 key and quota details, new §14, repo is public) · Updated Oct 6, 2026 (no phone on the site, initial assessment removed, Pricing page, days, travel-fee waiver, interactive map) · Updated Oct 29, 2026 (licensed wording, I-035; out-of-region travel quoted, I-023; zones renamed Central, Mid-north, North and real booking links, I-040; client policies page and PDF, I-037) · Target: deployable preview this week
 
 ## 1. What this site is for
 
@@ -36,7 +36,7 @@ Do not build any of the following:
 
 ## 3. Stack and hosting
 
-- **Framework:** Astro, static output, TypeScript. Ship zero JavaScript except on the Book page (address check).
+- **Framework:** Astro, static output, TypeScript. Ship zero JavaScript except on the Book page (address check) and a small script on `/client-policies` (Expand all / Collapse all, and opening the section named in the link; I-037, Oct 29, 2026). Both pages work without it.
 - **Hosting:** GitHub Pages, deployed with the official Astro GitHub Action.
   - Build to the default `*.github.io` URL first.
   - The custom domain `ohmprecisionbodywork.com` (DNS at Porkbun) is cut over later; see §10.
@@ -79,7 +79,7 @@ export const site = {
 };
 ```
 
-Packages and the friends-and-family rate are **not** shown on the site.
+The friends-and-family rate is **not** shown on the site. Packages appear only on `/client-policies`, as the Client Policies doc gives them; their prices live in `src/data/client-policies.ts`, not `site.ts` (I-037, Oct 29, 2026).
 
 ## 5. Pages
 
@@ -91,6 +91,7 @@ Packages and the friends-and-family rate are **not** shown on the site.
 | `/pricing`  | Pricing            | Rates at the office and at your place (with the travel fee), and the travel-fee rule. Added Oct 6, 2026. |
 | `/about`    | About Brian        | Uses the provided photos. Draft copy from §8, marked for Brian's review.    |
 | `/book`     | Booking router     | The core feature (§6).                                                      |
+| `/client-policies` | Client policies | The client agreement says the policies are posted on the site. The Client Policies doc, v1.4 (Oct 29, 2026), client-facing sections only, with two changes for the public page: the Zelle line asks clients to request Zelle details (no Zelle address), and the first Communication sentence points to the contact form and chat. One collapsible section per policy, closed at first; Expand all / Collapse all; a link to a section opens it. Version and date at the top, and a PDF printed from the same text. No phone number. Linked from the footer, Services, Pricing and Book; in the sitemap. Added Oct 29, 2026 (I-037). |
 | `/404`      | Not found          | Plain, with a link to `/book`.                                              |
 
 **Services page content:**
@@ -110,7 +111,7 @@ Packages and the friends-and-family rate are **not** shown on the site.
 **Global elements:**
 
 - **Header:** logo and nav (Services, Pricing, About, Book).
-- **Footer:** email and a one-line service area summary (no phone) ("Colorado Springs and Manitou Springs; other areas by request"). When `licensed` is true, the credential block: "Brian Clarke, LMT, CNMT" and "Licensed in Colorado." with a link to DORA verification (`licenseVerifyUrl`). Never the license number (Oct 29, 2026).
+- **Footer:** email and a one-line service area summary (no phone) ("Colorado Springs and Manitou Springs; other areas by request"). When `licensed` is true, the credential block: "Brian Clarke, LMT, CNMT" and "Licensed in Colorado." with a link to DORA verification (`licenseVerifyUrl`). Never the license number (Oct 29, 2026). A `Client policies` link to `/client-policies` (I-037, Oct 29, 2026).
 - Every page links to `/book`.
 
 ## 6. Booking router (`/book`)
@@ -203,6 +204,8 @@ Brian's Colorado massage therapist license was issued Oct 12, 2026 and is active
 
 **Session places (Brian, Oct 29, 2026, I-040), always:** a session at the client's place is a "mobile visit"; a session at Brian's space is an "office session". Never "home visit", "home office" or "Home mobile". Zone names never contain "Springs". `check:wording` fails on the three banned phrases.
 
+**Client policies (I-037, Oct 29, 2026):** `/client-policies` and its PDF carry Brian's approved policy text as written, so three things differ from the rest of the site. It says "massage" (allowed while `licensed` is true; if `licensed` is ever set back to false, Brian reviews that sentence). It says "text or call me" and "text me" although no phone number is published (Brian, Oct 29: keep as written). Its "health" trips the `check:wording` medical-word warning, which is accepted (warning only; nothing there is a promise). The always-on rules still apply: no phone number, no Zelle address, no "home visit", "home office" or "Home mobile".
+
 **Always, regardless of license status:** no medical claims. Never say "treat", "cure", "diagnose", "fix", or "heal" as promises. Prefer "reduce", "support", "restore movement", and "work with". This is a scope-of-practice issue, not just style.
 
 ## 8. Content and voice
@@ -271,6 +274,7 @@ Every AC is covered by a test or a named screenshot check.
 - [ ] **AC-5** Lighthouse mobile scores of 90+ for performance, accessibility, best practices, and SEO.
 - [ ] **AC-6** No hardcoded rates, days, links, or zone names outside `src/data/`.
 - [ ] **AC-7** README covers: local dev, deploy, updating rates and links, re-exporting zones, the Google key setup, and the DNS cutover.
+- [ ] **AC-8** `/client-policies` and `ohm-client-policies.pdf` come from one source text (`src/data/client-policies.ts`, the Client Policies doc v1.4): the PDF is printed from the page, and a test fails when the committed PDF is older than the text. Both show the version and date (Version 1.4 · Oct 29, 2026). Both I-037 changes are in place (the Zelle line and the first Communication sentence). Neither has a phone number or a Zelle address (added Oct 29, 2026, I-037).
 
 ## 13. Working agreement
 

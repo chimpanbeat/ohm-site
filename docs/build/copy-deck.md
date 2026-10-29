@@ -46,7 +46,7 @@ Header, Footer, OfficeCard, ZonePicker and ZoneCard keep their current text (ARC
 **Changes in step 7A (Oct 6, Brian's review):**
 - **Header nav:** `Services`, `Pricing` (→ `/pricing`), `About`, then the `Book` button.
 - **Footer:** the phone line is removed. Nothing replaces it.
-- **No phone number anywhere.** No `tel:` or `sms:` links, no "Call", "Text" or "Text me".
+- **No phone number anywhere.** No `tel:` or `sms:` links, no "Call", "Text" or "Text me". One exception (step 14, I-037, Brian, Oct 29): the Client Policies text keeps its "text or call me", "text me" and "text and email" as written; still no number and no `tel:`/`sms:` link.
 - **ContactButtons** (out-of-region card): `Send a request` (primary, → `{site.contact.lead}`), `Chat with me` (quiet, → `{site.contact.chat}`), then a `<p>`: `Or email ` + a `mailHref` link showing `{site.email}` + `.`
 - **ZoneCard, `out`:**
   - Heading, `via='address'`: `That address is outside my regular service area.`
@@ -263,7 +263,107 @@ The entrance page for cards, QR codes and social bios (ARCHITECTURE §B8). `noin
 
 ---
 
+## Client Policies (`src/pages/client-policies.astro`, `src/data/client-policies.ts`, step 14, I-037)
+
+The policy text is the Client Policies doc v1.4 (Oct 29, 2026, Brian, final), client-facing sections only (nothing from "Drafting notes"), with the two I-037 changes marked below; nothing else differs from the doc. It lives in `client-policies.ts` as blocks (ARCHITECTURE §B2); the page and the PDF render it. Don't reword it.
+
+**References used below** (all from `site.ts` or `client-policies.ts`; never type the value; today's value in brackets):
+`{host}` = `new URL(site.deploy.customDomain).host` [ohmprecisionbodywork.com], plain text, not a link · `{travel}` = `site.travelFee.amount` [25] · `{p60}`/`{p90}` = `site.rates.s60.price`/`s90.price` [90/120] · `{m60}`/`{m90}` = their `minutes` [60/90] · `{late60}`/`{late90}` = `lateCancelFee(site.rates.s60)`/`(s90)` [45/60] · `{t60}`/`{t90}` = minutes + `terms.checkInMinutes` [75/105] · `{terms.*}`, `{packages.*}` = the constants in `client-policies.ts` · `{save:s60:office}` etc. = `packageSavings('s60', 'office')` [s60: 75 office, 100 mobile; s90: 100 office, 125 mobile] · `lead:` = the bullet's bold lead.
+
+**Page (not in the doc)**
+- `title`: `Client policies · Ohm Precision Bodywork`
+- `description`: `Booking, payment, cancellation, late arrival, package and conduct policies for sessions with Ohm Precision Bodywork in Colorado Springs.`
+- **Print-only line** (above the H1, shown only in print and the PDF): `{site.name} · {host}`
+- **H1:** `Client policies`
+- **Version line** (directly under the H1 divider): `Version {clientPolicies.version} · {clientPolicies.displayDate}` → `Version 1.4 · Oct 29, 2026`
+- **Intro P:** `{clientPolicies.intro}` (doc text, below)
+- **PDF link** (its own `<p>`): `Download the policies (PDF)` → `href(policiesPdfPath)`
+- **Buttons** (shipped `hidden`, shown by `policies.ts`): `Expand all`, `Collapse all`
+- **Section link** (first in each open section's body): visible `#`, `aria-label` `Link to {section.title}` (e.g. `Link to Cancelling and rescheduling`)
+- **Table captions** (visually hidden): `Session prices`; `Package prices`
+- **PDF footer** (each page, from `make-policies-pdf.mjs`): `{site.name} · Client policies, version {clientPolicies.version} · Page {n} of {total}` (Chromium's `pageNumber` / `totalPages` spans)
+- **CTA:** `<BookCta />`
+
+**Link lines elsewhere**
+- **Footer** (right column, after `Book a session`): `<p>[Client policies](/client-policies)</p>`
+- **Services** (small `<p>`, directly after the `* See rates and the travel fee.` footnote, same style): `Cancellations, packages and payment are covered in my [client policies](/client-policies).`
+- **Pricing** (`<p>`, after `Where you are decides…`): `Cancellations, packages and payment are covered in my [client policies](/client-policies).`
+- **Book** (`/book` only, `<p>` directly after `<Credentials />`, before `#where`): `Booking means you agree to my [client policies](/client-policies).`
+
+**Doc text: intro** (`clientPolicies.intro`)
+`These policies keep scheduling fair for every client and let me give my full attention to your session. Booking an appointment means you agree to them. If anything is unclear, ask me before your appointment.`
+
+**`booking` · Booking and payment**
+- Bullets:
+  1. `Book online at {host}, or text or call me to request a time. A text or call is a request, not a booking: your appointment is booked once I send you a booking confirmation.`
+  2. `A card on file is required to book, added through the booking link. It holds your appointment and covers any fees below. I charge it after your session, not before, except for packages, which are paid when you buy them (see Packages).`
+  3. `I accept cash, Zelle, and credit or debit cards through PocketSuite (Tap to Pay in person, or the booking link).`
+  4. `Ask me for Zelle details. I don't accept Venmo, PayPal or other payment apps.` (**I-037 change 1.** The doc's Zelle address is never on the site or in the PDF.)
+  5. `Credit card payments carry a {terms.surchargePercent}% processing surcharge. There is no surcharge on cash, Zelle or debit cards.`
+  6. `Your appointment time is when we begin: when I arrive at your door for a mobile visit, or when you arrive at my office. The first {terms.checkInMinutes} minutes are for setup and check-in, so a {m60}-minute session takes about {t60} minutes start to finish, and a {m90}-minute session about {t90}.`
+- Notice (two columns):
+  - head `Colorado notice`, text `coloradoNotice`, verbatim: `To cover the cost of processing a credit or charge card transaction, and pursuant to section 5-2-212, Colorado Revised Statutes, a seller or lessor may impose a processing surcharge in an amount not to exceed the merchant discount fee that the seller or lessor incurs in processing the sales or lease transaction. A seller or lessor shall not impose a processing surcharge on payments made by use of cash, a check, or a debit card or redemption of a gift card.`
+  - head `{site.name}`, text `{surchargeLine} The surcharge appears as its own line on your receipt.`, where `surchargeLine` = `{site.name} adds a {terms.surchargePercent}% surcharge to credit card payments. No surcharge on cash, Zelle, or debit cards.`
+- Table `Session prices`: head `Session` · `Office` · `Mobile (I come to you)`; rows `{m60} minutes` · `${p60}` · `${p60} + ${travel} travel`, and `{m90} minutes` · `${p90}` · `${p90} + ${travel} travel`.
+
+**`cancelling` · Cancelling and rescheduling** (bullets)
+1. `Cancel or reschedule at least {terms.noticeHours} hours before your appointment time and there's no charge.`
+2. `Inside {terms.noticeHours} hours, the late-cancel fee is {terms.lateCancelPercent}% of the session price: ${late60} for a {m60}-minute session, ${late90} for a {m90}-minute session. No travel fee is added, since I haven't driven to you.`
+3. `Moving an appointment to a new time inside the {terms.noticeHours} hours counts as a late cancel.`
+4. `The quickest way to cancel or reschedule is the link in your booking confirmation. Your cancellation counts from when you send it, not when I answer.`
+
+**`late-arrival` · Late arrival and no-shows** (bullets)
+1. `If you're running late, text me. Your session still ends at its scheduled time and is charged in full, so the next client starts on time.`
+2. lead: `Mobile visits:` text: `if you don't answer the door or your phone when I arrive, I'll call or text and wait {terms.graceMinutes} minutes. After that, I'll leave and it counts as a no-show.`
+3. lead: `Office visits:` text: `if you're more than {terms.graceMinutes} minutes late and I haven't heard from you, it counts as a no-show.`
+4. `A no-show is charged 100% of the session price, plus the travel fee for a mobile visit.`
+
+**`illness` · Illness and skin conditions**
+- P: `Please don't come to a session sick. If you have a fever, cough, cold or flu symptoms, or a stomach bug, or a rash, open wound or possible skin infection (such as athlete's foot or ringworm) where I'd be working, reschedule with me.`
+- Bullets:
+  1. `There's no session fee for an illness reschedule, however close to the appointment it is.`
+  2. `If I've already left for a mobile visit, only the travel fee applies.`
+  3. `If a skin issue is small and in an area we can safely skip, we may still go ahead. Tell me before we start and we'll decide together.`
+  4. `Not sure? Text me. I'd rather hear early.`
+  5. `If I'm sick, I'll reschedule you, and you won't be charged anything.`
+
+**`mobile-visits` · Mobile visits and travel** (bullets)
+1. `The travel fee is ${travel} per visit inside my service area (see the map at {host}).`
+2. `One travel fee covers up to {terms.groupMax} back-to-back sessions at the same address, as my schedule allows, such as a household or a small group taking turns.`
+3. `Outside my service area, mobile visits are by request. Travel is quoted before I confirm the appointment, based on drive time and distance. It replaces the ${travel} fee, and one quote covers a back-to-back group the same way.`
+4. `Space, pets and access for mobile visits are covered in the Mobile visits section of the Client Service Agreement you sign.`
+
+**`packages` · Packages**
+- Table `Package prices`: head `{packages.sessions}-session package` · `Office` · `Mobile (travel included)`; rows `{packages.sessions} × {m60} minutes` · `${packages.prices.s60.office} (save ${save:s60:office})` · `${packages.prices.s60.mobile} (save ${save:s60:mobile})`, and the same for `s90`. Today: `5 × 60 minutes` · `$375 (save $75)` · `$475 (save $100)`; `5 × 90 minutes` · `$500 (save $100)` · `$600 (save $125)`.
+- Bullets:
+  1. `A package is paid in full when you buy it. Its sessions are not charged again.`
+  2. `Packages are for your own sessions. They can't be shared or transferred.`
+  3. `Use an office package for office visits and a mobile package for mobile visits. A mobile package includes travel inside my service area; outside it, any quoted travel above ${travel} is charged to your card after each visit it applies to.`
+  4. `Use your sessions within {packages.expiryMonths} months of purchase; unused sessions expire after that.`
+  5. `A package keeps the price you paid, even if my rates go up.`
+  6. `A late cancel on a package session charges the late-cancel fee (${late60} or ${late90}) to your card, and the session stays in your package. A no-show uses one session.`
+  7. `Packages aren't refunded if you change your mind. If I can't provide your remaining sessions (for example, if I stop practicing or move away), or a change in your health makes massage unsafe for you, I'll refund the unused sessions at the per-session price you paid.`
+
+**`not-right` · If a session wasn't right**
+- P: `If something about a session wasn't right, tell me within {terms.reportDays} days. I'll make it right with a follow-up session or a partial or full refund, my choice. I can't guarantee results; bodies don't work that way. Billing mistakes are always corrected and refunded once you make me aware of them.`
+
+**`tips` · Tips**
+- P: `Tips aren't expected. If you'd like to leave one, it's gladly accepted, and there's an optional tip at checkout.`
+
+**`communication` · Communication** (bullets)
+1. `The fastest way to reach me is the [contact form]({site.contact.lead}) or [chat]({site.contact.chat}) at {host}. Email works too: [{site.email}]({mailHref}). I usually reply within two business days, and I don't answer during sessions.` (**I-037 change 2:** the first sentence. The email sentence stays; the phone number is never published.)
+2. `Use text and email for scheduling and quick questions. Please don't send detailed health information that way; your intake form and our check-in are the place for it.`
+3. `For new or worsening symptoms, contact your doctor. In an emergency, call 911.`
+
+**`conduct` · Conduct and safety** (bullets)
+1. `Every session is clinical and nonsexual. Any sexual behavior, comment or request, or harassment of any kind, ends the session immediately. You'll be charged the full session price, plus travel for a mobile visit, and you won't be able to book again.`
+2. `I won't start or continue a session if you appear impaired by alcohol or drugs, or if the setting feels unsafe to me. That's charged as a no-show, and rebooking is at my discretion.`
+3. `You're in charge of your session. Tell me to change the pressure, skip an area, or stop at any time.`
+
+---
+
 ## Checks Opus ran on this deck
+- **Step 14 (I-037, Oct 29):** the Client Policies text is Brian's approved doc, so it is not reworded for voice. No phone number, no `tel:`/`sms:`, no Zelle address, no bracketed placeholder, no drafting notes. "text or call me" / "text me" kept (Brian's decision). No "home visit", "home office", "Home mobile"; no zone names. "massage" appears once (packages refund), allowed while licensed (BRIEF §7). "health" appears twice and trips the medical-word warning (accepted). No "treat/cure/diagnose/fix"; "I can't guarantee results" is the opposite of a promise. Every rate, fee, minute count, the domain and the email are references. New page copy (meta, H1, labels, link lines) restates the doc and adds no fact.
 - **Step 13 (I-040, Oct 29):** no page text in the deck says "home visit", "home office" or "Home mobile" (they appear only in the rule above); no zone name with "Springs". The only literal zone names were in the map `<desc>`, now `Central, Mid-north and North` (built from `site.zones`).
 - **Step 12 (I-035, Oct 29):** the credential block's licensed-only words ("LMT", "Licensed") live only in `wording.ts`. No license number anywhere in the deck. "CNMT" and the Oct 12, 2026 license are from I-035 (Brian). No "treat/cure/diagnose/fix/heal".
 - **I-023 (Oct 29):** the new `outOfRegionFeeNote` has no digit, `$`, range, licensed-only term or "treat/cure/diagnose/fix/heal".
