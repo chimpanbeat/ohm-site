@@ -27,6 +27,7 @@ const ogUrl = new URL(og.src, Astro.site);
 
 // LocalBusiness JSON-LD (brief §11). No street address, ever.
 const prices = Object.values(site.rates).map((r) => r.price);
+// No licensure fields and never the license number (I-035, I-027).
 const jsonLd: Record<string, unknown> = {
   '@context': 'https://schema.org',
   '@type': 'HealthAndBeautyBusiness',
@@ -37,14 +38,6 @@ const jsonLd: Record<string, unknown> = {
   areaServed: site.areaServed.map((name) => ({ '@type': 'City', name })),
   priceRange: `$${Math.min(...prices)}–$${Math.max(...prices)}`,
 };
-// TODO(Brian): licensure fields are minimal (license number only); confirm what to publish on license day.
-if (site.licensed && site.licenseNumber) {
-  jsonLd.hasCredential = {
-    '@type': 'EducationalOccupationalCredential',
-    credentialCategory: 'license',
-    identifier: site.licenseNumber,
-  };
-}
 ---
 
 <!doctype html>

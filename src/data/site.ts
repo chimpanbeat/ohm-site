@@ -41,8 +41,15 @@ export const site = {
   legalName: 'Ohm Precision Bodywork LLC',
   tagline: 'Reduce resistance. Restore movement.',
 
-  licensed: false, // flips wording rules (brief §7). Default false.
-  licenseNumber: '', // shown in footer only when licensed && non-empty
+  licensed: true, // flips wording rules (brief §7). Licensed since Oct 12, 2026 (I-035).
+  // Never published: not in the footer, page source or JSON-LD (Brian, Oct 29 2026, I-035). Keep empty;
+  // nothing outside this file may read it, and check:wording fails if it is set.
+  licenseNumber: '',
+  /**
+   * "Licensed in Colorado." links here: DORA's license lookup, where anyone can verify the license
+   * by name (Brian, Oct 29 2026; exact URL as given, lowercase path).
+   */
+  licenseVerifyUrl: 'https://apps2.colorado.gov/dora/licensing/lookup/licenselookup.aspx',
 
   // No phone number on the site (Brian, Oct 6 2026). Contact is PocketSuite lead form, chat, or email.
   email: 'brian@ohmprecisionbodywork.com', // secrets-scan: allow

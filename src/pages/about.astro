@@ -2,6 +2,7 @@
 import { getImage } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import BookCta from '../components/BookCta.astro';
+import Credentials from '../components/Credentials.astro';
 import { w } from '../data/wording.ts';
 import portrait from '../assets/about-portrait.jpg';
 import landscape from '../assets/about-landscape.jpg';
@@ -33,6 +34,7 @@ const desktopSizes = '(min-width: 72rem) 72rem, 100vw';
   <section class="section">
     <div class="container about">
       <h1>About Brian</h1>
+      <Credentials />
 
       <!-- width/height on the portrait sources reserve its aspect ratio on mobile (no layout shift). -->
       <picture>

@@ -12,6 +12,8 @@ export const wording = {
   /** The work, as a noun phrase. */
   practice: ['bodywork', 'massage therapy'],
   deepTissue: ['deep tissue work', 'deep tissue massage'],
+  /** Home "What a session does" only. Both variants equal: Home is unchanged by licensure (Brian, Oct 29 2026). */
+  deepTissueHome: ['deep tissue work', 'deep tissue work'],
   program: [
     'advanced neuromuscular program',
     'Advanced Neuromuscular Massage Therapy program',
@@ -26,8 +28,20 @@ export const wording = {
     "This isn't a generic spa session, and it isn't no-pain, no-gain deep tissue torture.",
     "This isn't a generic spa massage, and it isn't no-pain, no-gain deep tissue torture.",
   ],
-  /** Home hero headline (HomeMock uses the licensed line). */
-  heroLine: [site.tagline, 'Massage for action'],
+  /**
+   * Home hero headline. Both variants are the tagline: Home is unchanged by licensure
+   * (Brian, Oct 29 2026, "leave the home page alone"; replaces HomeMock's "Massage for action").
+   */
+  heroLine: [site.tagline, site.tagline],
+  /**
+   * Credential block (I-035): About under the H1, /book under the intro, and the footer.
+   * Licensed-only: the unlicensed variants are empty and Credentials.astro renders nothing
+   * while unlicensed. Never add the license number here (I-035, I-027).
+   */
+  credential: ['', 'Brian Clarke, LMT, CNMT'],
+  licensedIn: ['', 'Licensed in Colorado.'],
+  /** Link text; the link goes to site.licenseVerifyUrl. */
+  verifyLicense: ['', 'Verify my license'],
 } as const satisfies Record<string, readonly [string, string]>;
 
 export type WordingKey = keyof typeof wording;

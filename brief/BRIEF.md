@@ -1,6 +1,6 @@
 # Ohm Precision Bodywork — Website Brief
 
-Owner: Brian Clarke · Prepared Oct 4, 2026 · Updated Oct 5, 2026 (§6 key and quota details, new §14, repo is public) · Updated Oct 6, 2026 (no phone on the site, initial assessment removed, Pricing page, days, travel-fee waiver, interactive map) · Target: deployable preview this week
+Owner: Brian Clarke · Prepared Oct 4, 2026 · Updated Oct 5, 2026 (§6 key and quota details, new §14, repo is public) · Updated Oct 6, 2026 (no phone on the site, initial assessment removed, Pricing page, days, travel-fee waiver, interactive map) · Updated Oct 29, 2026 (licensed wording, I-035; out-of-region travel quoted, I-023) · Target: deployable preview this week
 
 ## 1. What this site is for
 
@@ -54,8 +54,9 @@ Put all business facts in `src/data/site.ts`, a typed object that pages read fro
 
 ``` ts
 export const site = {
-  licensed: false,                 // flips wording rules (§7). Default false.
-  licenseNumber: "",               // shown in footer only when licensed && non-empty
+  licensed: true,                  // flips wording rules (§7). True from step 12 (license issued Oct 12, 2026; I-035)
+  licenseNumber: "",               // never published anywhere, including page source and JSON-LD (Oct 29, 2026). Keep empty.
+  licenseVerifyUrl: "https://apps2.colorado.gov/dora/licensing/lookup/licenselookup.aspx", // "Licensed in Colorado." links here: DORA's license lookup (Brian, Oct 29, 2026)
   email: "brian@ohmprecisionbodywork.com",   // no phone (Oct 6, 2026) // secrets-scan: allow
   officeArea: "Southwest Colorado Springs, in the Cheyenne Canyon / Broadmoor area", // exact address sent after booking; the /book map shows an approximate circle (Oct 6)
   rates: {                         // no initial assessment rate (removed Oct 6, 2026)
@@ -110,7 +111,7 @@ Packages and the friends-and-family rate are **not** shown on the site.
 **Global elements:**
 
 - **Header:** logo and nav (Services, Pricing, About, Book).
-- **Footer:** email and a one-line service area summary (no phone) ("Colorado Springs and Manitou Springs; other areas by request"). Show the license line only when `licensed` is true and `licenseNumber` is set.
+- **Footer:** email and a one-line service area summary (no phone) ("Colorado Springs and Manitou Springs; other areas by request"). When `licensed` is true, the credential block: "Brian Clarke, LMT, CNMT" and "Licensed in Colorado." with a link to DORA verification (`licenseVerifyUrl`). Never the license number (Oct 29, 2026).
 - Every page links to `/book`.
 
 ## 6. Booking router (`/book`)
@@ -185,7 +186,7 @@ Rough boundary descriptions (for copy and alt text only; the polygons decide):
 
 ## 7. Wording rules (licensure compliance)
 
-Brian's Colorado massage therapy license is expected around the week of Oct 12, 2026. Until it is issued, public-facing text must not imply licensure.
+Brian's Colorado massage therapist license was issued Oct 12, 2026 and is active; anyone can verify it with DORA's license lookup (Division of Professions and Occupations; `licenseVerifyUrl`). `licensed` is true from step 12 (I-035, Oct 29, 2026). The Home page text stays as it was before licensure (Brian, Oct 29, 2026): its H1 stays the tagline and its "deep tissue work" stays. The unlicensed rules below stay, so the site still builds correctly if `licensed` is ever set back to false.
 
 **When `licensed: false`:**
 
@@ -194,8 +195,10 @@ Brian's Colorado massage therapy license is expected around the week of Oct 12, 
 - "Deep tissue massage" becomes "deep tissue work".
 
 **When `licensed: true`:** "Licensed Massage Therapist", "LMT", and "massage" are allowed. Write the copy so each affected phrase has both variants in config or a small helper, not two copies of each page.
+- Brian's title is "Brian Clarke, LMT, CNMT". It appears in the About bio, on the booking page (`/book`) and in the footer, each time with the line "Licensed in Colorado." and a "Verify my license" link to DORA's license verification (`licenseVerifyUrl`).
+- **Never publish the license number:** not in visible text, page source, attributes or JSON-LD. `licenseNumber` stays empty and nothing renders it. Visitors verify the license by name on the DORA site.
 
-**Build guard:** add a test (`npm run check:wording`) that scans the built HTML for the forbidden terms when `licensed` is false and fails CI if it finds any.
+**Build guard:** `npm run check:wording` scans the built HTML and fails CI: when `licensed` is false, on any forbidden term; when true, if a page with a footer lacks the credential block and verify link, or About or `/book` lacks its own copy; and always, if a license number or a credential identifier appears in the HTML or JSON-LD.
 
 **Always, regardless of license status:** no medical claims. Never say "treat", "cure", "diagnose", "fix", or "heal" as promises. Prefer "reduce", "support", "restore movement", and "work with". This is a scope-of-practice issue, not just style.
 
@@ -234,8 +237,8 @@ Follow the brand exactly. Use your own judgment within it.
 
 1.  Build and deploy to the github.io preview URL with `licensed: false`. Brian reviews the preview on his phone and desktop.
 2.  Brian pastes the tested PS links into config and supplies the KML and the API key.
-3.  **On license day:**
-    - Set `licensed: true` and fill in `licenseNumber`.
+3.  **On launch day** (license issued Oct 12, 2026; launch waits on the tested links and the domain cutover):
+    - `licensed` is already true (step 12, Oct 29, 2026). Never fill in `licenseNumber`.
     - Run the wording check.
     - Cut over DNS at Porkbun, add the production domain to the key's referrer list, and verify HTTPS.
     - Test the full booking path from a phone for each zone and for the office.
@@ -246,7 +249,7 @@ Follow the brand exactly. Use your own judgment within it.
 - Per-page title and meta description.
 - Open Graph image (landscape photo crop).
 - `sitemap.xml` and `robots.txt`.
-- `LocalBusiness` JSON-LD with service area (no street address). Include licensure-dependent fields only when `licensed` is true.
+- `LocalBusiness` JSON-LD with service area (no street address). No license number or credential identifier, ever (Oct 29, 2026).
 - Target phrases, used naturally in copy: neuromuscular therapy Colorado Springs, sports recovery for climbers, trigger point therapy.
 
 ## 12. Acceptance criteria
@@ -261,7 +264,7 @@ Every AC is covered by a test or a named screenshot check.
   - Out of region: Falcon; Fountain; east of Academy.
   - Commit the address list as a fixture and document it in the README.
 - [ ] **AC-3** Without JavaScript or the API key, the map and manual zone buttons still work.
-- [ ] **AC-4** `npm run check:wording` passes with `licensed: false`.
+- [ ] **AC-4** `npm run check:wording` passes with the current `licensed` value. With `false`: no licensed-only terms. With `true`: the credential block on every page with a footer and on About and `/book`. Always: no license number or credential identifier in the HTML or JSON-LD (amended Oct 29, 2026, I-035).
 - [ ] **AC-5** Lighthouse mobile scores of 90+ for performance, accessibility, best practices, and SEO.
 - [ ] **AC-6** No hardcoded rates, days, links, or zone names outside `src/data/`.
 - [ ] **AC-7** README covers: local dev, deploy, updating rates and links, re-exporting zones, the Google key setup, and the DNS cutover.

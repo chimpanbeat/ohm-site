@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+import Credentials from '../../components/Credentials.astro';
 import OfficeCard from '../../components/OfficeCard.astro';
 import ZoneCard from '../../components/ZoneCard.astro';
 import ZonePicker from '../../components/ZonePicker.astro';
@@ -17,6 +18,7 @@ const key = import.meta.env.PUBLIC_GOOGLE_MAPS_KEY ?? '';
     <div class="container book">
       <h1>Book a session</h1>
       <p>Tell me where you want your session and I'll point you to the right booking page. Scheduling, intake forms and payment are all handled on PocketSuite.</p>
+      <Credentials />
 
       <fieldset id="where" hidden>
         <legend>Where do you want your session?</legend>

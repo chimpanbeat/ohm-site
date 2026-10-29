@@ -15,6 +15,14 @@ Written by Opus in step 4A (2026-10-05). **This is the only source of visible te
 ## Global
 Header, Footer, OfficeCard, ZonePicker and ZoneCard keep their current text (ARCHITECTURE §B3) except for the changes below.
 
+**Changes in step 12 (I-035, Oct 29: licensed wording):**
+- `licensed` turns true, so every `{w:key}` on the site renders its licensed variant from `wording.ts` (`{w:deepTissue}` on Services, `{w:notSpa}` and `{w:training}` change). **Home is unchanged** (Brian, Oct 29: "leave the home page alone"): `{w:heroLine}` stays `Reduce resistance. Restore movement.` and Home's `{w:deepTissueHome}` stays `deep tissue work` (both keys have equal variants). Home still shows the footer credential block. No page text changes by hand for this.
+- **Credential block** (`<Credentials />`, ARCHITECTURE §B3), two lines:
+  1. `{w:credential}` → `Brian Clarke, LMT, CNMT`
+  2. `{w:licensedIn} [{w:verifyLicense}]({site.licenseVerifyUrl}).` → `Licensed in Colorado. Verify my license.` (the link is "Verify my license"; the full stop after it is plain text)
+- **Footer:** the credential block (`<Credentials compact />`) first in the left column, above the email. The old license-number line is removed: **the license number is never published**.
+- **About** and **Book**: see their sections.
+
 **Changes in step 9A (Oct 6, Brian's review of Phase 8):**
 - **Office map:** the circle is gone; the Ω marks the area. **Label (after 9B, Brian): `Ohm Office`**, the same on every map view (was `My office is in this area`). `<title>`: `Office area map`. `<desc>`: `Map of southwest Colorado Springs with my logo marking the area my office is in, near Cheyenne Canyon and the Broadmoor. The exact address is sent after you book.`
 - **Office mark on the service maps:** visible label `Ohm Office`; `<title>Ohm Office</title>` (tooltip; the link is hidden from assistive tech, the radio is the accessible path).
@@ -69,7 +77,7 @@ No splash on Home (9A batch 5: it's on `/hello`, below).
 - `description` (8A): `Neuromuscular therapy in Colorado Springs for climbers, runners and active people. Trigger point therapy and sports recovery, at your place or my office.`
 
 **Hero** (on `--green-900`)
-- **H1:** `{w:heroLine}`
+- **H1:** `{w:heroLine}` (`Reduce resistance. Restore movement.` in both states; Brian, Oct 29)
 - **Subline** (`<p>` under the H1 divider) (8A): `Neuromuscular therapy in Colorado Springs, for active people who want to move, perform and feel their best.` (Brian's text)
 - **CTA:** `<BookCta />`
 - **Price hint** (`<p>`, small, beside or under the CTA): `From ${minPrice} · at your place or my office`
@@ -80,7 +88,7 @@ No splash on Home (9A batch 5: it's on `/hello`, below).
    **P** (8A, Brian's text): `Ohm is for people who use their bodies and want to keep doing it: climbers, runners, cyclists, lifters, weekend hikers, and anyone active who wouldn't call themselves an athlete. I also work with people managing persistent pain or recovering from an injury or surgery, alongside their care team.`
 
 2. **H2:** `What a session does`
-   **P:** `Each session starts with a short assessment: where it hurts, how you move, and what you want to get back to. Then I work on the muscles and trigger points that limit that movement, using neuromuscular techniques, trigger point therapy and {w:deepTissue}. The aim is to reduce resistance in the tissue and restore movement. You leave knowing what I found, with a few things to do on your own between sessions.`
+   **P:** `Each session starts with a short assessment: where it hurts, how you move, and what you want to get back to. Then I work on the muscles and trigger points that limit that movement, using neuromuscular techniques, trigger point therapy and {w:deepTissueHome}. The aim is to reduce resistance in the tissue and restore movement. You leave knowing what I found, with a few things to do on your own between sessions.`
 
 3. **H2:** `Why "Ohm"`
    **P1** (8A; 9A adds the second sentence; 10A drops "the shape in my logo"; 11A splits the paragraph): `An ohm is the unit of electrical resistance. Its symbol is the Greek letter omega (Ω).`
@@ -172,6 +180,8 @@ No splash on Home (9A batch 5: it's on `/hello`, below).
 
 **H1:** `About Brian`
 
+**Credential block** (step 12): `<Credentials />` directly after the H1, before the picture. Text in Global → step 12.
+
 **Body** (8A, Brian's text; five `<p>`, in this order; no subheadings)
 1. `I started my career as an electrical engineer. For 12 years I worked mostly at a desk or in a lab, designing systems, tracing problems to their source rather than where they showed up, and testing each fix until it held.`
 2. `In 2019, partway through that career, I tore the labrum in my right shoulder. Surgery and a long rehab followed. Physical therapy carried me through the hardest stretch and made me curious about how clinical work helps people recover. Yoga came next. It helped me rebuild strength and range of motion, and it showed me how closely body and mind are connected. Those experiences led me to bodywork.`
@@ -199,6 +209,8 @@ No splash on Home (9A batch 5: it's on `/hello`, below).
 
 **Intro P** (directly under the H1, before the `#where` fieldset):
 `Tell me where you want your session and I'll point you to the right booking page. Scheduling, intake forms and payment are all handled on PocketSuite.`
+
+**Credential block** (step 12, `/book` only, not `/book/[zone]`): `<Credentials />` directly after the intro P, before the `#where` fieldset. Text in Global → step 12.
 
 **Mobile section** (7A, ARCHITECTURE §B4):
 - **H2** (`#mobile-h`): `Where are you located?`
@@ -247,6 +259,7 @@ The entrance page for cards, QR codes and social bios (ARCHITECTURE §B8). `noin
 ---
 
 ## Checks Opus ran on this deck
+- **Step 12 (I-035, Oct 29):** the credential block's licensed-only words ("LMT", "Licensed") live only in `wording.ts`. No license number anywhere in the deck. "CNMT" and the Oct 12, 2026 license are from I-035 (Brian). No "treat/cure/diagnose/fix/heal".
 - **I-023 (Oct 29):** the new `outOfRegionFeeNote` has no digit, `$`, range, licensed-only term or "treat/cure/diagnose/fix/heal".
 - **7A additions:** the neuromuscular paragraphs, Pricing page, out card, contact and map text. No licensed-only terms and no "massage". No "treat/cure/diagnose/fix/heal/health": the outcome line is phrased as an aim ("The aim is less pain and more freedom to move"), and "can show up as a headache" describes referred pain, not a promised result. No phone number. Prices are all computed from `site`. The map text (title, desc, hint, credit) is descriptive only, with no outcome language.
 - **6A additions:** the glossary, the worked example and `outOfRegionFeeNote` were checked against §7. They contain no licensed-only terms and no "treat/cure/diagnose/fix/heal" (or "health"). Each definition describes what happens in the session and makes no outcome claim. "Can be felt as a headache" describes referred pain, not something the work promises to change.

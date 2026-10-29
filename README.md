@@ -21,7 +21,7 @@ The port is fixed at **4321** because the Google key allows the referrer `http:/
 | `npm run build` | Static build into `dist/` |
 | `npm run preview` | Serve `dist/` locally |
 | `npm test` | Zone logic and address fixtures |
-| `npm run check:wording` | Scans `dist/` for licensure wording that isn't allowed yet (run after `build`) |
+| `npm run check:wording` | Checks `dist/` against the licensure wording rules (brief §7) |
 | `npm run check:contrast` | Checks the brand colour pairs against WCAG contrast minimums |
 | `npm run zones` | Converts the My Maps KML into `src/data/zones.geojson` |
 | `npm run osm` | Fetches the roads and towns for the service-area map from OpenStreetMap into `src/data/osm.geojson` (by hand, rarely) |
@@ -143,16 +143,14 @@ These names come from a Feb 2026 setup guide and match the brief, but Google's d
 
 ## Licensing and wording
 
-`licensed` in `src/data/site.ts` is `false` until Brian holds the license. Licensed-only terms ("massage therapy", "LMT", "Licensed Massage Therapist") must not appear before then.
+`licensed` in `src/data/site.ts` is `true` (license issued Oct 12, 2026; I-035). Pages never write licensed-only terms ("massage therapy", "LMT", "Licensed Massage Therapist"). They call `w('key')` from `src/data/wording.ts`, which returns the unlicensed or licensed variant depending on `licensed`. Add new keys to that file when copy needs a variant. Setting `licensed` back to `false` restores the pre-licensure wording.
 
-Pages never write those terms. They call `w('key')` from `src/data/wording.ts`, which returns the unlicensed or licensed variant depending on `licensed`. Add new keys to that file when copy needs a variant.
-
-`npm run check:wording` scans the built HTML for forbidden terms and fails the build if any appear. Run it after `npm run build`; CI does.
+`npm run check:wording` scans the built HTML. With `licensed: false` it fails on licensed-only terms; with `true` it fails if a page lacks the credential block. It always fails on a license number or a JSON-LD credential identifier: the license number is never published. Run it after `npm run build`; CI does.
 
 ## License-day checklist
 
 1. Brian has the tested PocketSuite links in `site.links` (office, home, shared, north).
-2. In `src/data/site.ts`: set `licensed: true` and fill in `licenseNumber`.
+2. `licensed` is already `true` (step 12). Leave `licenseNumber` empty: the license number is never published.
 3. `npm run build && npm run check:wording && npm test`.
 4. Add `https://ohmprecisionbodywork.com/*` to the key's referrers (harmless to do early).
 5. **DNS cutover.** Do not do this before step 2; until then the domain keeps redirecting to PocketSuite.

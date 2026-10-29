@@ -80,7 +80,7 @@ Contrast (verified):
   - Book is always reachable without scrolling (§9).
 - **Footer** (`--green-900`):
   - Email (`mailto:`), `site.serviceAreaSummary`, © year and legal name. **No phone number anywhere on the site** (Brian, Oct 6 2026).
-  - The license line appears only when `site.licensed && site.licenseNumber`.
+  - **Credential block (I-035, step 12)**, first in the left column: `<Credentials compact />` (§B3). Renders only when `site.licensed`. **Never the license number** (`site.licenseNumber` stays empty and nothing outside `site.ts` reads it).
   - A Book link.
 
 ### A5. Wireframes
@@ -143,6 +143,7 @@ BOOK (7A)                              SERVICES            PRICING (7A)         
 - `src/data/wording.ts` defines `w(key)`, which returns `[unlicensed, licensed][site.licensed]`.
 - Copy never contains "massage therapist", "LMT", "licensed" or "massage therapy" directly. Those exist only as the licensed variants in `wording.ts`.
 - While unlicensed, copy also avoids the bare word "massage".
+- **Licensed (I-035, `licensed: true` from step 12):** every `w()` key returns its licensed variant, including `training` (names the school). Home is unchanged by licensure (Brian, Oct 29 2026): `heroLine` and `deepTissueHome` (Home's only `w()` keys) have equal variants, so the Home H1 stays the tagline and Home keeps "deep tissue work"; Services still uses `deepTissue` ("deep tissue massage" when licensed). The credential block (`credential`, `licensedIn`, `verifyLicense`; licensed-only, empty unlicensed variants) shows on About, `/book` and in the footer. The license number is never published: not in text, attributes, page source or JSON-LD.
 - **No medical claims, ever:** don't promise to treat, cure, diagnose, fix or heal. Use reduce, support, restore movement, work with.
 - All page copy comes from `docs/build/copy-deck.md` (written by Opus in step 4A). Before 4A, stub pages use only neutral placeholder text drawn from `site.ts`.
 
@@ -169,7 +170,7 @@ src/styles/tokens.css         CONTRACT  design tokens + @font-face
 src/styles/global.css         reset, base type, headings, links, .container, .band-*, .btn, focus, utilities
 src/layouts/Base.astro        document shell: head + Header + <main id="main"> + Footer, skip link
 src/components/
-  Header.astro  Footer.astro  BookCta.astro  PriceTable.astro
+  Header.astro  Footer.astro  BookCta.astro  PriceTable.astro  Credentials.astro (step 12)
   ZoneCard.astro  OfficeCard.astro  ZonePicker.astro  ContactButtons.astro  ServiceMap.astro
 src/pages/
   index.astro  services.astro  pricing.astro  about.astro  404.astro
@@ -183,7 +184,7 @@ public/                       favicon-32.png, apple-touch-icon.png, icon-512.png
 public/hello/index.html       (9A) no-JS meta-refresh /hello/ → /hello (Pages 404s trailing slashes)
 scripts/
   make-icons.mjs              sharp (transitive dep of astro) → public/ icons (see B6)
-  check-wording.mjs           wording guard (B5)
+  check-wording.mjs           wording guard (B5); --dist and --licensed flags for its test (step 12)
   kml-to-geojson.mjs          zone converter (B5)
   fetch-osm.mjs               roads/places fetcher, run by hand (B5, 7A)
   make-terrain.mjs            hillshade builder, run by hand; sharp; tile cache in .cache/ (gitignored) (B5, 9A)
@@ -194,6 +195,7 @@ tests/
   geo.test.ts                 unit tests for pointInRing/pointInPolygon/zoneFor (synthetic shapes)
   zones.test.ts               fixture addresses against real zones.geojson
   zones-script.test.ts        npm run zones against synthetic KML (6B)
+  check-wording.test.ts       check:wording against synthetic dist trees (step 12)
   fixtures/addresses.json     §12 test addresses with approximate coordinates + expected zone
 .github/workflows/deploy.yml  CI + Pages deploy
 docs/build/                   this playbook
@@ -204,12 +206,12 @@ README.md                     step 5A (Opus verifies in 5R)
 The contract files in the repo are authoritative; read them directly. Summary:
 - **`site.ts`** exports:
   - `ZoneKey`, `LinkKey`, `Rate`, `Zone`
-  - `site` (the brief's §4 object plus `zones`, `zonePrecedence`, `office`, `serviceAreaSummary`, `areaServed`, `outOfRegionFeeNote`, `contact` (`lead`, `chat`: PocketSuite lead form and chat, 7A), `map`, `mapViewerUrl`, `deploy`). `office.mapArea = {lat, lng}` (8A; `radiusKm` removed in 9R): where the Ω office mark sits, 2-decimal coordinates, **not the address**. No `phone` (7A). `rates` is `s60` and `s90` only (7A). `mapViewerUrl` is built from `map` (`mid`, `center`, `zoom`) with `URLSearchParams`. No `mapEmbedUrl` or `headerColor` since 7A (no iframe).
+  - `site` (the brief's §4 object plus `zones`, `zonePrecedence`, `office`, `serviceAreaSummary`, `areaServed`, `outOfRegionFeeNote`, `contact` (`lead`, `chat`: PocketSuite lead form and chat, 7A), `map`, `mapViewerUrl`, `deploy`, `licenseVerifyUrl` (step 12: DORA's license lookup, `https://apps2.colorado.gov/dora/licensing/lookup/licenselookup.aspx`, Brian, Oct 29 2026)). `licenseNumber` stays `''` and is read nowhere outside `site.ts` (I-035). `office.mapArea = {lat, lng}` (8A; `radiusKm` removed in 9R): where the Ω office mark sits, 2-decimal coordinates, **not the address**. No `phone` (7A). `rates` is `s60` and `s90` only (7A). `mapViewerUrl` is built from `map` (`mid`, `center`, `zoom`) with `URLSearchParams`. No `mapEmbedUrl` or `headerColor` since 7A (no iframe).
   - `indexable`
   - `isPlaceholder(url)`
   - `bookingUrl(key) → {href, placeholder}`. Placeholder `TODO_` links fall back to `links.general`, so the preview has no dead buttons. Buttons with `placeholder: true` get a `data-placeholder` attribute.
   - `mailHref`, `zoneOrder`
-- **`wording.ts`** exports `wording`, `WordingKey` and `w(key)`. Key `notSpa` added in 8A (Services intro).
+- **`wording.ts`** exports `wording`, `WordingKey` and `w(key)`. Key `notSpa` added in 8A (Services intro). Keys `credential`, `licensedIn`, `verifyLicense` added for step 12 (licensed-only; unlicensed variants are `''`).
 - **`geo.ts`** exports `LngLat`, `Ring`, `ZoneFeature`, `ZoneCollection`, `BBox`, `pointInRing`, `pointInPolygon`, `bboxOf(fc, zone?)` (7A) and `zoneFor(lat, lng, fc)`.
 - **`tokens.css`** adds `--zone-home`, `--zone-shared`, `--zone-north` (7A), and `--zone-{home|shared|north}-tint` (8A: `color-mix` of the zone colour at 40% into `--bg-light`). **The tints are what the eye sees:** the map fills them opaque, and the area buttons use them as their background. `--zone-out-tint` (9A: ink 15% into `--bg-light`) is the "outside" area's colour, shown on the map only while hovered or chosen, and on the chosen out button. (`--zone-muted` was deleted in 9R.)
 - **`url.ts`:**
@@ -233,6 +235,7 @@ The contract files in the repo are authoritative; read them directly. Summary:
 | `PriceTable` | none | (7A, replaces `RateTable`.) `<table>` with columns Session · At my office · At your place. One row per `site.rates` entry: label, `$price`, `$price + travelFee.amount`. The "At your place" header carries a small second line `includes ${travelFee.amount} travel`. No minutes column. Caption (visually hidden) `Session rates`. **9A:** header labels at `--fs-body`, bold, `vertical-align: top`, so all three sit on one line with the note hanging below |
 | `OfficeCard` | `headingLevel?: 2 \| 3` | Heading "At my office" (`id="office-h"`), office area, `I send the exact address after you book.` (8A), `I'm there {site.office.days}.`, button → `bookingUrl('office')` labelled "Book at the office" |
 | `ZoneCard` | `zone: ZoneKey; headingLevel?: 2 \| 3; via?: 'address' \| 'pick' = 'pick'` | Heading `You're in my {name} area.`, days line `I'm there {days}.`, travel fee line `Travel fee ${amount}. {note}` from `site.travelFee`, primary button → `bookingUrl(zone.linkKey)` labelled "Book in this area". **`out`** (7A): heading `That address is outside my regular service area.` when `via='address'`, else `Outside my regular service area`; then `I can sometimes travel outside my regular area by request.`, `<p>{site.outOfRegionFeeNote}</p>` (no amount or range; `outOfRegionFee` stays null and the note says travel outside the service area is quoted before booking, I-023), then `ContactButtons`, **no booking link**. The heading has `tabindex="-1"` so JS can focus it |
+| `Credentials` (step 12) | `compact?: boolean = false` | Renders nothing unless `site.licensed`. Else `<div class="credentials">` with `<p class="credentials__name">{w('credential')}</p>` and `<p>{w('licensedIn')} <a href={site.licenseVerifyUrl}>{w('verifyLicense')}</a>.</p>` (same tab). `.credentials__name` is `font-weight: 600`; the two `<p>` have `margin: 0`. Not compact: `margin-bottom: var(--s-6)` on the div, plus `margin-top: var(--s-4)` when it follows any sibling except an H1 (on `/book` it follows the intro `<p>`; the global reset gives it no gap). Selector: `:global(:not(h1)) + .credentials:not(.credentials--compact)`. `:global()` is required because Astro scopes every compound in a selector and the sibling belongs to the page, not the component. Under the About H1 the global `h1 + * { margin-top: var(--s-8) }` keeps applying, so About is unchanged. Compact (footer): no margin of its own. No new tokens, no hex. **Never** renders `licenseNumber` |
 | `ContactButtons` | none | (7A) `Send a request` (`.btn`, → `site.contact.lead`), `Chat with me` (`.btn--quiet`, → `site.contact.chat`), then a plain line `Or email {site.email}` with the address as a `mailHref` link. Same tab, like the booking buttons |
 | `ZonePicker` | `current?: ZoneKey; heading?: string` | (7A, restyled 8A) Optional `<h3>{heading}</h3>`, then a list of 4 plain links `href('/book/' + key)` with `data-zone={key}` and the text `zone.name`. **8A: the three zone buttons are coloured like their map area:** `background` and `border-color` are `var(--zone-{key}-tint)` and the text is `--ink`, so each button looks like a piece of the map. The swatch spans are removed. `out` keeps the quiet outline style with a **dashed** border. **Chosen state** (`aria-current="page"` on `current`; `"true"` set by book.ts): the chosen button gets a `box-shadow: 0 0 0 3px var(--text-on-dark)` ring (zone buttons) or the inverted cream fill (`out`), and while any link is current, the others drop to `opacity: 0.5`. That's the same grey-out as the map (`ul:has(a[aria-current]) a:not([aria-current])`). **Linked hover** (JS, `/book` only): hover/focus a zone button → its map area gets `is-hot`; hover a map area → its button gets `is-hot`. `is-hot` = a 3px `--text-on-dark` ring on the button, and a 4px outline on the map area. **9A: `out` is a full peer.** Default: dashed outline, no fill. Chosen: `--zone-out-tint` background, ink text, dashed ink border, and the same ring (replaces the inverted cream fill); the three zone buttons dim. `is-hot` applies to `out` too (its map area is everything outside the zones) |
 | `ServiceMap` | `focus?: ZoneKey \| 'office'; id?: string = 'map'` | (7A, replaces `MapEmbed`; office mode 8A.) Build-time inline `<svg>` drawn from `zones.geojson` and `osm.geojson` through `src/lib/mapview.ts`. See §B4 "Map". `id` prefixes the `<title>`/`<desc>` ids (`{id}-title`, `{id}-desc`), so two maps can share a page. `focus` (used by `/book/[zone]`) renders that zone's view and grey-out in the static HTML. **`focus='office'`** draws no zones: just terrain, roads, places and the office badge (§B4 "Office map", 9A). Every zone-mode map also carries the office badge as a pointer-only link to `/book/office` (§B4 "Office badge"). `focus='out'` (9A) tints the out area and dims the zones. Maps with a `focus` are static and clip their roads to their view. Zone mode, below the SVG, in this order: the **Google Maps button** (`.btn btn--quiet` + external-link icon, `Open in Google Maps`, → `site.mapViewerUrl`, `target="_blank" rel="noopener"`), `<p class="map-hint" hidden>` (book.ts un-hides it), then the credit line `Roads and places © OpenStreetMap contributors. Terrain: USGS 3DEP.` (the OSM part → `https://www.openstreetmap.org/copyright`; 9A adds the terrain credit). Over the SVG's top-right corner, `<button type="button" class="map-reset" hidden>Show all areas</button>` (book.ts shows it while zoomed). Office mode: the credit line only |
@@ -340,7 +343,10 @@ hot(zone | null) (8A): pointerenter/focusin on a zone picker link → is-hot on 
   - collects the values of `alt`, `title`, `aria-label`, `placeholder`, and `<meta content>`
   - strips the remaining tags
   - decodes `&amp; &#39; &quot; &lt; &gt; &nbsp;`
+- **Flags (step 12):** `--dist <dir>` (default `dist`) and `--licensed true|false` (default `site.licensed`), so its test can run both states on synthetic trees.
 - **When `licensed === false`:** it fails (exit 1) on `/\bmassage\s+therap(?:ist|y)\b|\bLMT\b|\blicensed\b/i`. It prints the file path and roughly 60 characters of context for each hit.
+- **When `licensed === true` (step 12):** every page except `hello.html` and `hello/index.html` must contain `wording.credential[1]` and `wording.licensedIn[1]` in its visible text and `href="{site.licenseVerifyUrl}"` in its raw HTML; `about.html` and `book.html` must exist and contain `wording.credential[1]` at least twice in their visible text (their own block plus the footer). Each miss fails (exit 1) with the file and the missing piece.
+- **Always (step 12):** fail if any JSON-LD block (`<script type="application/ld+json">…</script>`) contains `"hasCredential"` or `"identifier"`; fail if the visible text matches `/\blicen[cs]e\s*(?:no\b\.?|number\b|#)/i`; fail if `site.licenseNumber` is non-empty (message `licenseNumber must stay empty (I-035)`), and then also name every file whose raw HTML contains it.
 - **Always:** it warns, without failing, on `/\b(?:treat|cure|diagnos|fix|heal)\w*/i`. The allowlist covers phrases containing `substitute for medical diagnosis`. It prints the hits for review.
 - It exits 2 with a clear message if `dist/` is missing.
 
@@ -417,7 +423,7 @@ Copy into `src/assets/`, renamed to kebab-case. Only these are committed:
 - **JSON-LD:** a `HealthAndBeautyBusiness` (a `LocalBusiness` subtype). Confirmed in 5R: `MedicalBusiness` subtypes would frame the work as medical, which §7 rules out while unlicensed.
   - Fields: `name`, `url`, `email` (no `telephone`, 7A), `areaServed` (City list from `site.areaServed`), `priceRange: "$90–$120"` (derived from rates, not hardcoded), and `image` (the OG image).
   - **No street address.**
-  - Licensure fields appear only when licensed.
+  - **No licensure fields, ever (I-035; resolves I-027):** no `hasCredential`, no `identifier`, no license number. `check:wording` fails on them.
 - **OG image:** a 1200×630 `getImage` crop of the landscape photo.
 
 ### B8. `/hello` entrance page (9A, step 9C)

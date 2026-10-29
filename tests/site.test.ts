@@ -1,7 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { site, bookingUrl, indexable, isPlaceholder, type LinkKey, type ZoneKey } from '../src/data/site.ts';
-import { w } from '../src/data/wording.ts';
+import { w, wording } from '../src/data/wording.ts';
+import { readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 test('placeholder links fall back to the general PS page', () => {
   const keys = Object.keys(site.links) as LinkKey[];
@@ -16,14 +19,47 @@ test('general link is a real URL, not a placeholder', () => {
   assert.deepEqual(bookingUrl('general'), { href: site.links.general, placeholder: false });
 });
 
-test('w() returns the unlicensed variant while unlicensed', () => {
-  assert.equal(site.licensed, false);
-  assert.equal(w('role'), 'practitioner');
-  assert.equal(w('heroLine'), site.tagline);
+test('w() returns the licensed variant (I-035)', () => {
+  assert.equal(site.licensed, true);
+  assert.equal(w('role'), 'Licensed Massage Therapist');
+  assert.equal(w('deepTissue'), 'deep tissue massage');
+  assert.equal(w('credential'), 'Brian Clarke, LMT, CNMT');
 });
 
 test('site is not indexable yet', () => {
+  assert.equal(site.deploy.live, false);
   assert.equal(indexable, false);
+});
+
+test('Home text is unchanged by licensure (Brian, Oct 29 2026)', () => {
+  for (const k of ['heroLine', 'deepTissueHome'] as const) assert.equal(wording[k][1], wording[k][0]);
+  assert.equal(w('heroLine'), site.tagline);
+  assert.equal(w('heroLine'), 'Reduce resistance. Restore movement.');
+  assert.equal(w('deepTissueHome'), 'deep tissue work');
+});
+
+test('the license number is empty and read nowhere outside site.ts', () => {
+  assert.equal(site.licenseNumber, '');
+  const root = fileURLToPath(new URL('..', import.meta.url));
+  const hits: string[] = [];
+  for (const dir of ['src', 'scripts']) {
+    for (const f of readdirSync(join(root, dir), { recursive: true, encoding: 'utf8' })) {
+      const rel = f.replaceAll('\\', '/');
+      if (!/\.(ts|astro|mjs)$/.test(rel)) continue;
+      if (`${dir}/${rel}` === 'src/data/site.ts' || `${dir}/${rel}` === 'scripts/check-wording.mjs') continue;
+      if (readFileSync(join(root, dir, f), 'utf8').includes('licenseNumber')) hits.push(`${dir}/${rel}`);
+    }
+  }
+  assert.deepEqual(hits, []);
+});
+
+test('the license verification link is the https DORA license lookup and the unlicensed credential words are empty', () => {
+  const u = new URL(site.licenseVerifyUrl);
+  assert.equal(u.protocol, 'https:');
+  assert.equal(u.hostname, 'apps2.colorado.gov');
+  assert.equal(wording.credential[0], '');
+  assert.equal(wording.licensedIn[0], '');
+  assert.equal(wording.verifyLicense[0], '');
 });
 
 test('every zone key matches its record key', () => {
