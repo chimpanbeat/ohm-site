@@ -15,8 +15,12 @@ Written by Opus in step 4A (2026-10-05). **This is the only source of visible te
 ## Global
 Header, Footer, OfficeCard, ZonePicker and ZoneCard keep their current text (ARCHITECTURE §B3) except for the changes below.
 
+**Changes Oct 29 (Brian: Central zone renamed, travel-fee note shortened):**
+- `site.zones.central.name` is `Central & Southwest` (was `Central`; key `central` unchanged). It renders, through the name only, in the ZonePicker button, the ZoneCard heading (`You're in my Central & Southwest area.`), the `/book/central` title and description (`Book in Central & Southwest`), the map label (two lines: `Central &` / `Southwest`) and the map `<desc>`. No other text changes.
+- `{site.travelFee.note}` is `Flat, per visit, as my schedule allows.` (→ Travel-fee note). The group rule is stated once, in the Pricing intro.
+
 **Changes in step 13 (I-040, Oct 29: zones renamed):**
-- Zone names come from `site.zones[key].name`: `Central`, `Mid-north`, `North` (no "Springs"); keys `central`, `midnorth`, `north`, `out`. The ZoneCard heading, `/book/[zone]` meta, map labels and map `<desc>` change only through those names. No other text changes.
+- Zone names come from `site.zones[key].name`: `Central` (since renamed `Central & Southwest`, above), `Mid-north`, `North` (no "Springs"); keys `central`, `midnorth`, `north`, `out`. The ZoneCard heading, `/book/[zone]` meta, map labels and map `<desc>` change only through those names. No other text changes.
 - Services → office vs mobile P: `my home office` becomes `my office`.
 - Wording rule (BRIEF §7, Brian): a session at the client's place is a "mobile visit", at Brian's space an "office session". Never "home visit", "home office" or "Home mobile" (`check:wording` fails on them). Existing "mobile session" text stays as written.
 
@@ -54,7 +58,7 @@ Header, Footer, OfficeCard, ZonePicker and ZoneCard keep their current text (ARC
   - Then `I can sometimes travel outside my regular area by request.` (replaces "I sometimes travel there by request."), then `{site.outOfRegionFeeNote}`, then ContactButtons.
   - `{site.outOfRegionFeeNote}` (I-023, Oct 29): `I'll quote travel outside my service area before you book.` No amount or range; `outOfRegionFee` stays null. (Was "An out-of-region fee applies; I'll quote it when you get in touch.")
 - **ZonePicker:** no built-in heading. `/book/[zone]` passes `heading="Not sure? Pick your area."`; `/book` passes none (its H2 introduces the list).
-- **Travel-fee note:** `{site.travelFee.note}` (I-044, Oct 29) is "Flat, per visit. One travel fee covers up to four back-to-back sessions at the same address, as my schedule allows, such as a household or a small group taking turns." It matches the Client Policies group rule; "four" is `terms.groupMax` spelled out. Config-only. (Was "Flat, per mobile session. Book two sessions back to back at the same place, like you and your partner, and neither one has a travel fee.")
+- **Travel-fee note:** `{site.travelFee.note}` (Brian, Oct 29) is "Flat, per visit, as my schedule allows." It no longer states the group rule, which the Pricing intro now carries (`terms.groupMax`); the note shows in the Pricing Travel fee paragraph and on each zone card (`Travel fee $25. Flat, per visit, as my schedule allows.`). Config-only. (I-044 had "Flat, per visit. One travel fee covers up to four back-to-back sessions at the same address, as my schedule allows, such as a household or a small group taking turns."; before that "Flat, per mobile session. Book two sessions back to back at the same place, like you and your partner, and neither one has a travel fee.")
 - **Glossary:** removed from the site (`glossary.ts` and `Glossary` are deleted). Trigger points are explained in the Services prose instead.
 
 - **Map:** the My Maps iframe (`MapEmbed`) is replaced by our own SVG map (`ServiceMap`); its text is under Book → Mobile section.
@@ -164,12 +168,12 @@ No splash on Home (9A batch 5: it's on `/hello`, below).
 **Header section** (on `--green-900`)
 - **H1:** `Pricing`
 - **Intro P** (8A; I-046, Oct 29): `Same session rates at my office or at your place. Mobile sessions add a flat ${site.travelFee.amount} travel fee, and one fee covers up to {terms.groupMax:word} back-to-back sessions at the same address.`
-  - `{terms.groupMax:word}` = `terms.groupMax` (import `terms` from `src/data/client-policies.ts`) rendered as a lowercase English word: 4 → `four`. Never type `four` or `4`; map the number to its word (same lookup as the `words` map in `tests/site.test.ts`). Today it renders: `Same session rates at my office or at your place. Mobile sessions add a flat $25 travel fee, and one fee covers up to four back-to-back sessions at the same address.`
+  - `{terms.groupMax:word}` = `terms.groupMax` (import `terms` from `src/data/client-policies.ts`) rendered as a lowercase English word: 4 → `four`. Never type `four` or `4`; map the number to its word (same lookup as the `words` list in `tests/client-policies.test.ts` test 16, which also checks the rule appears once on Pricing). Today it renders: `Same session rates at my office or at your place. Mobile sessions add a flat $25 travel fee, and one fee covers up to four back-to-back sessions at the same address.`
 
 **Cream band**
 - `<PriceTable />` (9A: header labels at body size, top-aligned on one line). Its text: caption `Session rates`; column headers `Session`, `At my office`, `At your place` with the small second line `includes ${site.travelFee.amount} travel`; row labels from `{site.rates.*.label}`; prices `${price}` and `${price + site.travelFee.amount}`, computed. Today: 60-minute session $90 / $115; 90-minute session $120 / $145.
 - **H2:** `Travel fee`
-- **P:** `${site.travelFee.amount}. {site.travelFee.note}`
+- **P:** `${site.travelFee.amount}. {site.travelFee.note}`. Today: `$25. Flat, per visit, as my schedule allows.` It does not repeat the intro's group rule (Brian, Oct 29).
 - **P:** `Where you are decides which days I can come to you. The [booking page](/book) works it out from your address.`
 
 **Payment notice** (step 15, I-041): `<PaymentNotice />` in the CTA section, directly above `<BookCta />` (→ Payment notice).
@@ -229,7 +233,7 @@ No splash on Home (9A batch 5: it's on `/hello`, below).
 - **Reset button** (8A, over the map's top-right corner, shown while any area is chosen, including outside (9A)): `Show all areas`
 - **Office map button** (10A, over the office map's top-right corner, always shown; on `/book` and `/book/office`): `Show mobile service areas`
 - **Google Maps button** (8A, replaces the small link; directly under the map): `Open in Google Maps`, with an external-link icon and visually hidden ` (opens in a new tab)`.
-- **Map `<title>`:** `Service area map`. **`<desc>`:** `Map of Colorado Springs showing my three service areas, Central, Mid-north and North, with the major roads that border them.` Build the zone names from `site.zones` (don't type them).
+- **Map `<title>`:** `Service area map`. **`<desc>`:** `Map of Colorado Springs showing my three service areas, Central & Southwest, Mid-north and North, with the major roads that border them.` Build the zone names from `site.zones` (don't type them).
 - **Map labels:** zone names from `site.zones[key].name`; road short names and place names as listed in ARCHITECTURE §B4.
 - **Credit line** (small, under the map) (9A): `Roads and places © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright). Terrain: USGS 3DEP.`
 - ~~**Link:** `Open the map in Google Maps`~~ → replaced by the Google Maps button above (8A), still → `{site.mapViewerUrl}`
@@ -395,6 +399,7 @@ The Pricing intro (→ Pricing, I-046) and the Book intro (→ Book, I-045) were
 ---
 
 ## Checks Opus ran on this deck
+- **Central & Southwest, travel-fee note (Brian, Oct 29):** both are Brian's exact text. The name has no "Springs" and no "home"; the `&` is escaped by Astro and decoded by `check:wording`. The new note has no digit, `$`, licensed-only term or "treat/cure/diagnose/fix/heal/health", and drops no fact from the site: the group rule stays in the Pricing intro and in Client Policies `mobile-visits` bullet 2. The zone card no longer mentions the group rule (Brian's call; flagged).
 - **I-045, I-046 (Oct 29):** both sentences are Brian's exact text. They restate Client Policies `booking` bullets 2 and 3 (card on file at booking, charged after the session; cash, Zelle, cards) and `mobile-visits` bullet 2 (one fee, up to `terms.groupMax` back-to-back sessions, same address); no new fact. The fee and the count are references. No Zelle address, no surcharge figure, no licensed-only term, no "treat/cure/diagnose/fix/heal/health".
 - **Step 15 prep (I-041, Oct 29):** the payment notice adds no new sentence: the methods line is Client Policies `booking` bullets 3 and 4, the surcharge line and the statutory notice are the policy's notice texts, and `Colorado notice` is its existing head. No Zelle address, phone, ACH or bank transfer; Venmo and PayPal appear only as not accepted. No licensed-only term, no "treat/cure/diagnose/fix/heal/health". `/book/office` gets the notice too (it shows a booking button); flagged to Brian.
 - **Step 14 (I-037, Oct 29):** the Client Policies text is Brian's approved doc, so it is not reworded for voice. No phone number, no `tel:`/`sms:`, no Zelle address, no bracketed placeholder, no drafting notes. "text or call me" / "text me" kept (Brian's decision). No "home visit", "home office", "Home mobile"; no zone names. "massage" appears once (packages refund), allowed while licensed (BRIEF §7). "health" appears twice and trips the medical-word warning (accepted). No "treat/cure/diagnose/fix"; "I can't guarantee results" is the opposite of a promise. Every rate, fee, minute count, the domain and the email are references. New page copy (meta, H1, labels, link lines) restates the doc and adds no fact.

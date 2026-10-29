@@ -35,7 +35,7 @@ function run(kml: string) {
 test('valid KML: three zones in order, nothing but the zone name emitted', () => {
   const r = run(
     kmlOf(
-      polygonPlacemark('<![CDATA[Central]]>', -105),
+      polygonPlacemark('<![CDATA[Central & Southwest]]>', -105),
       polygonPlacemark('  Mid-north\n  ', -104),
       polygonPlacemark('North', -103),
       `<Placemark><name>Home base</name><description>secret note</description>` +
@@ -57,7 +57,7 @@ test('valid KML: three zones in order, nothing but the zone name emitted', () =>
 test('unknown polygon name stops the script and lists the expected names', () => {
   const r = run(
     kmlOf(
-      polygonPlacemark('Central', -105),
+      polygonPlacemark('Central &amp; Southwest', -105),
       polygonPlacemark('Mid-north', -104),
       polygonPlacemark('North Region', -103),
     ),
@@ -69,7 +69,7 @@ test('unknown polygon name stops the script and lists the expected names', () =>
 
 test('a missing zone stops the script', () => {
   const r = run(
-    kmlOf(polygonPlacemark('Central', -105), polygonPlacemark('North', -103)),
+    kmlOf(polygonPlacemark('Central &amp; Southwest', -105), polygonPlacemark('North', -103)),
   );
   assert.equal(r.status, 1);
 });
@@ -84,5 +84,14 @@ test('the old "... Springs" names are rejected and the error lists the new ones'
   );
   assert.equal(r.status, 1);
   assert.match(r.stderr, /Central & Southwest Springs|Central &amp; Southwest Springs/);
-  for (const n of ['Central', 'Mid-north', 'North']) assert.match(r.stderr, new RegExp(n));
+  for (const n of ['Central & Southwest', 'Mid-north', 'North']) assert.match(r.stderr, new RegExp(n));
+});
+
+test('the step-13 name "Central" is rejected now that the zone is "Central & Southwest" (Oct 29)', () => {
+  const r = run(
+    kmlOf(polygonPlacemark('Central', -105), polygonPlacemark('Mid-north', -104), polygonPlacemark('North', -103)),
+  );
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /Found: "Central"/);
+  assert.match(r.stderr, /"Central & Southwest"/);
 });

@@ -58,7 +58,7 @@ The client policies text is in `src/data/client-policies.ts` (a contract file; c
 4. `npm test`
 5. Commit `src/data/zones.geojson`.
 
-- Polygon placemark names must equal the zone names in `site.ts` exactly: `Central`, `Mid-north`, `North`.
+- Polygon placemark names must equal the zone names in `site.ts` exactly: `Central & Southwest`, `Mid-north`, `North` (My Maps writes the `&` as `&amp;` or in CDATA; both match).
 - There is no "out" polygon. Anywhere outside the three is out.
 - Pins and other non-polygon placemarks are skipped.
 - An unknown polygon name stops the script and prints the expected names.

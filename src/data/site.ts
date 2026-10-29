@@ -15,7 +15,7 @@ export interface Rate {
 
 export interface Zone {
   key: ZoneKey;
-  /** Client-facing name, e.g. "Central". Must equal the KML polygon name exactly (npm run zones). */
+  /** Client-facing name, e.g. "Central & Southwest". Must equal the KML polygon name exactly (npm run zones). */
   name: string;
   /** Days Brian is in this area, as display text. */
   days: string;
@@ -77,8 +77,9 @@ export const site = {
 
   travelFee: {
     amount: 25,
-    // Matches the Client Policies group rule (terms.groupMax = 4); the policies win (Brian, Oct 29 2026, I-044).
-    note: 'Flat, per visit. One travel fee covers up to four back-to-back sessions at the same address, as my schedule allows, such as a household or a small group taking turns.',
+    // The group rule (terms.groupMax) is stated once, in the Pricing intro, so the note no longer repeats it
+    // (Brian, Oct 29 2026; was the I-044 group sentence). Also shown on the zone cards.
+    note: 'Flat, per visit, as my schedule allows.',
   },
   // Stays null: the site shows no amount or range for out-of-region travel (Brian, Oct 29 2026, I-023).
   outOfRegionFee: null as number | null,
@@ -107,9 +108,10 @@ export const site = {
 
   zones: {
     // Names drop "Springs" (Brian, Oct 29 2026, I-040); area and days text unchanged, except out.area 'outside North Springs' becomes 'outside North' (not rendered).
+    // central's name is "Central & Southwest" (Brian, Oct 29 2026; was "Central"). The KML polygon must carry the same name.
     central: {
       key: 'central',
-      name: 'Central',
+      name: 'Central & Southwest',
       days: 'Tuesdays and Fridays',
       linkKey: 'central',
       area: 'Inside Academy Blvd to the east and south, west to Manitou Springs, north to Garden of the Gods Rd / Austin Bluffs Pkwy. Includes Broadmoor Bluffs.',

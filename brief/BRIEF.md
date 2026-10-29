@@ -1,6 +1,6 @@
 # Ohm Precision Bodywork — Website Brief
 
-Owner: Brian Clarke · Prepared Oct 4, 2026 · Updated Oct 5, 2026 (§6 key and quota details, new §14, repo is public) · Updated Oct 6, 2026 (no phone on the site, initial assessment removed, Pricing page, days, travel-fee waiver, interactive map) · Updated Oct 29, 2026 (licensed wording, I-035; out-of-region travel quoted, I-023; zones renamed Central, Mid-north, North and real booking links, I-040; client policies page and PDF, I-037) · Target: deployable preview this week
+Owner: Brian Clarke · Prepared Oct 4, 2026 · Updated Oct 5, 2026 (§6 key and quota details, new §14, repo is public) · Updated Oct 6, 2026 (no phone on the site, initial assessment removed, Pricing page, days, travel-fee waiver, interactive map) · Updated Oct 29, 2026 (licensed wording, I-035; out-of-region travel quoted, I-023; zones renamed Central, Mid-north, North and real booking links, I-040; client policies page and PDF, I-037; Central zone named "Central & Southwest" and travel-fee note shortened, Brian's decisions) · Target: deployable preview this week
 
 ## 1. What this site is for
 
@@ -63,7 +63,7 @@ export const site = {
     s60:     { label: "60-minute session", minutes: 60, price: 90 },
     s90:     { label: "90-minute session", minutes: 90, price: 120 },
   },
-  travelFee: { amount: 25, note: "Flat, per visit. One travel fee covers up to four back-to-back sessions at the same address, as my schedule allows, such as a household or a small group taking turns." },
+  travelFee: { amount: 25, note: "Flat, per visit, as my schedule allows." }, // Oct 29, 2026: the group rule is stated once, in the Pricing intro (from terms.groupMax)
   outOfRegionFee: null,            // stays null: no amount or range on the site; travel outside the service area is quoted before booking (Oct 29, 2026)
   contact: {
     lead: "https://pocketsuite.io/lead/ohm-precision-bodywork",
@@ -104,7 +104,7 @@ The friends-and-family rate is **not** shown on the site. Packages appear only o
 
 - A table with columns Session, At my office, At your place. No minutes column (the label already says it).
 - At your place = rate + travel fee, computed from config: 60 min $90 + $25 = $115, 90 min $120 + $25 = $145.
-- The travel-fee rule (`travelFee.note`).
+- The travel-fee rule: the Pricing intro states the group rule (one fee covers up to `terms.groupMax` back-to-back sessions at the same address); the Travel fee paragraph shows `travelFee.note` and does not repeat it (Oct 29, 2026).
 - **Office vs mobile:** one plain paragraph explaining the difference.
 - **Scope note:** sessions are not a substitute for medical diagnosis or treatment.
 
@@ -127,7 +127,7 @@ The friends-and-family rate is **not** shown on the site. Packages appear only o
     - On selection, get the latitude/longitude and test it against the zone polygons.
     - The matching zone button is highlighted, whether chosen by button or by address.
 3.  **Result card.** Shows the zone's plain-language name, the days I'm in that area, the travel fee note, and one primary button to that zone's PS link.
-    - Example: "You're in my Central area. I'm there Tuesdays and Fridays."
+    - Example: "You're in my Central & Southwest area. I'm there Tuesdays and Fridays."
     - The visitor stays on the page; the map stays visible.
 4.  **Out of region:** from an address, "That address is outside my regular service area."; from the button, "Outside my regular service area". Then "I can sometimes travel outside my regular area by request." and a line saying travel outside the service area is quoted before booking, with no amount or range (Oct 29, 2026). Show a PocketSuite lead form button, a PocketSuite chat button, and an email link. No booking link, no phone.
 5.  **Map** (Oct 6, 2026): the site draws its own map (an SVG built at compile time) of the zones from `zones.geojson`, plus the major roads that bound them and nearby town names from OpenStreetMap. No map service and no per-view cost. Brian is trying it; the fallback plan is a Google Maps JavaScript map.
@@ -137,25 +137,25 @@ The friends-and-family rate is **not** shown on the site. Packages appear only o
     - Everything outside the zones is the "outside my regular area" area: hovering or clicking it works like the zone buttons, and choosing it dims all three zones (Oct 6, 2026).
     - A pin marks the entered address.
     - Light terrain shading (USGS elevation data) and a layer of smaller roads give context (Oct 6, 2026).
-    - Brian's Ω logo marks the office area on every map; on the service map, clicking it switches to "At my office". The office map uses the same zoom as the Central view.
+    - Brian's Ω logo marks the office area on every map; on the service map, clicking it switches to "At my office". The office map uses the same zoom as the Central & Southwest view.
     - It works without JavaScript or the key: the static map shows, and `/book/<zone>` shows it focused on that zone.
     - "Open the map in Google Maps" links to Brian's My Maps viewer. The My Maps iframe is no longer embedded.
 6.  A "Near a boundary or can't find your address? Chat with me or send me an email" line (PocketSuite chat and email). Boundaries are approximate.
 
 ### Zones
 
-Keys and names since Oct 29, 2026 (I-040; were `home` "Central & Southwest Springs" and `shared` "Mid-north Springs"). Zone names never contain "Springs". The KML polygon names must equal these names exactly.
+Keys and names since Oct 29, 2026 (I-040; were `home` "Central & Southwest Springs" and `shared` "Mid-north Springs"). `central` was named "Central" in step 13 and is "Central & Southwest" since Brian's later Oct 29 decision; the key stays `central`. Zone names never contain "Springs" or "home". The KML polygon names must equal these names exactly.
 
 | Key        | Client-facing name   | Days          | PS link          |
 |------------|----------------------|---------------|------------------|
-| `central`  | Central              | Tue, Fri      | `links.central`  |
+| `central`  | Central & Southwest  | Tue, Fri      | `links.central`  |
 | `midnorth` | Mid-north            | Tue, Wed, Fri | `links.midnorth` |
 | `north`    | North                | Wed           | `links.north`    |
 | `out`      | Outside regular area | By request    | contact only     |
 
 Rough boundary descriptions (for copy and alt text only; the polygons decide):
 
-- **Central:** inside Academy Blvd to the east and south, west to Manitou Springs, north to Garden of the Gods Rd / Austin Bluffs Pkwy. Includes Broadmoor Bluffs.
+- **Central & Southwest:** inside Academy Blvd to the east and south, west to Manitou Springs, north to Garden of the Gods Rd / Austin Bluffs Pkwy. Includes Broadmoor Bluffs.
 - **Mid-north:** from Garden of the Gods / Austin Bluffs north to Woodmen Rd, west of Academy.
 - **North:** north of Woodmen Rd up to Baptist Rd, east of Hwy 83, including Briargate, Wolf Ranch and Cordera; also east of Academy between Austin Bluffs/Templeton Gap and Woodmen, west of Powers. Monument is out of the service area (decided Oct 5, 2026).
 - **Out of region:** east of Academy Blvd, Black Forest, Falcon, Fountain, Security-Widefield.
@@ -204,7 +204,7 @@ Brian's Colorado massage therapist license was issued Oct 12, 2026 and is active
 
 **Build guard:** `npm run check:wording` scans the built HTML and fails CI: when `licensed` is false, on any forbidden term; when true, if a page with a footer lacks the credential block and verify link, or About or `/book` lacks its own copy; and always, if a license number or a credential identifier appears in the HTML or JSON-LD.
 
-**Session places (Brian, Oct 29, 2026, I-040), always:** a session at the client's place is a "mobile visit"; a session at Brian's space is an "office session". Never "home visit", "home office" or "Home mobile". Zone names never contain "Springs". `check:wording` fails on the three banned phrases.
+**Session places (Brian, Oct 29, 2026, I-040), always:** a session at the client's place is a "mobile visit"; a session at Brian's space is an "office session". Never "home visit", "home office" or "Home mobile". Zone names never contain "Springs" or "home". `check:wording` fails on the three banned phrases.
 
 **Client policies (I-037, Oct 29, 2026):** `/client-policies` and its PDF carry Brian's approved policy text as written, so three things differ from the rest of the site. It says "massage" (allowed while `licensed` is true; if `licensed` is ever set back to false, Brian reviews that sentence). It says "text or call me" and "text me" although no phone number is published (Brian, Oct 29: keep as written). Its "health" trips the `check:wording` medical-word warning, which is accepted (warning only; nothing there is a promise). The always-on rules still apply: no phone number, no Zelle address, no "home visit", "home office" or "Home mobile".
 
@@ -266,7 +266,7 @@ Every AC is covered by a test or a named screenshot check.
 
 - [ ] **AC-1** All four zones and the office route to the correct config link. Out-of-region shows contact options only.
 - [ ] **AC-2** Test addresses:
-  - Central (`central`): Old Colorado City; Broadmoor Bluffs.
+  - Central & Southwest (`central`): Old Colorado City; Broadmoor Bluffs.
   - Mid-north (`midnorth`): near Garden of the Gods Rd & Centennial.
   - North: Briargate. Out: Monument.
   - Out of region: Falcon; Fountain; east of Academy.

@@ -12,6 +12,7 @@ import {
   lateCancelFee,
   packageSavings,
   policiesPdfPath,
+  terms,
 } from '../src/data/client-policies.ts';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
@@ -263,4 +264,15 @@ test('15. only Book, the policies and /hello carry a script besides JSON-LD', { 
   };
   walk(dist);
   assert.deepEqual(withScript.sort(), ['book.html', 'client-policies.html', 'hello.html']);
+});
+
+test('16. Pricing states the group rule once, in the intro; the travel-fee note does not repeat it (Oct 29)', { skip }, () => {
+  const words = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+  const rule = `one fee covers up to ${words[terms.groupMax]} back-to-back sessions at the same address`;
+  const t = text(read('pricing.html'));
+  assert.equal(t.split(rule).length - 1, 1, 'the group rule appears exactly once on Pricing');
+  assert.ok(t.includes(`Travel fee $${site.travelFee.amount}. ${site.travelFee.note}`), 'Travel fee paragraph');
+  assert.doesNotMatch(t, /One travel fee covers up to/);
+  // The zone card shows the same short note.
+  assert.ok(text(read('book/central.html')).includes(`Travel fee $${site.travelFee.amount}. ${site.travelFee.note}`));
 });

@@ -2,7 +2,6 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { site, bookingUrl, indexable, zoneOrder, type LinkKey, type ZoneKey } from '../src/data/site.ts';
 import { w, wording } from '../src/data/wording.ts';
-import { terms } from '../src/data/client-policies.ts';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -14,9 +13,9 @@ test('zone keys, order, precedence and names (I-040)', () => {
   assert.deepEqual(site.zonePrecedence, ['midnorth', 'central', 'north']);
   assert.deepEqual(
     keys.map((k) => site.zones[k as ZoneKey].name),
-    ['Central', 'Mid-north', 'North', 'Outside my regular area'],
+    ['Central & Southwest', 'Mid-north', 'North', 'Outside my regular area'],
   );
-  for (const z of Object.values(site.zones)) assert.doesNotMatch(z.name, /Springs/);
+  for (const z of Object.values(site.zones)) assert.doesNotMatch(z.name, /Springs|home/i);
   assert.equal(site.zones.central.days, 'Tuesdays and Fridays');
   assert.equal(site.zones.midnorth.days, 'Tuesdays, Wednesdays, and Fridays');
   assert.equal(site.zones.north.days, 'Wednesdays');
@@ -122,13 +121,9 @@ test('the travel-fee note holds no amount (the amount is site.travelFee.amount)'
   assert.doesNotMatch(site.travelFee.note, /[\d$]/);
 });
 
-test('the travel-fee note matches the Client Policies group rule (I-044)', () => {
-  const words: Record<number, string> = { 2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six' };
-  assert.match(
-    site.travelFee.note,
-    new RegExp(`One travel fee covers up to ${words[terms.groupMax]} back-to-back sessions at the same address`),
-  );
-  assert.doesNotMatch(site.travelFee.note, /partner|neither/i);
+test('the travel-fee note is short and leaves the group rule to the Pricing intro (Oct 29)', () => {
+  assert.equal(site.travelFee.note, 'Flat, per visit, as my schedule allows.');
+  assert.doesNotMatch(site.travelFee.note, /back-to-back|household|group|partner|neither/i);
 });
 
 test('days: Central has no Wednesdays; the office has Wednesday evenings', () => {
