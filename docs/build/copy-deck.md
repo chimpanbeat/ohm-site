@@ -54,7 +54,7 @@ Header, Footer, OfficeCard, ZonePicker and ZoneCard keep their current text (ARC
   - Then `I can sometimes travel outside my regular area by request.` (replaces "I sometimes travel there by request."), then `{site.outOfRegionFeeNote}`, then ContactButtons.
   - `{site.outOfRegionFeeNote}` (I-023, Oct 29): `I'll quote travel outside my service area before you book.` No amount or range; `outOfRegionFee` stays null. (Was "An out-of-region fee applies; I'll quote it when you get in touch.")
 - **ZonePicker:** no built-in heading. `/book/[zone]` passes `heading="Not sure? Pick your area."`; `/book` passes none (its H2 introduces the list).
-- **Travel-fee note:** `{site.travelFee.note}` is now "Flat, per mobile session. Book two sessions back to back at the same place, like you and your partner, and neither one has a travel fee." Config-only.
+- **Travel-fee note:** `{site.travelFee.note}` (I-044, Oct 29) is "Flat, per visit. One travel fee covers up to four back-to-back sessions at the same address, as my schedule allows, such as a household or a small group taking turns." It matches the Client Policies group rule; "four" is `terms.groupMax` spelled out. Config-only. (Was "Flat, per mobile session. Book two sessions back to back at the same place, like you and your partner, and neither one has a travel fee.")
 - **Glossary:** removed from the site (`glossary.ts` and `Glossary` are deleted). Trigger points are explained in the Services prose instead.
 
 - **Map:** the My Maps iframe (`MapEmbed`) is replaced by our own SVG map (`ServiceMap`); its text is under Book → Mobile section.

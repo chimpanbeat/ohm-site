@@ -63,7 +63,7 @@ export const site = {
     s60:     { label: "60-minute session", minutes: 60, price: 90 },
     s90:     { label: "90-minute session", minutes: 90, price: 120 },
   },
-  travelFee: { amount: 25, note: "Flat, per mobile session. Book two sessions back to back at the same place, like you and your partner, and neither one has a travel fee." },
+  travelFee: { amount: 25, note: "Flat, per visit. One travel fee covers up to four back-to-back sessions at the same address, as my schedule allows, such as a household or a small group taking turns." },
   outOfRegionFee: null,            // stays null: no amount or range on the site; travel outside the service area is quoted before booking (Oct 29, 2026)
   contact: {
     lead: "https://pocketsuite.io/lead/ohm-precision-bodywork",

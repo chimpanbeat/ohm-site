@@ -77,8 +77,8 @@ export const site = {
 
   travelFee: {
     amount: 25,
-    // Back-to-back pair: neither session pays the fee (Brian, Oct 6 2026).
-    note: 'Flat, per mobile session. Book two sessions back to back at the same place, like you and your partner, and neither one has a travel fee.',
+    // Matches the Client Policies group rule (terms.groupMax = 4); the policies win (Brian, Oct 29 2026, I-044).
+    note: 'Flat, per visit. One travel fee covers up to four back-to-back sessions at the same address, as my schedule allows, such as a household or a small group taking turns.',
   },
   // Stays null: the site shows no amount or range for out-of-region travel (Brian, Oct 29 2026, I-023).
   outOfRegionFee: null as number | null,

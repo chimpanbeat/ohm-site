@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { site, bookingUrl, indexable, zoneOrder, type LinkKey, type ZoneKey } from '../src/data/site.ts';
 import { w, wording } from '../src/data/wording.ts';
+import { terms } from '../src/data/client-policies.ts';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -119,6 +120,15 @@ test('rates are the 60- and 90-minute sessions only', () => {
 
 test('the travel-fee note holds no amount (the amount is site.travelFee.amount)', () => {
   assert.doesNotMatch(site.travelFee.note, /[\d$]/);
+});
+
+test('the travel-fee note matches the Client Policies group rule (I-044)', () => {
+  const words: Record<number, string> = { 2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six' };
+  assert.match(
+    site.travelFee.note,
+    new RegExp(`One travel fee covers up to ${words[terms.groupMax]} back-to-back sessions at the same address`),
+  );
+  assert.doesNotMatch(site.travelFee.note, /partner|neither/i);
 });
 
 test('days: Central has no Wednesdays; the office has Wednesday evenings', () => {
