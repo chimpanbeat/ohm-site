@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import BookCta from '../components/BookCta.astro';
+import PaymentNotice from '../components/PaymentNotice.astro';
 import { site } from '../data/site.ts';
 import { w } from '../data/wording.ts';
 import { href } from '../lib/url.ts';
@@ -50,6 +51,7 @@ import { href } from '../lib/url.ts';
 
   <section class="section section--end">
     <div class="container">
+      <PaymentNotice />
       <BookCta />
     </div>
   </section>

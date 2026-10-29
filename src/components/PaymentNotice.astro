@@ -1,0 +1,42 @@
+---
+import { paymentMethodsLine, surchargeLine, coloradoNotice } from '../data/client-policies.ts';
+
+interface Props {
+  at?: 'book' | 'cta';
+}
+const { at = 'cta' } = Astro.props;
+---
+
+<div class:list={['payment-notice', `payment-notice--${at}`]}>
+  <p>{paymentMethodsLine}</p>
+  <p>{surchargeLine}</p>
+  <div class="payment-notice__box">
+    <p class="payment-notice__head">Colorado notice</p>
+    <p>{coloradoNotice}</p>
+  </div>
+</div>
+
+<style>
+  .payment-notice {
+    max-width: var(--measure);
+  }
+  .payment-notice > p + p {
+    margin-top: var(--s-3);
+  }
+  .payment-notice__box {
+    margin-top: var(--s-4);
+    padding: var(--s-4);
+    border: 1px solid var(--line-dark);
+    border-radius: var(--radius);
+    font-size: var(--fs-small);
+  }
+  .payment-notice__head {
+    font-weight: 600;
+  }
+  .payment-notice--book {
+    margin-top: var(--s-8);
+  }
+  .payment-notice--cta {
+    margin-bottom: var(--s-6);
+  }
+</style>

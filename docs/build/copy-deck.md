@@ -149,6 +149,8 @@ No splash on Home (9A batch 5: it's on `/hello`, below).
 - `Sessions are not a substitute for medical diagnosis or treatment.`
   (Exact sentence. `check:wording` allowlists it.)
 
+**Payment notice** (step 15, I-041): `<PaymentNotice />` in the CTA section, directly above `<BookCta />` (→ Payment notice).
+
 **CTA:** `<BookCta />`, after the scope note.
 
 ---
@@ -168,6 +170,8 @@ No splash on Home (9A batch 5: it's on `/hello`, below).
 - **H2:** `Travel fee`
 - **P:** `${site.travelFee.amount}. {site.travelFee.note}`
 - **P:** `Where you are decides which days I can come to you. The [booking page](/book) works it out from your address.`
+
+**Payment notice** (step 15, I-041): `<PaymentNotice />` in the CTA section, directly above `<BookCta />` (→ Payment notice).
 
 **CTA:** `<BookCta />`, on green after the cream band (same pattern as Services).
 
@@ -230,6 +234,8 @@ No splash on Home (9A batch 5: it's on `/hello`, below).
 - ~~**Link:** `Open the map in Google Maps`~~ → replaced by the Google Maps button above (8A), still → `{site.mapViewerUrl}`
 - **Boundary line** (9A): `Near a boundary or can't find your address? [Chat with me]({site.contact.chat}) or [send me an email]({mailHref}). Boundaries are approximate.`
 - `/book/[zone]` (not office) shows the same map, focused on that zone. The hint isn't shown there (no JS).
+
+**Payment notice** (step 15, I-041): `<PaymentNotice at="book" />` once on `/book`, after the `#mobile` section; on `/book/central`, `/book/midnorth`, `/book/north` and `/book/office` directly after the card; not on `/book/out` (→ Payment notice).
 
 The rest of the router text is fixed by ARCHITECTURE §B3 and §B4.
 
@@ -360,9 +366,35 @@ The policy text is the Client Policies doc v1.4 (Oct 29, 2026, Brian, final), cl
 2. `I won't start or continue a session if you appear impaired by alcohol or drugs, or if the setting feels unsafe to me. That's charged as a no-show, and rebooking is at my discretion.`
 3. `You're in charge of your session. Tell me to change the pressure, skip an area, or stop at any time.`
 
+## Payment notice (`src/components/PaymentNotice.astro`, step 15, I-041)
+
+Payment methods and the Colorado card-surcharge notice, shown near the booking buttons (Brian approved the plan, Oct 29, 2026). Every line is policy text from Client Policies v1.4 (→ Client Policies, `booking`), imported from `src/data/client-policies.ts`, never typed in a page or the component. Don't reword it. Component markup and spacing: ARCHITECTURE §B3.
+
+**Text, in this order**
+1. **Methods line** (`<p>`, `paymentMethodsLine` = `acceptedPayments` + space + `zelleDetails`, the policy's bullets 3 and 4):
+   `I accept cash, Zelle, and credit or debit cards through PocketSuite (Tap to Pay in person, or the booking link). Ask me for Zelle details. I don't accept Venmo, PayPal or other payment apps.`
+2. **Surcharge line** (`<p>`, `surchargeLine`):
+   `{site.name} adds a {terms.surchargePercent}% surcharge to credit card payments. No surcharge on cash, Zelle, or debit cards.` → `Ohm Precision Bodywork adds a 3% surcharge to credit card payments. No surcharge on cash, Zelle, or debit cards.`
+3. **Notice box** (bordered): head `Colorado notice` (the policies page's notice head), then `coloradoNotice`, the statutory text verbatim (→ Client Policies, `booking` notice).
+
+**Never in it:** a Zelle address, handle, phone number or email; ACH, bank transfer, wire or checks as a way to pay; Venmo or PayPal as accepted; an amount typed in place of `{terms.surchargePercent}`.
+
+**Placement** (once per page)
+| Page | Where | Prop |
+|---|---|---|
+| `/book` (`book/index.astro`) | After the `#mobile` section (the boundary line), before the zone `<template>`s: under the office and mobile cards whichever the visitor uses | `at="book"` |
+| `/book/central`, `/book/midnorth`, `/book/north`, `/book/office` (`book/[zone].astro`) | Directly after the card (`.result`), before the map | `at="book"` |
+| `/book/out` | Not shown (no booking button) | |
+| `/services` | CTA section, directly above `<BookCta />` | default |
+| `/pricing` | CTA section, directly above `<BookCta />` | default |
+| `/client-policies` | Not shown (unchanged; its `booking` section already has the text) | |
+
+Unchanged elsewhere: the Pricing intro (`Mobile sessions add a flat ${site.travelFee.amount} travel fee.`) and the Book intro (`… payment are all handled on PocketSuite.`).
+
 ---
 
 ## Checks Opus ran on this deck
+- **Step 15 prep (I-041, Oct 29):** the payment notice adds no new sentence: the methods line is Client Policies `booking` bullets 3 and 4, the surcharge line and the statutory notice are the policy's notice texts, and `Colorado notice` is its existing head. No Zelle address, phone, ACH or bank transfer; Venmo and PayPal appear only as not accepted. No licensed-only term, no "treat/cure/diagnose/fix/heal/health". `/book/office` gets the notice too (it shows a booking button); flagged to Brian.
 - **Step 14 (I-037, Oct 29):** the Client Policies text is Brian's approved doc, so it is not reworded for voice. No phone number, no `tel:`/`sms:`, no Zelle address, no bracketed placeholder, no drafting notes. "text or call me" / "text me" kept (Brian's decision). No "home visit", "home office", "Home mobile"; no zone names. "massage" appears once (packages refund), allowed while licensed (BRIEF §7). "health" appears twice and trips the medical-word warning (accepted). No "treat/cure/diagnose/fix"; "I can't guarantee results" is the opposite of a promise. Every rate, fee, minute count, the domain and the email are references. New page copy (meta, H1, labels, link lines) restates the doc and adds no fact.
 - **Step 13 (I-040, Oct 29):** no page text in the deck says "home visit", "home office" or "Home mobile" (they appear only in the rule above); no zone name with "Springs". The only literal zone names were in the map `<desc>`, now `Central, Mid-north and North` (built from `site.zones`).
 - **Step 12 (I-035, Oct 29):** the credential block's licensed-only words ("LMT", "Licensed") live only in `wording.ts`. No license number anywhere in the deck. "CNMT" and the Oct 12, 2026 license are from I-035 (Brian). No "treat/cure/diagnose/fix/heal".

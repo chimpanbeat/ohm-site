@@ -55,6 +55,12 @@ export const coloradoNotice =
 
 export const surchargeLine = `${site.name} adds a ${terms.surchargePercent}% surcharge to credit card payments. No surcharge on cash, Zelle, or debit cards.`;
 
+// Payment methods (step 15 prep, I-041): the two Booking and payment bullets, shared with PaymentNotice.
+// No Zelle address or handle, no bank transfer: clients ask for Zelle details.
+export const acceptedPayments = 'I accept cash, Zelle, and credit or debit cards through PocketSuite (Tap to Pay in person, or the booking link).';
+export const zelleDetails = "Ask me for Zelle details. I don't accept Venmo, PayPal or other payment apps.";
+export const paymentMethodsLine = `${acceptedPayments} ${zelleDetails}`;
+
 export const policiesPdfPath = '/ohm-client-policies.pdf';
 
 const host = new URL(site.deploy.customDomain).host;
@@ -91,8 +97,8 @@ export const clientPolicies: ClientPolicies = {
             {
               text: 'A card on file is required to book, added through the booking link. It holds your appointment and covers any fees below. I charge it after your session, not before, except for packages, which are paid when you buy them (see Packages).',
             },
-            { text: 'I accept cash, Zelle, and credit or debit cards through PocketSuite (Tap to Pay in person, or the booking link).' },
-            { text: "Ask me for Zelle details. I don't accept Venmo, PayPal or other payment apps." },
+            { text: acceptedPayments },
+            { text: zelleDetails },
             { text: `Credit card payments carry a ${terms.surchargePercent}% processing surcharge. There is no surcharge on cash, Zelle or debit cards.` },
             {
               text: `Your appointment time is when we begin: when I arrive at your door for a mobile visit, or when you arrive at my office. The first ${terms.checkInMinutes} minutes are for setup and check-in, so a ${s60.minutes}-minute session takes about ${total(s60)} minutes start to finish, and a ${s90.minutes}-minute session about ${total(s90)}.`,

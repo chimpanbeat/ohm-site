@@ -4,6 +4,7 @@ import OfficeCard from '../../components/OfficeCard.astro';
 import ZoneCard from '../../components/ZoneCard.astro';
 import ZonePicker from '../../components/ZonePicker.astro';
 import ServiceMap from '../../components/ServiceMap.astro';
+import PaymentNotice from '../../components/PaymentNotice.astro';
 import { site, zoneOrder, type ZoneKey } from '../../data/site.ts';
 import { href } from '../../lib/url.ts';
 
@@ -39,6 +40,8 @@ const meta =
       <div class="result">
         {zone === 'office' ? <OfficeCard headingLevel={2} /> : <ZoneCard zone={zone} headingLevel={2} />}
       </div>
+
+      {zone !== 'out' && <PaymentNotice at="book" />}
 
       <ServiceMap focus={zone} />
 

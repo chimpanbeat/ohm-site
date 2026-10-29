@@ -114,6 +114,8 @@ The friends-and-family rate is **not** shown on the site. Packages appear only o
 - **Footer:** email and a one-line service area summary (no phone) ("Colorado Springs and Manitou Springs; other areas by request"). When `licensed` is true, the credential block: "Brian Clarke, LMT, CNMT" and "Licensed in Colorado." with a link to DORA verification (`licenseVerifyUrl`). Never the license number (Oct 29, 2026). A `Client policies` link to `/client-policies` (I-037, Oct 29, 2026).
 - Every page links to `/book`.
 
+**Payment notice** (I-041, Oct 29, 2026): near the booking buttons, the site says how to pay and shows the Colorado card-surcharge notice, in the policy's own words: cash, Zelle, and credit or debit cards through PocketSuite (Tap to Pay in person, or the booking link); ask for Zelle details; Venmo and PayPal not accepted; a 3% surcharge on credit cards only, none on cash, Zelle or debit; then the statutory notice (C.R.S. 5-2-212) verbatim. One source, `src/data/client-policies.ts`. On `/book`, the `/book` result pages that have a booking button (not the out-of-area page), and above the booking button on Services and Pricing. `/client-policies` already carries it. Never a Zelle address, ACH or bank transfer.
+
 ## 6. Booking router (`/book`)
 
 ### Flow
