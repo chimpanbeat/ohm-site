@@ -104,6 +104,53 @@ import { href } from '../lib/url.ts';
       animation: none;
     }
   }
+  /* Scroll-linked header (A3 eighth exception): over the first 40px of scroll a green hairline fades in over the
+     border and the logo link scales to 0.88. The header box never changes size. Longhands, not the animation
+     shorthand: the build's minifier folds a complete shorthand plus timeline into one `animation:` declaration,
+     which Chromium rejects, so the animation would never run. */
+  @supports (animation-timeline: scroll()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .site-header::after {
+        content: '';
+        position: absolute;
+        inset-inline: 0;
+        bottom: -1px;
+        height: 1px;
+        background: var(--green-300);
+        pointer-events: none;
+        opacity: 0;
+        animation-name: ohm-header-line;
+        animation-timing-function: linear;
+        animation-fill-mode: both;
+        animation-timeline: scroll(root block);
+        animation-range: 0px 40px;
+      }
+      .site-header__logo {
+        transform-origin: left center;
+        animation-name: ohm-header-logo;
+        animation-timing-function: linear;
+        animation-fill-mode: both;
+        animation-timeline: scroll(root block);
+        animation-range: 0px 40px;
+      }
+      @keyframes ohm-header-line {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      @keyframes ohm-header-logo {
+        from {
+          scale: 1;
+        }
+        to {
+          scale: 0.88;
+        }
+      }
+    }
+  }
   .logo-full {
     position: relative;
     display: block;

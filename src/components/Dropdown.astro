@@ -4,12 +4,13 @@ import omega from '../data/omega.json';
 interface Props {
   title: string;
   level?: 2 | 3;
+  rise?: boolean;
 }
-const { title, level = 3 } = Astro.props;
+const { title, level = 3, rise = false } = Astro.props;
 const Heading = `h${level}` as 'h2' | 'h3';
 ---
 
-<details class="dropdown">
+<details class:list={['dropdown', { rise }]}>
   <summary>
     <Heading>{title}</Heading>
     <span class="mark" aria-hidden="true">

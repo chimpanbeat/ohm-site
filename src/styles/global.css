@@ -278,6 +278,34 @@ main > .section:first-child {
   }
 }
 
+/* Content entrance (A3 ninth exception): items with the rise class fade up 8px once, when they enter the viewport.
+   Chromium only (animation-trigger); elsewhere the item just shows. The resting style is the visible one. */
+@keyframes ohm-rise {
+  from {
+    opacity: 0;
+    translate: 0 8px;
+  }
+}
+@supports (animation-trigger: --t play-once) {
+  @media screen and (prefers-reduced-motion: no-preference) {
+    .rise {
+      animation: ohm-rise 400ms ease-out both;
+      animation-delay: calc(var(--rise-i, 0) * 60ms);
+      timeline-trigger: --ohm-rise view();
+      animation-trigger: --ohm-rise play-once;
+    }
+    .rise:nth-of-type(2) {
+      --rise-i: 1;
+    }
+    .rise:nth-of-type(3) {
+      --rise-i: 2;
+    }
+    .rise:nth-of-type(n + 4) {
+      --rise-i: 3;
+    }
+  }
+}
+
 /* Focus */
 :focus-visible {
   outline: var(--focus-ring);

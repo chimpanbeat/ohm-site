@@ -37,15 +37,15 @@ const minPrice = Math.min(...Object.values(site.rates).map((r) => r.price));
 
   <section class="section band-light">
     <div class="container info">
-      <div>
+      <div class="rise">
         <h2>Who it's for</h2>
         <p>Ohm is for people who use their bodies and want to keep doing it: climbers, runners, cyclists, lifters, weekend hikers, and anyone active who wouldn't call themselves an athlete. I also work with people managing persistent pain or recovering from an injury or surgery, alongside their care team.</p>
       </div>
-      <div>
+      <div class="rise">
         <h2>What a session does</h2>
         <p>Each session starts with a short assessment: where it hurts, how you move, and what you want to get back to. Then I work on the muscles and trigger points that limit that movement, using neuromuscular techniques, trigger point therapy and {w('deepTissueHome')}. The aim is to reduce resistance in the tissue and restore movement. You leave knowing what I found, with a few things to do on your own between sessions.</p>
       </div>
-      <div>
+      <div class="rise">
         <h2>Why "Ohm"</h2>
         <p>An ohm is the unit of electrical resistance. Its symbol is the Greek letter omega (Ω).</p>
         <p>I spent 12 years as an electrical engineer before changing careers, and resistance is still what I work on, now in muscle and fascia. Say the name out loud and you also hear Om, the sacred sound of yoga and meditation. Yoga is a big part of <a href={href('/about')}>how I got here</a>.</p>
@@ -85,6 +85,31 @@ const minPrice = Math.min(...Object.values(site.rates).map((r) => r.price));
   }
   .hero-text {
     position: relative;
+  }
+  /* Hero drift (A3 tenth exception): the art falls 16px as the hero scrolls away. Named timeline: .hero is
+     overflow: hidden, so an anonymous view or scroll timeline on the art would bind to it and never progress. Longhands, not the
+     animation shorthand: the build's minifier would fold the timeline into it, and Chromium rejects that. */
+  @supports (animation-timeline: scroll()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .hero {
+        view-timeline: --ohm-hero block;
+      }
+      .hero-art {
+        animation-name: ohm-drift;
+        animation-timing-function: linear;
+        animation-fill-mode: both;
+        animation-timeline: --ohm-hero;
+        animation-range: exit 0% exit 100%;
+      }
+      @keyframes ohm-drift {
+        from {
+          translate: 0 0;
+        }
+        to {
+          translate: 0 16px;
+        }
+      }
+    }
   }
   /* Narrow enough that each word of the tagline takes its own line on phones, never "Reduce resistance." alone. */
   .hero-text h1 {
