@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import BookCta from '../components/BookCta.astro';
 import PaymentNotice from '../components/PaymentNotice.astro';
+import Dropdown from '../components/Dropdown.astro';
 import PriceTable from '../components/PriceTable.astro';
 import { site } from '../data/site.ts';
 import { terms } from '../data/client-policies.ts';
@@ -16,7 +17,7 @@ const countWords = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven
   <section class="section">
     <div class="container">
       <h1>Pricing</h1>
-      <p>Same session rates at my office or at your place. Mobile sessions add a flat ${site.travelFee.amount} travel fee, and one fee covers up to {countWords[terms.groupMax]} back-to-back sessions at the same address.</p>
+      <p>Session rates at my office or at your place.</p>
     </div>
   </section>
 
@@ -24,9 +25,12 @@ const countWords = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven
     <div class="container stack">
       <PriceTable />
 
-      <h2>Travel fee</h2>
-      <p>${site.travelFee.amount}. {site.travelFee.note}</p>
-      <p>Where you are decides which days I can come to you. The <a href={href('/book')}>booking page</a> works it out from your address.</p>
+      <Dropdown title="Travel info" level={2}>
+        <p>${site.travelFee.amount}. {site.travelFee.note}</p>
+        <p>At a household or with a small group, one fee covers up to {countWords[terms.groupMax]} back-to-back sessions at the same address, as my schedule allows.</p>
+        <p>When I come to you, I bring a massage table, sheets and any extras your session needs, so there's nothing for you to set up.</p>
+      </Dropdown>
+
       <p>Cancellations, packages and payment are covered in my <a href={href('/client-policies')}>client policies</a>.</p>
     </div>
   </section>
@@ -42,6 +46,11 @@ const countWords = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven
 <style>
   .stack > * + * {
     margin-top: var(--s-4);
+  }
+  .stack > :global(.dropdown) {
+    max-width: 44rem; /* as wide as the rate cards */
+    margin-top: var(--s-8);
+    margin-bottom: var(--s-6);
   }
   .stack > h2 {
     margin-top: var(--s-12);

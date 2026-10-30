@@ -92,6 +92,7 @@ const [, , vbW, vbH] = omega.viewBox.split(' ').map(Number);
     width: var(--omega-w);
     height: auto;
     overflow: visible;
+    animation: ohm-breathe 6s ease-in-out 4.4s infinite; /* in step with the line, so its letter-spacing keeps fitting the Ω */
   }
   .omega-fill {
     fill: var(--accent);
@@ -172,6 +173,9 @@ const [, , vbW, vbH] = omega.viewBox.split(' ').map(Number);
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .hello-omega {
+      animation: none;
+    }
     .omega-light {
       display: none;
     }

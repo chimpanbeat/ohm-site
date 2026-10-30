@@ -66,15 +66,51 @@ h1 {
 
 /* The divider is a resistor symbol (ANSI/IEEE zigzag), drawn as a mask over the accent colour.
    The mask only reads alpha, so the stroke colour is irrelevant (ARCHITECTURE §A3). */
+/* Only the symbol answers hover and press: the H1 itself ignores the pointer, its ::after does not. */
+h1 {
+  pointer-events: none;
+}
 h1::after {
   content: '';
+  pointer-events: auto;
   display: block;
   width: 72px;
   height: 12px;
   margin-top: var(--s-4);
-  background: var(--accent);
+  background: linear-gradient(90deg, var(--accent) 0 35%, var(--text-on-dark) 50%, var(--accent) 65% 100%) 100% 0 / 300% 100%;
+  animation: ohm-pulse 1.2s ease-in-out 0.3s 1;
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 12'%3E%3Cpath d='M0 6H18L21 1L27 11L33 1L39 11L45 1L51 11L54 6H72' fill='none' stroke='black' stroke-width='2' stroke-linejoin='miter'/%3E%3C/svg%3E") center / 72px 12px no-repeat;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 12'%3E%3Cpath d='M0 6H18L21 1L27 11L33 1L39 11L45 1L51 11L54 6H72' fill='none' stroke='black' stroke-width='2' stroke-linejoin='miter'/%3E%3C/svg%3E") center / 72px 12px no-repeat;
+}
+
+/* Electricity pulse (step V): a light travels along the zigzag on load, on hover and on press.
+   The mask limits the gradient to the line; the hover keyframes have their own name so they restart. */
+@keyframes ohm-pulse {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+@keyframes ohm-pulse-hover {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+h1:hover::after,
+h1:active::after {
+  animation: ohm-pulse-hover 1.2s ease-in-out 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  h1::after,
+  h1:hover::after,
+  h1:active::after {
+    animation: none;
+  }
 }
 
 /* One rule for the space under every H1 divider: the zigzag is the last thing inside the H1,

@@ -427,6 +427,7 @@ function init(): void {
   office.hidden = true;
   mobile.hidden = true;
   whereSet.hidden = false;
+  document.documentElement.classList.remove('book-js');
   const radios = whereSet.querySelectorAll<HTMLInputElement>('input[name="where"]');
   for (const radio of radios) {
     radio.checked = false; // undo any state the browser restored
@@ -436,7 +437,7 @@ function init(): void {
   if (svg) {
     frame = makeFrame(zones);
     svg.classList.add('is-interactive');
-    mobile.querySelector<HTMLElement>('.map-hint')?.removeAttribute('hidden');
+    mobile.querySelector<HTMLElement>('.map-info')?.removeAttribute('hidden');
   }
 
   // One delegated handler: the area buttons stay on the page (without JS they are plain links

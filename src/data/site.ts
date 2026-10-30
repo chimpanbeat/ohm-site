@@ -77,9 +77,10 @@ export const site = {
 
   travelFee: {
     amount: 25,
-    // The group rule (terms.groupMax) is stated once, in the Pricing intro, so the note no longer repeats it
-    // (Brian, Oct 29 2026; was the I-044 group sentence). Also shown on the zone cards.
-    note: 'Flat, per visit, as my schedule allows.',
+    // The group rule (terms.groupMax, "as my schedule allows") is stated once, in Pricing's Travel fee P (2),
+    // so the note no longer repeats it (Brian, Oct 30 2026, step V; the phrase moved out of the note).
+    // Also shown on the zone cards.
+    note: 'Flat, per visit.',
   },
   // Stays null: the site shows no amount or range for out-of-region travel (Brian, Oct 29 2026, I-023).
   outOfRegionFee: null as number | null,

@@ -9,10 +9,11 @@ const { at = 'cta' } = Astro.props;
 
 <div class:list={['payment-notice', `payment-notice--${at}`]}>
   <p>{paymentMethodsLine}</p>
-  <p>{surchargeLine}</p>
-  <div class="payment-notice__box">
-    <p class="payment-notice__head">Colorado notice</p>
-    <p>{coloradoNotice}</p>
+  <p>{surchargeLine}<button type="button" class="payment-notice__mark" popovertarget="colorado-notice" interestfor="colorado-notice" aria-label="Colorado notice">*</button></p>
+  <div id="colorado-notice" popover class="payment-notice__box">
+    <button type="button" class="payment-notice__text" popovertarget="colorado-notice" popovertargetaction="hide">
+      <strong class="payment-notice__head">Colorado notice.</strong> {coloradoNotice}
+    </button>
   </div>
 </div>
 
@@ -23,12 +24,44 @@ const { at = 'cta' } = Astro.props;
   .payment-notice > p + p {
     margin-top: var(--s-3);
   }
+  /* A popover: browsers without support show it as plain text below the surcharge line. */
+  .payment-notice__mark {
+    margin: 0;
+    padding: 0 var(--s-2);
+    border: 0;
+    background: none;
+    color: inherit;
+    font-weight: 700;
+    font-size: 1.25em;
+    line-height: 1;
+    cursor: pointer;
+  }
   .payment-notice__box {
-    margin-top: var(--s-4);
+    margin-top: var(--s-3);
     padding: var(--s-4);
-    border: 1px solid var(--line-dark);
+    border: 1px solid var(--line-light);
     border-radius: var(--radius);
+    background: var(--bg-light);
+    color: var(--text-on-light);
     font-size: var(--fs-small);
+    line-height: 1.45;
+  }
+  .payment-notice__box:popover-open {
+    max-width: min(32rem, calc(100vw - 2rem));
+    margin: auto;
+    box-shadow: 0 2px 12px color-mix(in srgb, var(--ink) 35%, transparent);
+  }
+  /* Click or tap the card itself to close it. */
+  .payment-notice__text {
+    display: block;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    line-height: inherit;
+    text-align: left;
+    cursor: pointer;
   }
   .payment-notice__head {
     font-weight: 600;

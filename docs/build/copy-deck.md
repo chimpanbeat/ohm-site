@@ -17,7 +17,7 @@ Header, Footer, OfficeCard, ZonePicker and ZoneCard keep their current text (ARC
 
 **Changes Oct 29 (Brian: Central zone renamed, travel-fee note shortened):**
 - `site.zones.central.name` is `Central & Southwest` (was `Central`; key `central` unchanged). It renders, through the name only, in the ZonePicker button, the ZoneCard heading (`You're in my Central & Southwest area.`), the `/book/central` title and description (`Book in Central & Southwest`), the map label (two lines: `Central &` / `Southwest`) and the map `<desc>`. No other text changes.
-- `{site.travelFee.note}` is `Flat, per visit, as my schedule allows.` (→ Travel-fee note). The group rule is stated once, in the Pricing intro.
+- `{site.travelFee.note}` is `Flat, per visit.` (→ Travel-fee note). The group rule is stated once on Pricing, in the Travel info dropdown (moved from the intro in step V; the section was `Travel fee` until later that day).
 
 **Changes in step 13 (I-040, Oct 29: zones renamed):**
 - Zone names come from `site.zones[key].name`: `Central` (since renamed `Central & Southwest`, above), `Mid-north`, `North` (no "Springs"); keys `central`, `midnorth`, `north`, `out`. The ZoneCard heading, `/book/[zone]` meta, map labels and map `<desc>` change only through those names. No other text changes.
@@ -58,7 +58,7 @@ Header, Footer, OfficeCard, ZonePicker and ZoneCard keep their current text (ARC
   - Then `I can sometimes travel outside my regular area by request.` (replaces "I sometimes travel there by request."), then `{site.outOfRegionFeeNote}`, then ContactButtons.
   - `{site.outOfRegionFeeNote}` (I-023, Oct 29): `I'll quote travel outside my service area before you book.` No amount or range; `outOfRegionFee` stays null. (Was "An out-of-region fee applies; I'll quote it when you get in touch.")
 - **ZonePicker:** no built-in heading. `/book/[zone]` passes `heading="Not sure? Pick your area."`; `/book` passes none (its H2 introduces the list).
-- **Travel-fee note:** `{site.travelFee.note}` (Brian, Oct 29) is "Flat, per visit, as my schedule allows." It no longer states the group rule, which the Pricing intro now carries (`terms.groupMax`); the note shows in the Pricing Travel fee paragraph and on each zone card (`Travel fee $25. Flat, per visit, as my schedule allows.`). Config-only. (I-044 had "Flat, per visit. One travel fee covers up to four back-to-back sessions at the same address, as my schedule allows, such as a household or a small group taking turns."; before that "Flat, per mobile session. Book two sessions back to back at the same place, like you and your partner, and neither one has a travel fee.")
+- **Travel-fee note:** `{site.travelFee.note}` (Brian, Oct 30, step V) is "Flat, per visit." "As my schedule allows" belongs to the group rule, not the fee, so it moved to Pricing Travel info P (2) (`terms.groupMax`); the note shows in the Pricing Travel info P (1) (`$25. Flat, per visit.`) and on each zone card (`Travel fee $25. Flat, per visit.`). Config-only. (Oct 29 had "Flat, per visit, as my schedule allows."; I-044 had "Flat, per visit. One travel fee covers up to four back-to-back sessions at the same address, as my schedule allows, such as a household or a small group taking turns."; before that "Flat, per mobile session. Book two sessions back to back at the same place, like you and your partner, and neither one has a travel fee.")
 - **Glossary:** removed from the site (`glossary.ts` and `Glossary` are deleted). Trigger points are explained in the Services prose instead.
 
 - **Map:** the My Maps iframe (`MapEmbed`) is replaced by our own SVG map (`ServiceMap`); its text is under Book → Mobile section.
@@ -131,7 +131,7 @@ No splash on Home (9A batch 5: it's on `/hello`, below).
 **Cream band: specialties** (9A: was "Session types")
 - **H2:** `Specialties`
 - **Intro P** (9A, Brian's text): `Every session is the same price, and you don't have to pick just one. I blend these specialties based on your goals and what I find, and we plan each appointment together.`
-- Four `<h3>` + `<p>` pairs, in this order:
+- Four dropdowns (step V; Brian, Oct 30 2026), in this order: each is a closed `<Dropdown title="…">` (`level` 3, ARCHITECTURE §B3), so the H3 below is the summary and its paragraphs are the body. The marker (plus turning into the Ω) is decoration, not copy.
 
 1. **H3:** `Neuromuscular therapy`
    Two `<p>` (7A; replaces the technique list and the glossary):
@@ -167,14 +167,21 @@ No splash on Home (9A batch 5: it's on `/hello`, below).
 
 **Header section** (on `--green-900`)
 - **H1:** `Pricing`
-- **Intro P** (8A; I-046, Oct 29): `Same session rates at my office or at your place. Mobile sessions add a flat ${site.travelFee.amount} travel fee, and one fee covers up to {terms.groupMax:word} back-to-back sessions at the same address.`
-  - `{terms.groupMax:word}` = `terms.groupMax` (import `terms` from `src/data/client-policies.ts`) rendered as a lowercase English word: 4 → `four`. Never type `four` or `4`; map the number to its word (same lookup as the `words` list in `tests/client-policies.test.ts` test 16, which also checks the rule appears once on Pricing). Today it renders: `Same session rates at my office or at your place. Mobile sessions add a flat $25 travel fee, and one fee covers up to four back-to-back sessions at the same address.`
+- **Intro P** (step V; Brian, Oct 30 2026): `Session rates at my office or at your place.` Nothing else: the travel-fee and group sentence moved to the Travel info section below. (Was earlier on Oct 30 2026: `Same session rates at my office or at your place.`, wrong once the cards showed different office and at-your-place prices. Was, I-046: `… Mobile sessions add a flat ${site.travelFee.amount} travel fee, and one fee covers up to {terms.groupMax:word} back-to-back sessions at the same address.`)
 
 **Cream band**
-- `<PriceTable />` (9A: header labels at body size, top-aligned on one line). Its text: caption `Session rates`; column headers `Session`, `At my office`, `At your place` with the small second line `includes ${site.travelFee.amount} travel`; row labels from `{site.rates.*.label}`; prices `${price}` and `${price + site.travelFee.amount}`, computed. Today: 60-minute session $90 / $115; 90-minute session $120 / $145.
-- **H2:** `Travel fee`
-- **P:** `${site.travelFee.amount}. {site.travelFee.note}`. Today: `$25. Flat, per visit, as my schedule allows.` It does not repeat the intro's group rule (Brian, Oct 29).
-- **P:** `Where you are decides which days I can come to you. The [booking page](/book) works it out from your address.`
+- `<PriceTable />` (step V; Brian, Oct 30 2026: two rate cards, no table). One card per `site.rates` entry:
+  - **H3:** `{site.rates.*.label}`, at the H2 size (`--fs-h2`, step V), with a rule under it the width of the title.
+  - **Colours** (step V; Brian, Oct 30 2026): both cards are Ohm green with cream text and a terracotta top edge, title rule and icons; no second colour (the terracotta 90-minute card, set earlier that day, is dropped). Design only, no copy change.
+  - Two price columns: label `At my office`, price `${price}`; label `At your place`, price `${price + site.travelFee.amount}`, with the small line `includes travel` under it, kept short so it does not wrap (step V, Brian, Oct 30 2026; was `includes travel fee` earlier that day, before that `includes ${site.travelFee.amount} travel`). Prices computed. Each label sits after its icon; the price and the small line are indented to line up with the label text, past the icon (CSS only).
+  - Today: `60-minute session` $90 / $115 (includes travel); `90-minute session` $120 / $145 (includes travel). No visible caption (the list carries `aria-label="Session rates"`), no `Session` header.
+- **Travel info dropdown** (step V; Brian, Oct 30 2026): `<Dropdown title="Travel info" level={2}>`, closed, holding P (1)–P (3) below unchanged (ARCHITECTURE §B3). The client-policies line stays outside it, directly after.
+- **H2** (the dropdown's summary): `Travel info` (step V, Oct 30 2026; was `Travel fee`)
+- **P (1):** `${site.travelFee.amount}. {site.travelFee.note}`. Today: `$25. Flat, per visit.` (step V: "as my schedule allows" moved to P (2)). Test 16 (`tests/client-policies.test.ts`) looks for `$25. Flat, per visit.` on Pricing (step V; was `Travel fee $25. …`, which the H2 rename breaks); zone cards keep `Travel fee $25. Flat, per visit.`
+- **P (2)** (step V): `At a household or with a small group, one fee covers up to {terms.groupMax:word} back-to-back sessions at the same address, as my schedule allows.`
+  - `{terms.groupMax:word}` = `terms.groupMax` (import `terms` from `src/data/client-policies.ts`) rendered as a lowercase English word: 4 → `four`. Never type `four` or `4`; map the number to its word (same lookup as the `words` list in `tests/client-policies.test.ts` test 16). Today it renders: `At a household or with a small group, one fee covers up to four back-to-back sessions at the same address, as my schedule allows.` The group rule now lives here, still exactly once on the page: the lowercase `one fee covers up to four back-to-back sessions at the same address` must appear verbatim (test 16).
+- **P (3)** (step V): `When I come to you, I bring a massage table, sheets and any extras your session needs, so there's nothing for you to set up.`
+- ~~**P:** `Where you are decides which days I can come to you. The [booking page](/book) works it out from your address.`~~ deleted in step V (Brian, Oct 30 2026).
 
 **Payment notice** (step 15, I-041): `<PaymentNotice />` in the CTA section, directly above `<BookCta />` (→ Payment notice).
 
@@ -298,7 +305,7 @@ The policy text is the Client Policies doc v1.4 (Oct 29, 2026, Brian, final), cl
 **Link lines elsewhere**
 - **Footer** (right column, after `Book a session`): `<p>[Client policies](/client-policies)</p>`
 - **Services** (small `<p>`, directly after the `* See rates and the travel fee.` footnote, same style): `Cancellations, packages and payment are covered in my [client policies](/client-policies).`
-- **Pricing** (`<p>`, after `Where you are decides…`): `Cancellations, packages and payment are covered in my [client policies](/client-policies).`
+- **Pricing** (`<p>`, after the Travel info dropdown, outside it, after P (3) `When I come to you…`; step V): `Cancellations, packages and payment are covered in my [client policies](/client-policies).`
 - **Book** (`/book` only, `<p>` directly after `<Credentials />`, before `#where`): `Booking means you agree to my [client policies](/client-policies).`
 
 **Doc text: intro** (`clientPolicies.intro`)
@@ -394,11 +401,13 @@ Payment methods and the Colorado card-surcharge notice, shown near the booking b
 | `/pricing` | CTA section, directly above `<BookCta />` | default |
 | `/client-policies` | Not shown (unchanged; its `booking` section already has the text) | |
 
-The Pricing intro (→ Pricing, I-046) and the Book intro (→ Book, I-045) were reworded after step 15; the notice itself is unchanged.
+The Pricing intro (→ Pricing, I-046; shortened again in step V) and the Book intro (→ Book, I-045) were reworded after step 15; the notice itself is unchanged.
 
 ---
 
 ## Checks Opus ran on this deck
+- **Travel info, dropdowns, rate-card colours (step V; Brian, Oct 30 2026):** the only new words are the H2 `Travel info` (Brian's exact text): no digit, `$`, licensed-only term, "massage" or medical claim. The three travel paragraphs, the specialties text and the rate cards' words are unchanged; the dropdowns and the colours are layout (both rate cards Ohm green with terracotta accents; the terracotta 90-minute card was dropped the same day, no words change). The group rule still appears once on Pricing, now inside the closed Travel info dropdown (still in the built HTML, so test 16 holds).
+- **Pricing rework (step V; Brian, Oct 30 2026):** all new text is Brian's exact text. The intro is shortened; the group sentence moves to Travel fee P (2) with the fee count still from `terms.groupMax` (rendered as a word), so the rule appears once on the page (test 16). P (3) (`massage table, sheets and any extras`) is a new fact from Brian; "massage" is allowed while licensed (BRIEF §7) and `check:wording`'s forbidden pattern does not match "massage table". The deleted days paragraph was a pointer to `/book`; no fact is lost (the booking page still explains days by area). No digit, `$` literal, "treat/cure/diagnose/fix/heal/health". Rate-card labels reuse `At my office`, `At your place`; the small line is `includes travel` (Brian's exact text, Oct 30 2026; was `includes travel fee` earlier that day, before that `includes $… travel`, no digit or `$` now); the caption `Session rates` and the `Session` header go.
 - **Central & Southwest, travel-fee note (Brian, Oct 29):** both are Brian's exact text. The name has no "Springs" and no "home"; the `&` is escaped by Astro and decoded by `check:wording`. The new note has no digit, `$`, licensed-only term or "treat/cure/diagnose/fix/heal/health", and drops no fact from the site: the group rule stays in the Pricing intro and in Client Policies `mobile-visits` bullet 2. The zone card no longer mentions the group rule (Brian's call; flagged).
 - **I-045, I-046 (Oct 29):** both sentences are Brian's exact text. They restate Client Policies `booking` bullets 2 and 3 (card on file at booking, charged after the session; cash, Zelle, cards) and `mobile-visits` bullet 2 (one fee, up to `terms.groupMax` back-to-back sessions, same address); no new fact. The fee and the count are references. No Zelle address, no surcharge figure, no licensed-only term, no "treat/cure/diagnose/fix/heal/health".
 - **Step 15 prep (I-041, Oct 29):** the payment notice adds no new sentence: the methods line is Client Policies `booking` bullets 3 and 4, the surcharge line and the statutory notice are the policy's notice texts, and `Colorado notice` is its existing head. No Zelle address, phone, ACH or bank transfer; Venmo and PayPal appear only as not accepted. No licensed-only term, no "treat/cure/diagnose/fix/heal/health". `/book/office` gets the notice too (it shows a booking button); flagged to Brian.

@@ -9,14 +9,25 @@ import { href } from '../lib/url.ts';
 <header class="site-header">
   <div class="container site-header__row">
     <a class="site-header__logo" href={href('/')} aria-label={`${site.name}, home`}>
-      <Image
-        class="logo-full"
-        src={logoLine}
-        alt={site.name}
-        width={240}
-        densities={[2, 3]}
-        loading="eager"
-      />
+      <span class="logo-full">
+        <Image
+          class="logo-layer logo-word"
+          src={logoLine}
+          alt={site.name}
+          width={240}
+          densities={[2, 3]}
+          loading="eager"
+        />
+        <Image
+          class="logo-layer logo-omega"
+          src={logoLine}
+          alt=""
+          aria-hidden="true"
+          width={240}
+          densities={[2, 3]}
+          loading="eager"
+        />
+      </span>
       <Image
         class="logo-icon"
         src={icon}
@@ -57,9 +68,45 @@ import { href } from '../lib/url.ts';
     align-items: center;
     flex-shrink: 0;
   }
-  .logo-full {
-    width: 200px;
+  /* The wide logo is one PNG, drawn twice: the wordmark layer and, on top, the Ω layer (the Ω is the left
+     21.5% of the image, with a clear gap before the O). At rest they read as one logo. Home only: logo-spin.ts
+     adds .is-spinning on a click and the Ω turns once, counter-clockwise, about its own centre. */
+  .logo-layer {
+    display: block;
+    width: 100%;
     height: auto;
+  }
+  .logo-word {
+    clip-path: inset(0 0 0 21.5%);
+  }
+  .logo-omega {
+    position: absolute;
+    inset: 0;
+    clip-path: inset(0 78.5% 0 0);
+    transform-origin: 10.8% 45.3%;
+  }
+  .site-header__logo.is-spinning .logo-omega,
+  .site-header__logo.is-spinning .logo-icon {
+    animation: ohm-spin 0.9s ease-in-out 1;
+  }
+  @keyframes ohm-spin {
+    from {
+      transform: rotate(0);
+    }
+    to {
+      transform: rotate(-360deg);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .site-header__logo.is-spinning .logo-omega,
+    .site-header__logo.is-spinning .logo-icon {
+      animation: none;
+    }
+  }
+  .logo-full {
+    position: relative;
+    display: block;
+    width: 200px;
   }
   .logo-icon {
     display: none;

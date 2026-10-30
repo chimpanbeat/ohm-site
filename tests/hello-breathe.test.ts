@@ -34,3 +34,17 @@ test('hello: reduced motion turns the breathing off', { skip }, () => {
   assert.ok(rm, 'reduced-motion rule for .hello-line');
   assert.match(rm[0], /animation:none/);
 });
+
+const OMEGA = String.raw`\.hello-omega(?:\[[^\]]+\])?`;
+
+test('hello: the Ω breathes in step with the line (same keyframes, 6s, 4.4s delay)', { skip }, () => {
+  const c = css();
+  assert.match(c, new RegExp(`${OMEGA}\{[^}]*animation:[^;}]*6s ease-in-out 4\.4s infinite ohm-breathe`));
+});
+
+test('hello: reduced motion turns the Ω breathing off too', { skip }, () => {
+  const c = css();
+  const rm = c.match(new RegExp(String.raw`@media \(prefers-reduced-motion:\s*reduce\)\{[^@]*?${OMEGA}\{[^}]*\}`));
+  assert.ok(rm, 'reduced-motion rule for .hello-omega');
+  assert.match(rm[0], /animation:none/);
+});

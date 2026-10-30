@@ -197,7 +197,7 @@ const read = (f: string) => readFileSync(join(dist, f), 'utf8');
 const decode = (s: string) => s.replace(/&nbsp;/g, ' ').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 const text = (html: string) => decode(html.replace(/<script\b[\s\S]*?<\/script>/gi, ' ').replace(/<style\b[\s\S]*?<\/style>/gi, ' ').replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ');
 
-test('9. one closed <details> per section, with heading and anchor', { skip }, () => {
+test('9. one closed <details> per section, with heading and no hash link', { skip }, () => {
   const html = read('client-policies.html');
   const found = [...html.matchAll(/<details\b([^>]*)>([\s\S]*?)<\/details>/g)].filter((m) => /\bclass="[^"]*\bpolicy\b/.test(m[1]));
   assert.equal(found.length, 10);
@@ -208,8 +208,7 @@ test('9. one closed <details> per section, with heading and anchor', { skip }, (
     assert.ok(h2, `${IDS[i]} has a summary with an h2`);
     assert.equal(decode(h2[1]).trim(), TITLES[i]);
     const body = decode(m[2]);
-    assert.ok(new RegExp(`href="#${IDS[i]}"`).test(body), `${IDS[i]} anchor href`);
-    assert.ok(body.includes(`aria-label="Link to ${TITLES[i]}"`), `${IDS[i]} anchor label`);
+    assert.ok(!new RegExp(`href="#${IDS[i]}"`).test(body), `${IDS[i]} has no hash link (Brian, step V)`);
   });
 });
 
@@ -250,7 +249,7 @@ test('14. the sitemap lists the policies and still not /hello', { skip }, () => 
   assert.doesNotMatch(map, /hello/);
 });
 
-test('15. only Book, the policies and /hello carry a script besides JSON-LD', { skip }, () => {
+test('15. only Book, the policies, /hello and Home (logo spin, step V) carry a script besides JSON-LD', { skip }, () => {
   const withScript: string[] = [];
   const walk = (d: string) => {
     for (const n of readdirSync(d)) {
@@ -263,15 +262,15 @@ test('15. only Book, the policies and /hello carry a script besides JSON-LD', { 
     }
   };
   walk(dist);
-  assert.deepEqual(withScript.sort(), ['book.html', 'client-policies.html', 'hello.html']);
+  assert.deepEqual(withScript.sort(), ['book.html', 'client-policies.html', 'hello.html', 'index.html']);
 });
 
-test('16. Pricing states the group rule once, in the intro; the travel-fee note does not repeat it (Oct 29)', { skip }, () => {
+test('16. Pricing states the group rule once, in the Travel fee section; the travel-fee note does not repeat it (Oct 29)', { skip }, () => {
   const words = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
   const rule = `one fee covers up to ${words[terms.groupMax]} back-to-back sessions at the same address`;
   const t = text(read('pricing.html'));
   assert.equal(t.split(rule).length - 1, 1, 'the group rule appears exactly once on Pricing');
-  assert.ok(t.includes(`Travel fee $${site.travelFee.amount}. ${site.travelFee.note}`), 'Travel fee paragraph');
+  assert.ok(t.includes(`Travel info $${site.travelFee.amount}. ${site.travelFee.note}`), 'Travel info paragraph');
   assert.doesNotMatch(t, /One travel fee covers up to/);
   // The zone card shows the same short note.
   assert.ok(text(read('book/central.html')).includes(`Travel fee $${site.travelFee.amount}. ${site.travelFee.note}`));

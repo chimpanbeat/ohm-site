@@ -122,7 +122,7 @@ test('the travel-fee note holds no amount (the amount is site.travelFee.amount)'
 });
 
 test('the travel-fee note is short and leaves the group rule to the Pricing intro (Oct 29)', () => {
-  assert.equal(site.travelFee.note, 'Flat, per visit, as my schedule allows.');
+  assert.equal(site.travelFee.note, 'Flat, per visit.');
   assert.doesNotMatch(site.travelFee.note, /back-to-back|household|group|partner|neither/i);
 });
 

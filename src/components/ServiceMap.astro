@@ -375,7 +375,7 @@ const markProps = office ? {} : { href: href('/book/office'), tabindex: '-1', 'a
   {
     !office && (
       <>
-      <p class="map-link">
+      <div class="map-link">
         <a class="btn btn--quiet" href={site.mapViewerUrl} target="_blank" rel="noopener">
           Open in Google Maps
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
@@ -383,8 +383,11 @@ const markProps = office ? {} : { href: href('/book/office'), tabindex: '-1', 'a
           </svg>
           <span class="visually-hidden"> (opens in a new tab)</span>
         </a>
-      </p>
-      <p class="map-hint" hidden>Tap an area on the map or a button above to choose it. Tap it again to see all areas. The Ohm symbol marks my office; tap it for office sessions.</p>
+        <button type="button" class="map-info" popovertarget="map-hint" interestfor="map-hint" aria-label="How to use the map" hidden>?</button>
+      </div>
+      <div id="map-hint" popover class="map-hint">
+        <button type="button" popovertarget="map-hint" popovertargetaction="hide">Tap an area on the map or a button above to choose it. Tap it again to see all areas. The Ohm symbol marks my office; tap it for office sessions.</button>
+      </div>
       </>
     )
   }
@@ -646,7 +649,62 @@ const markProps = office ? {} : { href: href('/book/office'), tabindex: '-1', 'a
     margin-top: var(--s-2);
   }
   .map-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-3);
+    max-width: 34rem; /* the map's width, so the ? sits under its right edge */
     margin-top: var(--s-3);
+  }
+  .map-info {
+    anchor-name: --map-info;
+    flex: none;
+    width: 44px;
+    height: 44px;
+    border: 2px solid var(--text-on-dark);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-on-dark);
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .map-info[hidden] {
+    display: none;
+  }
+  .map-info:hover {
+    background: var(--text-on-dark);
+    color: var(--bg-dark);
+  }
+  .map-hint:popover-open {
+    max-width: min(22rem, calc(100vw - 2rem));
+    margin: auto;
+    padding: var(--s-4);
+    border: 1px solid var(--line-light);
+    border-radius: var(--radius);
+    background: var(--bg-light);
+    color: var(--text-on-light);
+    box-shadow: 0 2px 12px color-mix(in srgb, var(--ink) 35%, transparent);
+  }
+  /* Where anchor positioning exists, the card sits above the ? button, right edges aligned. */
+  @supports (anchor-name: --a) {
+    .map-hint:popover-open {
+      position-anchor: --map-info;
+      inset: auto;
+      bottom: anchor(top);
+      right: anchor(right);
+      margin: 0 0 var(--s-2);
+    }
+  }
+  .map-hint button {
+    display: block;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    line-height: inherit;
+    text-align: left;
+    cursor: pointer;
   }
   /* The external-link glyph in the Google Maps button. (Overrides the global svg block rules.) */
   .map-link svg {

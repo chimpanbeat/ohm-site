@@ -36,7 +36,7 @@ Do not build any of the following:
 
 ## 3. Stack and hosting
 
-- **Framework:** Astro, static output, TypeScript. Ship zero JavaScript except on the Book page (address check) and a small script on `/client-policies` (Expand all / Collapse all, and opening the section named in the link; I-037, Oct 29, 2026). Both pages work without it.
+- **Framework:** Astro, static output, TypeScript. Ship zero JavaScript except on the Book page (address check) and a small script on `/client-policies` (Expand all / Collapse all, and opening the section named in the link; I-037, Oct 29, 2026), and a tiny script on Home only: a plain click on the header logo turns its Ω once, counter-clockwise, instead of reloading Home; the wordmark stays still (Brian, Oct 30, 2026, step V). All three pages work without it.
 - **Hosting:** GitHub Pages, deployed with the official Astro GitHub Action.
   - Build to the default `*.github.io` URL first.
   - The custom domain `ohmprecisionbodywork.com` (DNS at Porkbun) is cut over later; see §10.
@@ -63,7 +63,7 @@ export const site = {
     s60:     { label: "60-minute session", minutes: 60, price: 90 },
     s90:     { label: "90-minute session", minutes: 90, price: 120 },
   },
-  travelFee: { amount: 25, note: "Flat, per visit, as my schedule allows." }, // Oct 29, 2026: the group rule is stated once, in the Pricing intro (from terms.groupMax)
+  travelFee: { amount: 25, note: "Flat, per visit." }, // Oct 30, 2026 (step V): the group rule, with "as my schedule allows", is stated once, in Pricing's Travel fee section (from terms.groupMax)
   outOfRegionFee: null,            // stays null: no amount or range on the site; travel outside the service area is quoted before booking (Oct 29, 2026)
   contact: {
     lead: "https://pocketsuite.io/lead/ohm-precision-bodywork",
@@ -104,7 +104,7 @@ The friends-and-family rate is **not** shown on the site. Packages appear only o
 
 - A table with columns Session, At my office, At your place. No minutes column (the label already says it).
 - At your place = rate + travel fee, computed from config: 60 min $90 + $25 = $115, 90 min $120 + $25 = $145.
-- The travel-fee rule: the Pricing intro states the group rule (one fee covers up to `terms.groupMax` back-to-back sessions at the same address); the Travel fee paragraph shows `travelFee.note` and does not repeat it (Oct 29, 2026).
+- The travel-fee rule: Pricing's Travel fee section states the group rule once (one fee covers up to `terms.groupMax` back-to-back sessions at the same address, as my schedule allows); its first paragraph shows `travelFee.note`, which does not repeat it (Oct 30, 2026, step V).
 - **Office vs mobile:** one plain paragraph explaining the difference.
 - **Scope note:** sessions are not a substitute for medical diagnosis or treatment.
 

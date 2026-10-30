@@ -62,6 +62,10 @@ const minPrice = Math.min(...Object.values(site.rates).map((r) => r.price));
   </section>
 </Base>
 
+<script>
+  import '../scripts/logo-spin.ts';
+</script>
+
 <style>
   .hero {
     position: relative;
@@ -81,6 +85,10 @@ const minPrice = Math.min(...Object.values(site.rates).map((r) => r.price));
   }
   .hero-text {
     position: relative;
+  }
+  /* Narrow enough that each word of the tagline takes its own line on phones, never "Reduce resistance." alone. */
+  .hero-text h1 {
+    max-width: 7em;
   }
   .subline {
     font-size: 1.15rem;

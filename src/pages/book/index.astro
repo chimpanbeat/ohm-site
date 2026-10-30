@@ -16,6 +16,7 @@ const key = import.meta.env.PUBLIC_GOOGLE_MAPS_KEY ?? '';
   title="Book a session · Ohm Precision Bodywork"
   description="Find the right booking link for an office or mobile session in Colorado Springs and Manitou Springs."
 >
+  <script is:inline>document.documentElement.classList.add('book-js');</script>
   <section class="section">
     <div class="container book">
       <h1>Book a session</h1>
@@ -68,6 +69,14 @@ const key = import.meta.env.PUBLIC_GOOGLE_MAPS_KEY ?? '';
 <style>
   [hidden] {
     display: none !important;
+  }
+  /* With JS, book.ts hides both sections and removes this class on init, so the no-JS fallback never flashes. */
+  :global(html.book-js) #office,
+  :global(html.book-js) #mobile {
+    display: none;
+  }
+  :global(html.book-js) #where[hidden] {
+    display: block !important;
   }
   .book > section,
   .book > fieldset {
