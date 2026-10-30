@@ -36,7 +36,7 @@ Do not build any of the following:
 
 ## 3. Stack and hosting
 
-- **Framework:** Astro, static output, TypeScript. Ship zero JavaScript except on the Book page (address check) and a small script on `/client-policies` (Expand all / Collapse all, and opening the section named in the link; I-037, Oct 29, 2026), and a tiny script on Home only: a plain click on the header logo turns its Ω once, counter-clockwise, instead of reloading Home; the wordmark stays still (Brian, Oct 30, 2026, step V). All three pages work without it.
+- **Framework:** Astro, static output, TypeScript. Ship zero JavaScript except on the Book page (address check) and a small script on `/client-policies` (Expand all / Collapse all, and opening the section named in the link; I-037, Oct 29, 2026), and a tiny script on Home only: a plain click on the header logo turns its Ω once, counter-clockwise, instead of reloading Home; the wordmark stays still (Brian, Oct 30, 2026, step V). All three pages work without it. Page transitions and the other small motion Brian approved on Oct 30, 2026 are CSS only: the browser's native cross-document view transitions, never a client-side router, and no script (ARCHITECTURE §A3, fifth to tenth motion exceptions).
 - **Hosting:** GitHub Pages, deployed with the official Astro GitHub Action.
   - Build to the default `*.github.io` URL first.
   - The custom domain `ohmprecisionbodywork.com` (DNS at Porkbun) is cut over later; see §10.
@@ -236,7 +236,7 @@ Follow the brand exactly. Use your own judgment within it.
   - Use art direction (`<picture>`) so phones get the portrait crop.
 - **Typography:** choose deliberately. One or two families. A clinical-precise feel, not spa.
 - **Restraint:** one memorable element (likely the photo or the omega/anatomy art). Everything else stays quiet.
-  - No eyebrow labels, no numbered markers unless the content is a sequence, no motion on every card.
+  - No eyebrow labels, no numbered markers unless the content is a sequence, no motion on every card. (Brian, Oct 30, 2026: a one-time fade-up on nine named blocks, a short button settle, a scroll-linked header, one parallax layer on the Home hero art, the 404 Ω trace and page cross-fades are allowed, within the motion rules in ARCHITECTURE §A3.)
   - Respect reduced motion. Make keyboard focus visible.
 - **Mobile-first:** most visitors arrive from a phone or a text link. The Book CTA must be reachable without scrolling on mobile.
 - **Before writing code:** produce a short design plan (tokens, type scale, layout wireframes) and wait for approval.
