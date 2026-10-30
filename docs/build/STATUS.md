@@ -15,7 +15,7 @@ States: `todo` · `doing` · `blocked` · `done` · `dropped`
 | 14 | I-037: /client-policies page and PDF from one source text | high | /next-high | done | cc9780e |
 | 15 | I-041: payment methods and the card surcharge notice (Book, Services & Pricing, /client-policies) | medium | /next | done | 61745b7 |
 | V | Visual pass with Brian at 375 and 1280 px | medium | /next | done | 0f23bef |
-| M1 | Motion set two, part 1 (Brian approved Oct 30): 404 Ω trace, button settle, page cross-fade; CSS only (`steps/M1-motion-404-buttons-transitions.md`, §A3 exceptions 5–7) | medium | /next | todo | |
+| M1 | Motion set two, part 1 (Brian approved Oct 30): 404 Ω trace, button settle, page cross-fade; CSS only (`steps/M1-motion-404-buttons-transitions.md`, §A3 exceptions 5–7) | medium | /next | done | 0f3306b |
 | M2 | Motion set two, part 2 (Brian approved Oct 30): scroll-linked header, one-time content entrance, Home hero drift; CSS only (`steps/M2-motion-scroll.md`, §A3 exceptions 8–10) | high | /next-high | todo | |
 | PL | Pre-launch review against AC-1–AC-7, Lighthouse | high | /next-high | todo | |
 | L | Launch: I-001 tested links, I-018 domain cutover, `deploy.live` on (`docs/runbooks/launch.md`) | high | /next-high | blocked: I-001, I-018 | |
