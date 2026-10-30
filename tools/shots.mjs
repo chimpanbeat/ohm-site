@@ -37,7 +37,6 @@ function htmlFiles(d) {
 }
 const routes = htmlFiles(root)
   .map((f) => relative(root, f).split(sep).join('/'))
-  .filter((f) => !/^404\.html$/.test(f))
   .map((f) => '/' + f.replace(/(^|\/)index\.html$/, '$1').replace(/\.html$/, ''))
   .sort();
 if (!routes.length) fail(`no .html files in ${dir}/`);
@@ -77,7 +76,7 @@ let count = 0;
 try {
   browser = await chromium.launch();
   for (const width of WIDTHS) {
-    const page = await (await browser.newContext({ viewport: { width, height: 800 } })).newPage();
+    const page = await (await browser.newContext({ viewport: { width, height: 800 }, reducedMotion: 'reduce' })).newPage();
     for (const route of routes) {
       await page.goto(base + sitePath + route, { waitUntil: 'networkidle' });
       const slug = route.replace(/^\/|\/$/g, '').replace(/\//g, '-') || 'index';

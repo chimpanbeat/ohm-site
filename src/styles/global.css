@@ -238,6 +238,46 @@ main > .section:first-child {
   color: var(--bg-dark);
 }
 
+/* Button settle (A3 sixth exception): lifts 2px through a 1px overshoot on hover, fine pointers only */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .btn {
+    transition: background-color var(--transition), border-color var(--transition), color var(--transition), translate 150ms ease;
+  }
+  .btn:hover {
+    translate: 0 -2px;
+    animation: ohm-settle 260ms ease-out;
+    transition: background-color var(--transition), border-color var(--transition), color var(--transition);
+  }
+  .btn:active {
+    translate: 0 0;
+    animation: none;
+    transition: background-color var(--transition), border-color var(--transition), color var(--transition), translate 60ms ease-out;
+  }
+  @keyframes ohm-settle {
+    0% {
+      translate: 0 0;
+    }
+    60% {
+      translate: 0 -3px;
+    }
+    100% {
+      translate: 0 -2px;
+    }
+  }
+}
+
+/* Page transitions (A3 seventh exception): native cross-document cross-fade */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 200ms;
+  }
+}
+
 /* Focus */
 :focus-visible {
   outline: var(--focus-ring);

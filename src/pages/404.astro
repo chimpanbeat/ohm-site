@@ -1,13 +1,64 @@
 ---
 import Base from '../layouts/Base.astro';
 import { href } from '../lib/url.ts';
+import omega from '../data/omega.json';
+
+const [, , vbW, vbH] = omega.viewBox.split(' ').map(Number);
 ---
 
 <Base title="Page not found · Ohm Precision Bodywork" description="This page doesn't exist." noindex>
   <section class="section">
     <div class="container">
+      <svg class="nf-mark" viewBox={omega.viewBox} style={`aspect-ratio: ${vbW} / ${vbH}`} aria-hidden="true" focusable="false">
+        <path class="nf-mark__fill" d={omega.d}></path>
+        <path class="nf-mark__line" d={omega.d} pathLength="1"></path>
+      </svg>
       <h1>Page not found</h1>
       <p>That page doesn't exist, or it has moved. <a href={href('/book')}>Book a session</a> or go back to the <a href={href('/')}>home page</a>.</p>
     </div>
   </section>
 </Base>
+
+<style>
+  .nf-mark {
+    display: block;
+    width: 4.5rem;
+    height: auto;
+    margin-bottom: var(--s-4);
+  }
+  .nf-mark__fill {
+    fill: var(--accent);
+  }
+  .nf-mark__line {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 20;
+    stroke-linejoin: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .nf-mark__line {
+      animation: ohm-trace 700ms ease-in-out 0.2s backwards;
+    }
+    .nf-mark__fill {
+      animation: ohm-trace-fill 300ms ease-out 0.9s backwards;
+    }
+  }
+  @keyframes ohm-trace {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes ohm-trace-fill {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+</style>
