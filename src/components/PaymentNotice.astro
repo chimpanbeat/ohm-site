@@ -2,7 +2,7 @@
 import { paymentMethodsLine, surchargeLine, coloradoNotice } from '../data/client-policies.ts';
 
 interface Props {
-  at?: 'book' | 'cta';
+  at?: 'book' | 'footnote' | 'cta';
 }
 const { at = 'cta' } = Astro.props;
 ---
@@ -66,8 +66,9 @@ const { at = 'cta' } = Astro.props;
   .payment-notice__head {
     font-weight: 600;
   }
-  /* On /book it is a footnote to the page, not part of the booking flow: small, quieter, and set apart. */
-  .payment-notice--book {
+  /* On /book and /pricing it is a footnote to the page, not part of the booking flow: small, quieter, and set apart. */
+  .payment-notice--book,
+  .payment-notice--footnote {
     margin-top: var(--s-16);
     padding-top: var(--s-6);
     border-top: 1px solid var(--line-dark);

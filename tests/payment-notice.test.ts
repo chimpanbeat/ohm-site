@@ -99,7 +99,14 @@ test('4. /book/out has no notice and keeps its contact request', { skip }, () =>
 });
 
 test('5. placement', { skip }, () => {
-  for (const f of ['services.html', 'pricing.html']) {
+  {
+    const html = read('pricing.html');
+    const at = html.search(/class="[^"]*\bpayment-notice\b/);
+    const cta = html.lastIndexOf('<a class="btn" href="' + site.deploy.base + '/book"');
+    assert.ok(cta > -1 && at > cta, 'pricing: the notice is a footnote after BookCta');
+    assert.ok(text(html.slice(at)).includes(coloradoNotice), 'pricing: the notice carries the Colorado notice');
+  }
+  for (const f of ['services.html']) {
     const html = read(f);
     const at = html.search(/class="[^"]*\bpayment-notice\b/);
     const cta = html.lastIndexOf('<a class="btn" href="' + site.deploy.base + '/book"');
