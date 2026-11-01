@@ -1,0 +1,55 @@
+---
+import { WEEK, daysIn } from '../lib/days.ts';
+
+interface Props {
+  /** The display text from site.ts, e.g. site.office.days. */
+  days: string;
+}
+const { days } = Astro.props;
+const on = new Set(daysIn(days));
+const names = WEEK.filter((_, i) => on.has(i)).map((d) => d.name);
+---
+
+{
+  names.length > 0 && (
+    <div class="days" role="group" aria-label={`Appointments offered on ${names.join(', ')}`}>
+      <p class="days__label" aria-hidden="true">Offering appointments on:</p>
+      <ul class="days__row" aria-hidden="true">
+        {WEEK.map((d, i) => (
+          <li class:list={['day', { 'day--on': on.has(i) }]}>{d.abbr}</li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+<style>
+  .days__label {
+    font-size: var(--fs-small);
+  }
+  .days__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2);
+    margin-top: var(--s-2);
+    padding: 0;
+    list-style: none;
+  }
+  .day {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 1px solid var(--line-dark);
+    border-radius: 50%;
+    font-size: var(--fs-small);
+    line-height: 1;
+    color: color-mix(in srgb, var(--text-on-dark) 55%, var(--bg-dark));
+  }
+  .day--on {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--ink);
+    font-weight: 700;
+  }
+</style>

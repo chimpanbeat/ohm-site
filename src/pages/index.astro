@@ -5,7 +5,7 @@ import BookCta from '../components/BookCta.astro';
 import { site } from '../data/site.ts';
 import { w } from '../data/wording.ts';
 import { href } from '../lib/url.ts';
-import graphic from '../assets/graphic-green.png';
+import graphic from '../assets/graphic-green-full.png';
 
 const minPrice = Math.min(...Object.values(site.rates).map((r) => r.price));
 ---
@@ -19,8 +19,8 @@ const minPrice = Math.min(...Object.values(site.rates).map((r) => r.price));
       class="hero-art"
       src={graphic}
       alt=""
-      widths={[480, 800, 1200]}
-      sizes="(min-width: 48rem) 60vw, 70vw"
+      widths={[480, 736]}
+      sizes="(min-width: 48rem) 40vw, 90vw"
       formats={['avif', 'webp']}
       loading="eager"
       fetchpriority="high"
@@ -74,14 +74,18 @@ const minPrice = Math.min(...Object.values(site.rates).map((r) => r.price));
     color: var(--text-on-dark);
     padding-block: var(--s-10);
   }
+  /* The full-length back, as tall as the hero (its background is the hero's green, so the edges vanish).
+     It bleeds off the right edge and fades into the hero at the top and bottom. */
   .hero-art {
     position: absolute;
     top: 0;
     right: calc(var(--s-12) * -1);
-    width: 70%;
+    height: 100%;
+    width: auto;
     max-width: none;
     opacity: 0.3;
     pointer-events: none;
+    mask-image: linear-gradient(to bottom, transparent, black 8%, black 92%, transparent);
   }
   .hero-text {
     position: relative;
@@ -150,13 +154,13 @@ const minPrice = Math.min(...Object.values(site.rates).map((r) => r.price));
       padding-block: var(--s-12);
     }
     .hero-art {
-      top: 50%;
-      transform: translateY(-50%);
-      right: -8%;
-      width: 60%;
+      right: 2%;
       opacity: 1;
       /* Fade the art's left edge into the hero so it doesn't read as a box. */
-      mask-image: linear-gradient(to right, transparent, black 30%);
+      mask-image:
+        linear-gradient(to right, transparent, black 30%),
+        linear-gradient(to bottom, transparent, black 8%, black 92%, transparent);
+      mask-composite: intersect;
     }
     .hero-text h1 {
       max-width: 40%;

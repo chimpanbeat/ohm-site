@@ -29,7 +29,7 @@ const [, , vbW, vbH] = omega.viewBox.split(' ').map(Number);
     <svg class="hello-omega" viewBox={omega.viewBox} style={`aspect-ratio: ${vbW} / ${vbH}`} aria-hidden="true" focusable="false">
       <path class="omega-fill" d={omega.d}></path>
       <g class="omega-glow-wrap"><path class="omega-glow" d={omega.d} pathLength="1"></path></g>
-      <path class="omega-light" d={omega.d} pathLength="1"></path>
+      <path class="omega-light" d={omega.d}></path>
     </svg>
     <span class="hello-line">Take the path of least resistance</span>
   </a>
@@ -104,15 +104,18 @@ const [, , vbW, vbH] = omega.viewBox.split(' ').map(Number);
     stroke-linejoin: round;
     stroke-linecap: round;
   }
-  /* One dash, longer period than the path (pathLength 1), so it never shows twice: at 0.14 it sits just
-     before the start, at -1 it has run off the end. The lap starts and ends at the right foot's inner corner.
-     Stroke widths are viewBox units: a screen-pixel stroke breaks pathLength dashes (the dash length is then
-     measured in screen px, which runs the light too fast, 1.23x on desktop and 2.5x on phones). */
+  /* One dash, longer period than the path, so it never shows twice: at 702 it sits just before the start, at
+     -5012 it has run off the end. The lap starts and ends at the right foot's inner corner. The numbers are
+     viewBox units, measured on the traced path (length 5011.6, dash 14% of it). They are not written with
+     pathLength: a browser that ignores pathLength on dashes (Safari) reads 0.14 and 1 as pixels and draws a
+     dusting of dots over the whole Ω. Stroke widths are viewBox units too: a screen-pixel stroke breaks the
+     dash length (it is then measured in screen px, which runs the light too fast). If omega.json is
+     re-traced, re-measure with path.getTotalLength() and update 702, 5012 and 5400. */
   .omega-light {
     stroke-width: 5;
     opacity: 1;
-    stroke-dasharray: 0.14 1;
-    stroke-dashoffset: 0.14;
+    stroke-dasharray: 702 5400;
+    stroke-dashoffset: 702;
     animation: ohm-lap 11s 0.4s infinite;
   }
   .omega-glow {
@@ -148,9 +151,9 @@ const [, , vbW, vbH] = omega.viewBox.split(' ').map(Number);
   }
 
   @keyframes ohm-lap {
-    0% { stroke-dashoffset: 0.14; animation-timing-function: ease-in-out; }
-    27.3% { stroke-dashoffset: -1; } /* 3 s of 11 s: the lap */
-    100% { stroke-dashoffset: -1; } /* rest, then the next lap */
+    0% { stroke-dashoffset: 702; animation-timing-function: ease-in-out; }
+    27.3% { stroke-dashoffset: -5012; } /* 3 s of 11 s: the lap */
+    100% { stroke-dashoffset: -5012; } /* rest, then the next lap */
   }
   @keyframes ohm-reveal {
     to { opacity: 1; }

@@ -38,7 +38,7 @@ const key = import.meta.env.PUBLIC_GOOGLE_MAPS_KEY ?? '';
       <section id="mobile" aria-labelledby="mobile-h" data-maps-key={key}>
         <h2 id="mobile-h">Where are you located?</h2>
         <ZonePicker />
-        <div id="address-slot"></div>
+        <div id="address-wrap"><div id="address-slot"></div></div>
         <div id="zone-result" aria-live="polite"></div>
         <ServiceMap />
         <p class="boundary">
@@ -105,10 +105,42 @@ const key = import.meta.env.PUBLIC_GOOGLE_MAPS_KEY ?? '';
     accent-color: var(--accent);
   }
   /* The address combobox is injected by book.ts, so scoped selectors can't reach it. */
+  /* Picking an area (button or map) folds the address field away; deselecting unfolds it. The wrapper's
+     row eases between 1fr and 0fr, so the map below slides up and back down with it. */
+  #address-wrap {
+    display: grid;
+    grid-template-rows: 1fr;
+    margin-top: var(--s-4);
+    transition:
+      grid-template-rows 300ms ease,
+      margin-top 300ms ease,
+      opacity 200ms ease,
+      visibility 0s;
+  }
+  #address-wrap.is-collapsed {
+    grid-template-rows: 0fr;
+    margin-top: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      grid-template-rows 300ms ease,
+      margin-top 300ms ease,
+      opacity 200ms ease,
+      visibility 0s 300ms;
+  }
+  #address-wrap.is-collapsed #address-slot {
+    overflow: hidden;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #address-wrap,
+    #address-wrap.is-collapsed {
+      transition: none;
+    }
+  }
   #address-slot {
     position: relative;
     max-width: 32rem;
-    margin-top: var(--s-4);
+    min-height: 0;
   }
   #address-slot :global(label) {
     font-weight: 700;

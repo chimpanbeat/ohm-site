@@ -46,16 +46,8 @@ test('hairline: ::after, green-300, 1px, scroll(root block) over 0 to 40px, ends
   assert.match(keyframes(scroll, 'ohm-header-line'), /to\s*\{[^}]*opacity:\s*1/);
 });
 
-test('logo: scales from the left edge, same timeline and range, ends at scale 0.88', () => {
-  const r = rule(scroll, '.site-header__logo');
-  assert.match(r, /transform-origin:\s*left center/);
-  assert.match(r, /animation-timeline:\s*scroll\(root block\)/);
-  assert.match(r, /animation-range:\s*0(px)? 40px/);
-  assert.match(keyframes(scroll, 'ohm-header-logo'), /to\s*\{[^}]*scale:\s*0\.88/);
-});
-
-test('both rules use animation longhands, never the shorthand (the minifier folds shorthand + timeline)', () => {
-  for (const [sel, name] of [['.site-header::after', 'ohm-header-line'], ['.site-header__logo', 'ohm-header-logo']]) {
+test('the hairline rule uses animation longhands, never the shorthand (the minifier folds shorthand + timeline)', () => {
+  for (const [sel, name] of [['.site-header::after', 'ohm-header-line']]) {
     const r = rule(scroll, sel);
     assert.doesNotMatch(r, /(^|[\s;])animation\s*:/, `${sel} shorthand`);
     assert.match(r, new RegExp(`animation-name:\\s*${name}`));
@@ -67,28 +59,28 @@ test('both rules use animation longhands, never the shorthand (the minifier fold
 test('the scroll block never touches the Omega, the icon or transform; no box property animates', () => {
   assert.doesNotMatch(scroll, /logo-omega|logo-icon/);
   assert.doesNotMatch(scroll, /(^|[\s;{])transform\s*:/);
-  for (const name of ['ohm-header-line', 'ohm-header-logo']) {
+  for (const name of ['ohm-header-line']) {
     assert.doesNotMatch(keyframes(scroll, name), /\b(height|padding|margin|width|border)/, name);
   }
   assert.match(rule(outside, '.site-header'), /height:\s*var\(--header-h\)/);
 });
 
-test('sequence (spin while scrolled): the spin rule is unchanged and composes with the link scale', () => {
+test('the spin rule is unchanged, and the logo does not shrink on scroll', () => {
   assert.match(
     src,
     /\.site-header__logo\.is-spinning \.logo-omega,\s*\.site-header__logo\.is-spinning \.logo-icon\s*\{\s*animation:\s*ohm-spin 0\.9s ease-in-out 1;\s*\}/,
   );
   assert.match(keyframes(outside, 'ohm-spin'), /transform:\s*rotate\(-360deg\)/);
-  assert.doesNotMatch(keyframes(scroll, 'ohm-header-logo'), /transform:/);
+  assert.doesNotMatch(src, /ohm-header-logo/);
 });
 
 test('nothing in the scroll block sits outside the @supports and no-preference blocks', () => {
-  assert.doesNotMatch(outside, /animation-timeline|ohm-header-line|ohm-header-logo/);
+  assert.doesNotMatch(outside, /animation-timeline|ohm-header-line/);
 });
 
 const skip = existsSync(join(dist, 'index.html')) ? false : 'dist/index.html missing: run npm run build';
 
-test('dist: Home CSS carries the scroll timeline and the logo keyframes', { skip }, () => {
+test('dist: Home CSS carries the scroll timeline and no logo shrink', { skip }, () => {
   const html = readFileSync(join(dist, 'index.html'), 'utf8');
   const inline = [...html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)].map((m) => m[1]);
   const linked = [...html.matchAll(/<link[^>]+href="([^"]+\.css)"/gi)].map((m) => {
@@ -98,7 +90,7 @@ test('dist: Home CSS carries the scroll timeline and the logo keyframes', { skip
   const c = [...inline, ...linked].join('\n');
   // The minifier folds the timeline into the shorthand and drops the default block axis.
   assert.match(c, /scroll\(root( block)?\)/);
-  assert.match(c, /ohm-header-logo/);
+  assert.doesNotMatch(c, /ohm-header-logo/);
   // Chromium rejects a timeline inside the animation shorthand: the built CSS must keep it out.
   assert.doesNotMatch(c, /animation:[^;}]*(scroll\(|--ohm-hero)/);
 });

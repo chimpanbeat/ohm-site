@@ -428,6 +428,9 @@ const markProps = office ? {} : { href: href('/book/office'), tabindex: '-1', 'a
     max-width: 34rem;
   }
   .map-frame > svg {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    user-select: none;
     display: block;
     width: 100%;
     height: auto;
@@ -461,9 +464,11 @@ const markProps = office ? {} : { href: href('/book/office'), tabindex: '-1', 'a
     display: inline-flex; /* not on .map-reset: it would override that button's `hidden` */
     align-items: center;
   }
-  .map-reset:hover,
-  .map-areas:hover {
-    background: var(--bg-mid);
+  @media (hover: hover) {
+    .map-reset:hover,
+    .map-areas:hover {
+      background: var(--bg-mid);
+    }
   }
 
   /* Zones: the fill takes the click; everything drawn over it lets clicks through.
@@ -566,11 +571,13 @@ const markProps = office ? {} : { href: href('/book/office'), tabindex: '-1', 'a
   a.map-office .office-label {
     pointer-events: auto;
   }
-  a.map-office:hover .office-mark path {
-    stroke-width: 5px;
-  }
-  a.map-office:hover .office-label {
-    text-decoration: underline;
+  @media (hover: hover) {
+    a.map-office:hover .office-mark path {
+      stroke-width: 5px;
+    }
+    a.map-office:hover .office-label {
+      text-decoration: underline;
+    }
   }
   /* The label sits inside the scaled group, so its size is in the full-view units, not divided again. */
   .office-label {

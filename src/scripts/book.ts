@@ -54,6 +54,7 @@ const whereSet = $<HTMLFieldSetElement>('where');
 const office = $('office');
 const mobile = $('mobile');
 const result = $('zone-result');
+const addressWrap = $('address-wrap');
 
 let placesStarted = false;
 
@@ -120,7 +121,19 @@ function select(zone: ZoneKey, via: 'address' | 'pick', loc?: { lat: number; lng
   setPin(loc ?? null);
   focusZone(zone);
   if (reset) reset.hidden = false;
-  if (via === 'pick') clearAddress?.();
+  if (via === 'pick') {
+    clearAddress?.();
+    foldAddress(true); // an area was chosen, so the address field is not needed
+  } else {
+    foldAddress(false); // the visitor typed an address: keep it in view
+  }
+}
+
+/** Fold the address field away (or bring it back) with the wrapper's height transition. */
+function foldAddress(fold: boolean): void {
+  if (!addressWrap) return;
+  addressWrap.classList.toggle('is-collapsed', fold);
+  addressWrap.toggleAttribute('inert', fold); // no tabbing into a field that is folded away
 }
 
 /**
@@ -138,6 +151,7 @@ function deselect(): void {
   }
   setPin(null);
   clearAddress?.();
+  foldAddress(false);
   if (svg && frame) {
     for (const el of svg.querySelectorAll<SVGElement>('[data-zone]')) el.classList.remove('is-focused', 'is-muted');
     svg.setAttribute('viewBox', viewBoxAttr(frame.full));
@@ -479,13 +493,17 @@ function init(): void {
 
   // Linked hover. The pointer drives it by what is under it; keyboard focus drives it only when the
   // browser shows a focus ring (a mouse click also focuses a button, and that must not stick).
+  // Touch has no hover: a finger dragging across the map to scroll must not light up the areas it passes over.
   mobile.addEventListener('pointerover', (e) => {
+    if (e.pointerType !== 'mouse' && e.pointerType !== 'pen') return;
     const el = (e.target as Element).closest<HTMLElement | SVGElement>(
       '.zone-picker a[data-zone], path.zone[data-zone], .map-office',
     );
     hot(!el ? null : el.classList.contains('map-office') ? 'office' : (el.dataset.zone as ZoneKey | undefined));
   });
-  mobile.addEventListener('pointerleave', () => hot(null));
+  mobile.addEventListener('pointerleave', (e) => {
+    if (e.pointerType === 'mouse' || e.pointerType === 'pen') hot(null);
+  });
   mobile.addEventListener('focusin', (e) => {
     const link = (e.target as Element).closest<HTMLAnchorElement>('.zone-picker a[data-zone]');
     if (link?.matches(':focus-visible')) hot(link.dataset.zone as ZoneKey);

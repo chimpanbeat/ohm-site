@@ -1,6 +1,7 @@
 ---
 import { site, bookingUrl, type ZoneKey } from '../data/site.ts';
 import ContactButtons from './ContactButtons.astro';
+import DayChips from './DayChips.astro';
 
 interface Props {
   zone: ZoneKey;
@@ -20,6 +21,7 @@ const book = z.linkKey ? bookingUrl(z.linkKey) : null;
     book ? (
       <>
         <Heading tabindex="-1">You're in my {z.name} area.</Heading>
+        <DayChips days={z.days} />
         <p>I'm there {z.days}.</p>
         <p>
           Travel fee ${site.travelFee.amount}. {site.travelFee.note}
@@ -51,6 +53,9 @@ const book = z.linkKey ? bookingUrl(z.linkKey) : null;
   }
   .card p {
     margin-top: var(--s-3);
+  }
+  .card :global(.days) {
+    margin-top: var(--s-4);
   }
   .card .action {
     margin-top: var(--s-6);

@@ -5,12 +5,14 @@ interface Props {
   title: string;
   level?: 2 | 3;
   rise?: boolean;
+  /** Dropdowns sharing a name open one at a time (native exclusive accordion). */
+  name?: string;
 }
-const { title, level = 3, rise = false } = Astro.props;
+const { title, level = 3, rise = false, name } = Astro.props;
 const Heading = `h${level}` as 'h2' | 'h3';
 ---
 
-<details class:list={['dropdown', { rise }]}>
+<details class:list={['dropdown', { rise }]} name={name}>
   <summary>
     <Heading>{title}</Heading>
     <span class="mark" aria-hidden="true">

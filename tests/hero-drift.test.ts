@@ -52,7 +52,7 @@ test('ohm-drift animates only translate, ending between 10 and 20px', () => {
   assert.ok(Number(to[1]) >= 10 && Number(to[1]) <= 20, `${to[1]}px`);
 });
 
-test('no anonymous view() or scroll(), no animation on the hero text, desktop transform kept', () => {
+test('no anonymous view() or scroll(), no animation on the hero text, art as tall as the hero', () => {
   assert.doesNotMatch(src, /\bview\(/);
   assert.doesNotMatch(src, /^\s*animation-timeline:\s*scroll\(/m, 'no scroll() timeline');
   for (const sel of ['.hero-text', '.hero-text h1', '.subline', '.cta-row']) {
@@ -60,7 +60,7 @@ test('no anonymous view() or scroll(), no animation on the hero text, desktop tr
       assert.doesNotMatch(m[1], /animation/, sel);
     }
   }
-  assert.match(src, /\.hero-art\s*\{[^}]*transform:\s*translateY\(-50%\)/);
+  assert.match(src, /\.hero-art\s*\{[^}]*height:\s*100%/);
 });
 
 const skip = existsSync(join(dist, 'index.html')) ? false : 'dist/index.html missing: run npm run build';

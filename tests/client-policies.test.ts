@@ -212,17 +212,17 @@ test('9. one closed <details> per section, with heading and no hash link', { ski
   });
 });
 
-test('10. version line, PDF link and hidden controls', { skip }, () => {
+test('10. version line, PDF link, and one section open at a time', { skip }, () => {
   const html = read('client-policies.html');
   assert.ok(text(html).includes('Version 1.4 · Oct 29, 2026'));
   assert.ok(html.includes(`href="${base}${policiesPdfPath}"`));
   assert.ok(existsSync(join(dist, 'ohm-client-policies.pdf')), 'dist carries the PDF: run npm run build');
-  assert.match(html, /<div\b[^>]*class="[^"]*policies-controls[^"]*"[^>]*\bhidden\b/);
-  for (const label of ['Expand all', 'Collapse all']) {
-    const btn = html.match(new RegExp(`<button\\b([^>]*)>\\s*${label}\\s*</button>`));
-    assert.ok(btn, label);
-    assert.match(btn[1], /type="button"/);
-  }
+  assert.doesNotMatch(html, /policies-controls|Expand all|Collapse all/);
+  const tags = [...html.matchAll(/<details\b[^>]*>/g)].map((m) => m[0]).filter((t) => /\bclass="[^"]*\bpolicy\b/.test(t));
+  const names = tags.map((t) => t.match(/\bname="([^"]+)"/)?.[1]);
+  assert.equal(names.length, IDS.length);
+  assert.equal(new Set(names).size, 1, 'every section shares one name');
+  assert.ok(names[0]);
 });
 
 test('11. the page carries the notice and both I-037 sentences, and no phone', { skip }, () => {

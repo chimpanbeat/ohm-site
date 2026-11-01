@@ -25,14 +25,9 @@ const runs = (t: Rich) => (typeof t === 'string' ? [t] : t);
 
   <section class="section band-light">
     <div class="container policies">
-      <div class="policies-controls" hidden>
-        <button type="button" class="btn btn--quiet" data-policies="expand">Expand all</button>
-        <button type="button" class="btn btn--quiet" data-policies="collapse">Collapse all</button>
-      </div>
-
       {
         clientPolicies.sections.map((s) => (
-          <details class="policy" id={s.id}>
+          <details class="policy" id={s.id} name="policies">
             <summary>
               <h2>{s.title}</h2>
             </summary>
@@ -122,25 +117,6 @@ const runs = (t: Rich) => (typeof t === 'string' ? [t] : t);
   .policies-pdf {
     margin-top: var(--s-4);
   }
-  .policies-controls {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--s-2);
-    margin-bottom: var(--s-6);
-  }
-  .policies-controls[hidden] {
-    display: none;
-  }
-  /* .btn--quiet is made for dark bands; on the cream band it takes the ink colour. */
-  .policies-controls .btn--quiet {
-    border-color: var(--text-on-light);
-    color: var(--text-on-light);
-  }
-  .policies-controls .btn--quiet:hover {
-    background: var(--text-on-light);
-    color: var(--bg-light);
-  }
-
   .policy {
     border-bottom: 1px solid var(--line-light);
   }
@@ -204,7 +180,6 @@ const runs = (t: Rich) => (typeof t === 'string' ? [t] : t);
     :global(.site-footer),
     :global(.skip-link),
     .policies-pdf,
-    .policies-controls,
     .section--end {
       display: none;
     }

@@ -105,7 +105,7 @@ import { href } from '../lib/url.ts';
     }
   }
   /* Scroll-linked header (A3 eighth exception): over the first 40px of scroll a green hairline fades in over the
-     border and the logo link scales to 0.88. The header box never changes size. Longhands, not the animation
+     border. The header box never changes size. Longhands, not the animation
      shorthand: the build's minifier folds a complete shorthand plus timeline into one `animation:` declaration,
      which Chromium rejects, so the animation would never run. */
   @supports (animation-timeline: scroll()) {
@@ -125,28 +125,12 @@ import { href } from '../lib/url.ts';
         animation-timeline: scroll(root block);
         animation-range: 0px 40px;
       }
-      .site-header__logo {
-        transform-origin: left center;
-        animation-name: ohm-header-logo;
-        animation-timing-function: linear;
-        animation-fill-mode: both;
-        animation-timeline: scroll(root block);
-        animation-range: 0px 40px;
-      }
       @keyframes ohm-header-line {
         from {
           opacity: 0;
         }
         to {
           opacity: 1;
-        }
-      }
-      @keyframes ohm-header-logo {
-        from {
-          scale: 1;
-        }
-        to {
-          scale: 0.88;
         }
       }
     }
@@ -195,8 +179,9 @@ import { href } from '../lib/url.ts';
       padding-inline: var(--s-3);
     }
   }
-  /* Icon-only logo up to 27.5rem: the compact row with the 130px logo needs about 434px. */
-  @media (max-width: 27.5rem) {
+  /* Icon-only logo up to 32rem (512px): the compact row with the 130px logo needs about 434px, and large
+     phones (a Pixel 9 Pro is about 450px wide) read better with the icon than with a tight full logo. */
+  @media (max-width: 32rem) {
     .logo-full {
       display: none;
     }
