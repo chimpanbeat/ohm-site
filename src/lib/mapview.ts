@@ -99,3 +99,19 @@ export function makeFrame(zones: ZoneCollection): MapFrame {
 
 const num = (n: number) => Number(n.toFixed(2));
 export const viewBoxAttr = (v: View) => `${num(v.x)} ${num(v.y)} ${num(v.w)} ${num(v.h)}`;
+
+/**
+ * The view `t` of the way from `a` to `b` (t in 0..1) for an animated zoom and pan. The centre moves in a
+ * straight line and the width changes geometrically, so a zoom feels even from start to end. Keeps `a`'s
+ * aspect ratio (the map's 4:5).
+ */
+export function lerpView(a: View, b: View, t: number): View {
+  const w = a.w * Math.pow(b.w / a.w, t);
+  const h = w * (a.h / a.w);
+  const cx = a.x + a.w / 2 + (b.x + b.w / 2 - (a.x + a.w / 2)) * t;
+  const cy = a.y + a.h / 2 + (b.y + b.h / 2 - (a.y + a.h / 2)) * t;
+  return { x: cx - w / 2, y: cy - h / 2, w, h };
+}
+
+/** Ease in and out: slow start, quick middle, slow stop. */
+export const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);

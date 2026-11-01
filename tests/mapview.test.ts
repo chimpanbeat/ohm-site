@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { bboxOf, type Ring, type ZoneCollection } from '../src/lib/geo.ts';
-import { makeFrame, viewBoxAttr, type View } from '../src/lib/mapview.ts';
+import { easeInOut, lerpView, makeFrame, viewBoxAttr, type View } from '../src/lib/mapview.ts';
 
 const zones = JSON.parse(
   readFileSync(new URL('../src/data/zones.geojson', import.meta.url), 'utf8'),
@@ -88,4 +88,29 @@ test('project: east is larger x, north is smaller y', () => {
 
 test('viewBoxAttr lists x y w h', () => {
   assert.equal(viewBoxAttr({ x: 1, y: 2.5, w: 3, h: 4.123 }), '1 2.5 3 4.12');
+});
+
+test('lerpView: t=0 and t=1 give the ends, the middle zooms evenly and keeps 4:5', () => {
+  const a = frame.full;
+  const b = frame.viewFor(bboxOf(zones, 'north')!);
+  const near = (p: View, q: View) =>
+    (['x', 'y', 'w', 'h'] as const).every((k) => Math.abs(p[k] - q[k]) < 1e-6);
+  assert.ok(near(lerpView(a, b, 0), a));
+  assert.ok(near(lerpView(a, b, 1), b));
+  const m = lerpView(a, b, 0.5);
+  assert.ok(Math.abs(m.w - Math.sqrt(a.w * b.w)) < 1e-6, 'width is the geometric mean at the midpoint');
+  assert.ok(Math.abs(m.h / m.w - 1.25) < 1e-9, '4:5');
+  assert.ok(Math.abs(m.x + m.w / 2 - ((a.x + a.w / 2 + b.x + b.w / 2) / 2)) < 1e-6, 'centre moves linearly');
+});
+
+test('easeInOut: 0 to 1, symmetric, monotonic', () => {
+  assert.equal(easeInOut(0), 0);
+  assert.equal(easeInOut(1), 1);
+  assert.ok(Math.abs(easeInOut(0.5) - 0.5) < 1e-12);
+  let last = -1;
+  for (let i = 0; i <= 20; i++) {
+    const v = easeInOut(i / 20);
+    assert.ok(v >= last);
+    last = v;
+  }
 });

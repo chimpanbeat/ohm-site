@@ -4,7 +4,7 @@
 
 import type { ZoneKey } from '../data/site.ts';
 import { bboxOf, zoneFor, type ZoneCollection } from '../lib/geo.ts';
-import { makeFrame, viewBoxAttr, type MapFrame, type View } from '../lib/mapview.ts';
+import { easeInOut, lerpView, makeFrame, viewBoxAttr, type MapFrame, type View } from '../lib/mapview.ts';
 import zonesRaw from '../data/zones.geojson?raw';
 
 type Where = 'office' | 'mobile';
@@ -69,6 +69,38 @@ let pin: [number, number] | null = null;
 /** Set by the combobox once it exists; empties the address field. */
 let clearAddress: (() => void) | null = null;
 
+const MOVE_MS = 450; // zoom and pan between map views
+
+/** The view the map shows right now (mid-move, the in-between view), so a new move starts from where it is. */
+let current: View | null = null;
+let moveFrame = 0;
+
+function paintView(view: View): void {
+  if (!svg || !frame) return;
+  current = view;
+  svg.setAttribute('viewBox', viewBoxAttr(view));
+  svg.style.setProperty('--map-scale', String(frame.full.w / view.w));
+}
+
+/**
+ * Zoom and pan to `view`. Each frame writes the viewBox and --map-scale together, so the pin, the office mark
+ * and the labels keep their size while the map moves. Instant under reduced motion, and when there is
+ * nothing to move. A move started mid-move carries on from the in-between view.
+ */
+function moveTo(view: View): void {
+  cancelAnimationFrame(moveFrame);
+  const from = current;
+  if (!from || matchMedia('(prefers-reduced-motion: reduce)').matches) return paintView(view);
+  if (from.x === view.x && from.y === view.y && from.w === view.w) return paintView(view);
+  const start = performance.now();
+  const step = (now: number) => {
+    const t = Math.min(1, (now - start) / MOVE_MS);
+    paintView(t === 1 ? view : lerpView(from, view, easeInOut(t)));
+    if (t < 1) moveFrame = requestAnimationFrame(step);
+  };
+  moveFrame = requestAnimationFrame(step);
+}
+
 const PIN_MARGIN = 100; // map units around the pin when the view widens to include it (the pin is ~72 units tall)
 
 function setPin(loc: { lat: number; lng: number } | null): void {
@@ -99,8 +131,7 @@ function focusZone(zone: ZoneKey): void {
     el.classList.toggle('is-focused', key === zone);
     el.classList.toggle('is-muted', key !== zone && key !== 'out');
   }
-  svg.setAttribute('viewBox', viewBoxAttr(view));
-  svg.style.setProperty('--map-scale', String(frame.full.w / view.w));
+  moveTo(view);
 }
 
 /**
@@ -154,8 +185,7 @@ function deselect(): void {
   foldAddress(false);
   if (svg && frame) {
     for (const el of svg.querySelectorAll<SVGElement>('[data-zone]')) el.classList.remove('is-focused', 'is-muted');
-    svg.setAttribute('viewBox', viewBoxAttr(frame.full));
-    svg.style.setProperty('--map-scale', '1');
+    moveTo(frame.full);
   }
   if (reset) reset.hidden = true;
   hot(null);
@@ -450,6 +480,7 @@ function init(): void {
 
   if (svg) {
     frame = makeFrame(zones);
+    current = frame.full;
     svg.classList.add('is-interactive');
     mobile.querySelector<HTMLElement>('.map-info')?.removeAttribute('hidden');
   }
