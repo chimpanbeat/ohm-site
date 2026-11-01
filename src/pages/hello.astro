@@ -30,8 +30,10 @@ const [, , vbW, vbH] = omega.viewBox.split(' ').map(Number);
       <path class="omega-fill" d={omega.d}></path>
       <g class="omega-glow-wrap"><path class="omega-glow" d={omega.d} pathLength="1"></path></g>
       <path class="omega-light" d={omega.d}></path>
+      <path class="omega-glow omega-pulse" d={omega.d}></path>
     </svg>
     <span class="hello-line">Take the path of least resistance</span>
+    <span class="hello-cue" aria-hidden="true">Enter</span>
   </a>
 </Base>
 
@@ -57,6 +59,7 @@ const [, , vbW, vbH] = omega.viewBox.split(' ').map(Number);
   .hello {
     --omega-w: min(75vmin, 42rem); /* the Ω svg width */
     --line-fs: max(0.8125rem, calc(var(--omega-w) / 26.54)); /* 13px floor on phones */
+    --breathe-delay: 1.5s; /* the breath starts during the lap, so there is never a dead moment */
     --line-ls: calc((var(--omega-w) / 1.04 - 17.84 * var(--line-fs)) / 32); /* fills the gap to the Ω's edges */
     position: relative;
     display: grid;
@@ -92,7 +95,7 @@ const [, , vbW, vbH] = omega.viewBox.split(' ').map(Number);
     width: var(--omega-w);
     height: auto;
     overflow: visible;
-    animation: ohm-breathe 6s ease-in-out 4.4s infinite; /* in step with the line, so its letter-spacing keeps fitting the Ω */
+    animation: ohm-breathe 6s ease-in-out var(--breathe-delay) infinite; /* in step with the line, so its letter-spacing keeps fitting the Ω */
   }
   .omega-fill {
     fill: var(--accent);
@@ -116,7 +119,7 @@ const [, , vbW, vbH] = omega.viewBox.split(' ').map(Number);
     opacity: 1;
     stroke-dasharray: 702 5400;
     stroke-dashoffset: 702;
-    animation: ohm-lap 11s 0.4s infinite;
+    animation: ohm-lap 3s ease-in-out 0.4s 1 forwards; /* one lap, then the breath and the Enter cue take over */
   }
   .omega-glow {
     stroke-width: 8;
@@ -127,11 +130,16 @@ const [, , vbW, vbH] = omega.viewBox.split(' ').map(Number);
     opacity: 0;
     transition: opacity 300ms;
   }
+  /* The Ω lights up on each inhale, so touch screens get the signal that hover gives a pointer. */
+  .omega-pulse {
+    opacity: 0;
+    animation: ohm-hello-glow 6s ease-in-out var(--breathe-delay) infinite;
+  }
   .hello.is-entering .omega-glow-wrap,
   .hello:focus-visible .omega-glow-wrap {
     opacity: 1;
   }
-  /* The line fades in as the first lap ends (0.4s + 3s) and stays. Nothing else ever changes its opacity. */
+  /* The line fades in as the lap ends (0.4s + 3s) and stays. Nothing else ever changes its opacity. */
   .hello-line {
     position: relative;
     text-align: center;
@@ -147,16 +155,47 @@ const [, , vbW, vbH] = omega.viewBox.split(' ').map(Number);
     opacity: 0;
     animation:
       ohm-reveal 1s ease-out 3.4s forwards,
-      ohm-breathe 6s ease-in-out 4.4s infinite; /* a slow breath once the line is in: 3 s in, 3 s out */
+      ohm-breathe 6s ease-in-out var(--breathe-delay) infinite; /* a slow breath: 3 s in, 3 s out */
+  }
+
+  /* The one thing left to do: it arrives last, after the line, as an outlined button shape. */
+  .hello-cue {
+    position: relative;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: max(0.875rem, calc(var(--line-fs) * 1.15));
+    letter-spacing: 0.3em;
+    text-indent: 0.3em; /* balances the trailing letter-space */
+    padding: var(--s-2) var(--s-6);
+    border: 1px solid color-mix(in srgb, var(--text-on-dark) 60%, var(--bg-dark));
+    border-radius: 999px;
+    color: var(--text-on-dark);
+    opacity: 0;
+    animation: ohm-reveal 0.8s ease-out 4.2s forwards;
+    transition: background-color 300ms, border-color 300ms;
+  }
+  .hello.is-entering .hello-cue,
+  .hello:focus-visible .hello-cue {
+    border-color: var(--text-on-dark);
+    background: color-mix(in srgb, var(--text-on-dark) 14%, transparent);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .hello:hover .hello-cue {
+      border-color: var(--text-on-dark);
+      background: color-mix(in srgb, var(--text-on-dark) 14%, transparent);
+    }
   }
 
   @keyframes ohm-lap {
-    0% { stroke-dashoffset: 702; animation-timing-function: ease-in-out; }
-    27.3% { stroke-dashoffset: -5012; } /* 3 s of 11 s: the lap */
-    100% { stroke-dashoffset: -5012; } /* rest, then the next lap */
+    from { stroke-dashoffset: 702; }
+    to { stroke-dashoffset: -5012; }
   }
   @keyframes ohm-reveal {
     to { opacity: 1; }
+  }
+  @keyframes ohm-hello-glow {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 0.6; }
   }
   @keyframes ohm-breathe {
     0%, 100% { transform: scale(1); }
@@ -179,8 +218,14 @@ const [, , vbW, vbH] = omega.viewBox.split(' ').map(Number);
     .hello-omega {
       animation: none;
     }
-    .omega-light {
+    .omega-light,
+    .omega-pulse {
       display: none;
+    }
+    .hello-cue {
+      animation: none;
+      opacity: 1;
+      transition: none;
     }
     .hello-line {
       animation: none;

@@ -25,7 +25,7 @@ const LINE = String.raw`\.hello-line(?:\[[^\]]+\])?`;
 test('hello: the line breathes (scale keyframe, 6s, after the reveal)', { skip }, () => {
   const c = css();
   assert.match(c, /@keyframes ohm-breathe\{[^@]*?scale\(1\.05\)/);
-  assert.match(c, new RegExp(`${LINE}\\{[^}]*animation:[^;}]*6s ease-in-out 4\\.4s infinite ohm-breathe`));
+  assert.match(c, new RegExp(`${LINE}\\{[^}]*animation:[^;}]*ohm-breathe 6s ease-in-out var\\(--breathe-delay\\) infinite`));
 });
 
 test('hello: reduced motion turns the breathing off', { skip }, () => {
@@ -37,9 +37,20 @@ test('hello: reduced motion turns the breathing off', { skip }, () => {
 
 const OMEGA = String.raw`\.hello-omega(?:\[[^\]]+\])?`;
 
-test('hello: the Ω breathes in step with the line (same keyframes, 6s, 4.4s delay)', { skip }, () => {
+test('hello: the Ω breathes in step with the line (same keyframes, 6s, same delay variable)', { skip }, () => {
   const c = css();
-  assert.match(c, new RegExp(`${OMEGA}\{[^}]*animation:[^;}]*6s ease-in-out 4\.4s infinite ohm-breathe`));
+  assert.match(c, new RegExp(`${OMEGA}\\{[^}]*animation:[^;}]*ohm-breathe 6s ease-in-out var\\(--breathe-delay\\) infinite`));
+});
+
+test('hello: the breath delay is one variable, and the Ω lights up on each inhale', { skip }, () => {
+  const c = css();
+  assert.match(c, /--breathe-delay:1\.5s/);
+  assert.match(c, new RegExp(String.raw`\.omega-pulse(?:\[[^\]]+\])?\{[^}]*animation:[^;}]*6s ease-in-out var\(--breathe-delay\) infinite`));
+});
+
+test('hello: the Enter cue is there and hidden from assistive tech', { skip }, () => {
+  const html = readFileSync(join(dist, 'hello.html'), 'utf8');
+  assert.match(html, /<span[^>]*class="hello-cue[^"]*"[^>]*aria-hidden="true"[^>]*>Enter<\/span>/);
 });
 
 test('hello: reduced motion turns the Ω breathing off too', { skip }, () => {

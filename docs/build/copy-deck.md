@@ -263,7 +263,8 @@ The entrance page for cards, QR codes and social bios (ARCHITECTURE §B8). `noin
 
 **Page**
 - Visible line (fades in when the light finishes its first lap, 10A; shown in capitals by CSS): `Take the path of least resistance` (Brian). It's the same in both licensure states, so there's no `wording.ts` key.
-- Visually hidden, before it (part of the link's accessible name): `Enter Ohm Precision Bodywork. `
+- Visible cue under the line (fades in last, outlined like a button; shown in capitals by CSS; `aria-hidden`, since the hidden text below already names the action): `Enter` (Brian).
+- Visually hidden, before the line (part of the link's accessible name): `Enter Ohm Precision Bodywork. `
 - The images are decorative (`alt=""`, and the SVG is `aria-hidden`).
 - Trailing-slash redirect page (`public/hello/index.html`): `<title>Ohm Precision Bodywork</title>`, link text `Continue`.
 
