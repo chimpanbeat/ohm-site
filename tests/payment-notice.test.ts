@@ -64,7 +64,8 @@ test('1. data: methods line, surcharge line and the booking bullets share one so
 });
 
 test('2. source: one place for the text, none typed in the component or pages', () => {
-  const comp = readFileSync(join(root, 'src/components/PaymentNotice.astro'), 'utf8');
+  // The text lives in two components: the notice's two lines, and the Colorado popover (also used on the policies page).
+  const comp = ['PaymentNotice', 'ColoradoNotice'].map((n) => readFileSync(join(root, `src/components/${n}.astro`), 'utf8')).join('\n');
   for (const name of ['paymentMethodsLine', 'surchargeLine', 'coloradoNotice']) assert.ok(comp.includes(name), `component imports ${name}`);
   assert.ok(comp.includes('../data/client-policies.ts'));
   assert.doesNotMatch(comp, /#[0-9a-fA-F]{3,8}\b/);

@@ -1,0 +1,80 @@
+---
+import { coloradoNotice } from '../data/client-policies.ts';
+---
+
+<button type="button" class="payment-notice__mark" popovertarget="colorado-notice" interestfor="colorado-notice" aria-label="Colorado notice">*</button>
+<div id="colorado-notice" popover class="payment-notice__box">
+  <button type="button" class="payment-notice__text" popovertarget="colorado-notice" popovertargetaction="hide">
+    <strong class="payment-notice__head">Colorado notice.</strong> {coloradoNotice}
+  </button>
+</div>
+
+<style>
+  /* A popover: browsers without support show it as plain text next to the line it belongs to. One per page. */
+  .payment-notice__mark {
+    anchor-name: --colorado-mark;
+    margin: 0;
+    padding: 0 var(--s-2);
+    border: 0;
+    background: none;
+    color: inherit;
+    font-weight: 700;
+    font-size: 1.25em;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .payment-notice__box {
+    margin-top: var(--s-3);
+    padding: var(--s-4);
+    border: 1px solid var(--line-light);
+    border-radius: var(--radius);
+    background: var(--bg-light);
+    color: var(--text-on-light);
+    font-size: var(--fs-small);
+    line-height: 1.45;
+  }
+  .payment-notice__box:popover-open {
+    width: min(32rem, calc(100vw - 2rem));
+    margin: auto;
+    box-shadow: 0 2px 12px color-mix(in srgb, var(--ink) 35%, transparent);
+  }
+  /* Where anchor positioning exists, the card opens right above the asterisk (below it when there is no room
+     above), kept inside the window. Without it the card is centred in the window. */
+  @supports (anchor-name: --a) {
+    .payment-notice__box:popover-open {
+      position-anchor: --colorado-mark;
+      inset: auto;
+      bottom: calc(anchor(top) + var(--s-2));
+      left: clamp(1rem, calc(anchor(left) - var(--s-4)), calc(100vw - min(32rem, 100vw - 2rem) - 1rem));
+      margin: 0;
+      position-try-fallbacks: flip-block;
+    }
+  }
+  /* Click or tap the card itself to close it. */
+  .payment-notice__text {
+    display: block;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    line-height: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .payment-notice__head {
+    font-weight: 600;
+  }
+  /* On paper the notice is just text after its line. */
+  @media print {
+    .payment-notice__mark {
+      display: none;
+    }
+    .payment-notice__box {
+      display: block;
+      position: static;
+      border: 0;
+      padding: 0;
+    }
+  }
+</style>

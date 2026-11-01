@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import BookCta from '../components/BookCta.astro';
 import { site } from '../data/site.ts';
+import ColoradoNotice from '../components/ColoradoNotice.astro';
 import { clientPolicies, policiesPdfPath, type Block, type Rich } from '../data/client-policies.ts';
 import { href } from '../lib/url.ts';
 
@@ -47,6 +48,7 @@ const runs = (t: Rich) => (typeof t === 'string' ? [t] : t);
                         <li>
                           {i.lead && <strong>{i.lead} </strong>}
                           {runs(i.text).map((r) => (typeof r === 'string' ? r : <a href={r.href}>{r.text}</a>))}
+                          {typeof i.text === 'string' && i.text.includes('processing surcharge') && <ColoradoNotice />}
                         </li>
                       ))}
                     </ul>
@@ -76,18 +78,7 @@ const runs = (t: Rich) => (typeof t === 'string' ? [t] : t);
                     </table>
                   );
                 }
-                return (
-                  <div class="notice">
-                    {b.columns.map((c) => (
-                      <div>
-                        <p>
-                          <strong>{c.head}</strong>
-                        </p>
-                        <p>{c.text}</p>
-                      </div>
-                    ))}
-                  </div>
-                );
+                return null; // the Colorado notice is the asterisk popover on the surcharge bullet
               })}
             </div>
           </details>
@@ -158,26 +149,6 @@ const runs = (t: Rich) => (typeof t === 'string' ? [t] : t);
     text-align: left;
     vertical-align: top;
   }
-  /* The statute and Ohm's own surcharge line are reference text: small and quiet, not a boxed callout. */
-  .notice {
-    display: grid;
-    gap: var(--s-3);
-    padding-top: var(--s-3);
-    border-top: 1px solid var(--line-light);
-    font-size: 0.8125rem;
-    line-height: 1.4;
-    color: color-mix(in srgb, var(--text-on-light) 75%, var(--bg-light));
-  }
-  .notice p + p {
-    margin-top: var(--s-1);
-  }
-  @media (min-width: 48rem) {
-    .notice {
-      grid-template-columns: 1fr 1fr;
-      gap: var(--s-6);
-    }
-  }
-
   @media print {
     :global(.site-header),
     :global(.site-footer),
@@ -218,7 +189,6 @@ const runs = (t: Rich) => (typeof t === 'string' ? [t] : t);
       break-after: avoid;
     }
     table,
-    .notice,
     li {
       break-inside: avoid;
     }
