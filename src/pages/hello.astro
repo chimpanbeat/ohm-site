@@ -2,10 +2,12 @@
 import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import { href } from '../lib/url.ts';
-import graphic from '../assets/graphic-green.png';
+import graphic from '../assets/graphic-green-hd.png';
 import omega from '../data/omega.json';
 
 const [, , vbW, vbH] = omega.viewBox.split(' ').map(Number);
+// The art is about as wide as the screen is tall (see .hello-art), so its `sizes` is 100vh: on a phone, 100vw would
+// pick a file far too small. graphic-green-hd.png is the full drawing's original pixels, cropped and upscaled 3.2x.
 ---
 
 <Base
@@ -20,20 +22,22 @@ const [, , vbW, vbH] = omega.viewBox.split(' ').map(Number);
       class="hello-art"
       src={graphic}
       alt=""
-      widths={[480, 800, 1200]}
-      sizes="100vw"
+      widths={[800, 1200, 1600, 2000]}
+      sizes="100vh"
       formats={['avif', 'webp']}
       loading="eager"
       fetchpriority="high"
     />
-    <svg class="hello-omega" viewBox={omega.viewBox} style={`aspect-ratio: ${vbW} / ${vbH}`} aria-hidden="true" focusable="false">
-      <path class="omega-fill" d={omega.d}></path>
-      <g class="omega-glow-wrap"><path class="omega-glow" d={omega.d} pathLength="1"></path></g>
-      <path class="omega-light" d={omega.d}></path>
-      <path class="omega-glow omega-pulse" d={omega.d}></path>
-    </svg>
+    <div class="hello-mark">
+      <svg class="hello-omega" viewBox={omega.viewBox} style={`aspect-ratio: ${vbW} / ${vbH}`} aria-hidden="true" focusable="false">
+        <path class="omega-fill" d={omega.d}></path>
+        <g class="omega-glow-wrap"><path class="omega-glow" d={omega.d} pathLength="1"></path></g>
+        <path class="omega-light" d={omega.d}></path>
+        <path class="omega-glow omega-pulse" d={omega.d}></path>
+      </svg>
+      <span class="hello-cue" aria-hidden="true">(Enter)</span>
+    </div>
     <span class="hello-line">Take the path of least resistance</span>
-    <span class="hello-cue" aria-hidden="true">Enter</span>
   </a>
 </Base>
 
@@ -86,16 +90,21 @@ const [, , vbW, vbH] = omega.viewBox.split(' ').map(Number);
   }
   @media (min-width: 48rem) {
     .hello-art {
+      right: 2%; /* pulled in from the edge, so the back sits partly behind the Ω */
       /* Fade the art's left edge into the green, as on the Home hero, so it doesn't read as a box. */
       mask-image: linear-gradient(to right, transparent, black 30%);
     }
   }
-  .hello-omega {
+  .hello-mark {
     position: relative;
     width: var(--omega-w);
+    animation: ohm-breathe 6s ease-in-out var(--breathe-delay) infinite; /* the Ω and the cue breathe as one, in step with the line, so its letter-spacing keeps fitting the Ω */
+  }
+  .hello-omega {
+    display: block;
+    width: 100%;
     height: auto;
     overflow: visible;
-    animation: ohm-breathe 6s ease-in-out var(--breathe-delay) infinite; /* in step with the line, so its letter-spacing keeps fitting the Ω */
   }
   .omega-fill {
     fill: var(--accent);
@@ -158,31 +167,31 @@ const [, , vbW, vbH] = omega.viewBox.split(' ').map(Number);
       ohm-breathe 6s ease-in-out var(--breathe-delay) infinite; /* a slow breath: 3 s in, 3 s out */
   }
 
-  /* The one thing left to do: it arrives last, after the line, as an outlined button shape. */
+  /* The one thing left to do. It sits low in the Ω's palm and arrives when the first exhale ends (one
+     6 s breath after it starts), inside .hello-mark so it breathes with the Ω. */
   .hello-cue {
-    position: relative;
+    position: absolute;
+    left: 50%;
+    bottom: 14%; /* low in the palm, above the wrist */
+    translate: -50% 0;
+    white-space: nowrap;
     font-weight: 500;
     text-transform: uppercase;
-    font-size: max(0.875rem, calc(var(--line-fs) * 1.15));
-    letter-spacing: 0.3em;
-    text-indent: 0.3em; /* balances the trailing letter-space */
-    padding: var(--s-2) var(--s-6);
-    border: 1px solid color-mix(in srgb, var(--text-on-dark) 60%, var(--bg-dark));
-    border-radius: 999px;
-    color: var(--text-on-dark);
+    font-size: var(--line-fs); /* the same size as the line */
+    letter-spacing: 0.2em;
+    text-indent: 0.2em; /* balances the trailing letter-space */
+    color: color-mix(in srgb, var(--text-on-dark) 75%, var(--bg-dark)); /* the tagline's softer cream */
     opacity: 0;
-    animation: ohm-reveal 0.8s ease-out 4.2s forwards;
-    transition: background-color 300ms, border-color 300ms;
+    animation: ohm-reveal 1s ease-out calc(var(--breathe-delay) + 6s) forwards;
+    transition: text-shadow 300ms;
   }
   .hello.is-entering .hello-cue,
   .hello:focus-visible .hello-cue {
-    border-color: var(--text-on-dark);
-    background: color-mix(in srgb, var(--text-on-dark) 14%, transparent);
+    text-shadow: 0 0 0.6em var(--text-on-dark);
   }
   @media (hover: hover) and (pointer: fine) {
     .hello:hover .hello-cue {
-      border-color: var(--text-on-dark);
-      background: color-mix(in srgb, var(--text-on-dark) 14%, transparent);
+      text-shadow: 0 0 0.6em var(--text-on-dark);
     }
   }
 
@@ -215,7 +224,7 @@ const [, , vbW, vbH] = omega.viewBox.split(' ').map(Number);
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .hello-omega {
+    .hello-mark {
       animation: none;
     }
     .omega-light,

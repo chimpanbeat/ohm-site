@@ -35,7 +35,8 @@ test('hello: reduced motion turns the breathing off', { skip }, () => {
   assert.match(rm[0], /animation:none/);
 });
 
-const OMEGA = String.raw`\.hello-omega(?:\[[^\]]+\])?`;
+// The Ω and the Enter cue breathe as one: the wrapper carries the animation.
+const OMEGA = String.raw`\.hello-mark(?:\[[^\]]+\])?`;
 
 test('hello: the Ω breathes in step with the line (same keyframes, 6s, same delay variable)', { skip }, () => {
   const c = css();
@@ -50,7 +51,8 @@ test('hello: the breath delay is one variable, and the Ω lights up on each inha
 
 test('hello: the Enter cue is there and hidden from assistive tech', { skip }, () => {
   const html = readFileSync(join(dist, 'hello.html'), 'utf8');
-  assert.match(html, /<span[^>]*class="hello-cue[^"]*"[^>]*aria-hidden="true"[^>]*>Enter<\/span>/);
+  assert.match(html, /<span[^>]*class="hello-cue[^"]*"[^>]*aria-hidden="true"[^>]*>\(Enter\)<\/span>/);
+  assert.match(html, /<div[^>]*class="hello-mark[^"]*"[^>]*>[\s\S]*?<svg[\s\S]*?<\/svg>\s*<span[^>]*class="hello-cue/, 'the cue sits inside the breathing wrapper');
 });
 
 test('hello: reduced motion turns the Ω breathing off too', { skip }, () => {

@@ -262,9 +262,9 @@ The entrance page for cards, QR codes and social bios (ARCHITECTURE §B8). `noin
 - `description`: same as Home: `Neuromuscular therapy in Colorado Springs for climbers, runners and active people. Trigger point therapy and sports recovery, at your place or my office.`
 
 **Page**
-- Visible line (fades in when the light finishes its first lap, 10A; shown in capitals by CSS): `Take the path of least resistance` (Brian). It's the same in both licensure states, so there's no `wording.ts` key.
-- Visible cue under the line (fades in last, outlined like a button; shown in capitals by CSS; `aria-hidden`, since the hidden text below already names the action): `Enter` (Brian).
-- Visually hidden, before the line (part of the link's accessible name): `Enter Ohm Precision Bodywork. `
+- Visible line under the Ω (fades in as the light finishes its single lap, then stays; shown in capitals by CSS): `Take the path of least resistance` (Brian). It's the same in both licensure states, so there's no `wording.ts` key.
+- Visible cue inside the Ω, low in the palm above the wrist (Brian, Nov 1 2026): `(Enter)`, parentheses included (Brian). Shown in capitals by CSS, the same size as the line and in its softer cream (75%). It fades in over 1s when the first breath's exhale ends (7.5s) and breathes with the Ω. `aria-hidden="true"`, since the visually hidden text below already names the action.
+- Visually hidden, first in the link (part of its accessible name): `Enter Ohm Precision Bodywork. `
 - The images are decorative (`alt=""`, and the SVG is `aria-hidden`).
 - Trailing-slash redirect page (`public/hello/index.html`): `<title>Ohm Precision Bodywork</title>`, link text `Continue`.
 
