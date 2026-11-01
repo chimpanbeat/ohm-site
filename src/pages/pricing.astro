@@ -38,6 +38,11 @@ const countWords = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven
   <section class="section section--end">
     <div class="container">
       <BookCta />
+    </div>
+  </section>
+
+  <section class="note-end">
+    <div class="container">
       <PaymentNotice at="footnote" />
     </div>
   </section>
@@ -51,6 +56,17 @@ const countWords = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven
     max-width: 44rem; /* as wide as the rate cards */
     margin-top: var(--s-8);
     margin-bottom: var(--s-6);
+  }
+  /* The payment note sits at the bottom of the page, just above the footer: on a tall window the page
+     stretches (main is a column) and the note's section takes the slack above it. */
+  :global(main:has(.note-end)) {
+    display: flex;
+    flex-direction: column;
+  }
+  .note-end {
+    margin-top: auto;
+    padding-top: var(--s-12);
+    padding-bottom: var(--s-8);
   }
   .stack > h2 {
     margin-top: var(--s-12);

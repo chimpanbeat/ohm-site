@@ -66,15 +66,21 @@ const { at = 'cta' } = Astro.props;
   .payment-notice__head {
     font-weight: 600;
   }
-  /* On /book and /pricing it is a footnote to the page, not part of the booking flow: small, quieter, and set apart. */
+  /* On /book and /pricing it is a footnote to the page, not part of the booking flow: small and quieter. */
   .payment-notice--book,
   .payment-notice--footnote {
-    margin-top: var(--s-16);
-    padding-top: var(--s-6);
-    border-top: 1px solid var(--line-dark);
     font-size: var(--fs-small);
     line-height: 1.45;
     color: color-mix(in srgb, var(--text-on-dark) 75%, var(--bg-dark));
+  }
+  /* A rule above it sets it apart from the page. On /book it also keeps its distance from the form. */
+  .payment-notice--book,
+  .payment-notice--footnote {
+    padding-top: var(--s-6);
+    border-top: 1px solid var(--line-dark);
+  }
+  .payment-notice--book {
+    margin-top: var(--s-16);
   }
   .payment-notice--cta {
     margin-bottom: var(--s-6);

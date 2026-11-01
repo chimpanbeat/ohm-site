@@ -19,7 +19,7 @@ const built = existsSync(join(dist, 'book.html'));
 const skip = built ? false : 'dist/book.html missing: run npm run build';
 const read = (f: string) => readFileSync(join(dist, f), 'utf8');
 
-const SHOWN = ['book.html', 'book/central.html', 'book/midnorth.html', 'book/north.html', 'book/office.html', 'services.html', 'pricing.html'];
+const SHOWN = ['book.html', 'book/central.html', 'book/midnorth.html', 'book/north.html', 'book/office.html', 'pricing.html'];
 
 // Visible text: scripts, styles and tags dropped, entities decoded, whitespace collapsed.
 function text(html: string): string {
@@ -106,14 +106,9 @@ test('5. placement', { skip }, () => {
     assert.ok(cta > -1 && at > cta, 'pricing: the notice is a footnote after BookCta');
     assert.ok(text(html.slice(at)).includes(coloradoNotice), 'pricing: the notice carries the Colorado notice');
   }
-  for (const f of ['services.html']) {
-    const html = read(f);
-    const at = html.search(/class="[^"]*\bpayment-notice\b/);
-    const cta = html.lastIndexOf('<a class="btn" href="' + site.deploy.base + '/book"');
-    assert.ok(at > -1 && cta > at, `${f} notice before BookCta`);
-    // Nothing but the notice sits between its start and the button.
-    const gap = text(html.slice(at, cta));
-    assert.ok(gap.endsWith(coloradoNotice), `${f} notice is the last text before the button`);
+  {
+    const html = read('services.html');
+    assert.equal(noticeCount(html), 0, 'services: no payment notice (Brian, Nov 1)');
   }
   for (const f of SHOWN.filter((x) => x.startsWith('book/'))) {
     const html = read(f);
@@ -128,7 +123,7 @@ test('5. placement', { skip }, () => {
   const at = book.search(/class="[^"]*\bpayment-notice\b/);
   assert.ok(at > book.indexOf('id="mobile"'), 'after #mobile opens');
   assert.ok(at > book.indexOf('</section>', book.indexOf('id="mobile"')), 'after #mobile closes');
-  assert.ok(at < book.indexOf('<template'), 'before the templates');
+  assert.ok(at > book.lastIndexOf('<template'), 'the notice is the last section, after the templates (Brian, Nov 1)');
 });
 
 test('6. sequence: removing a line is caught, restoring clears it', { skip }, () => {

@@ -158,20 +158,23 @@ const runs = (t: Rich) => (typeof t === 'string' ? [t] : t);
     text-align: left;
     vertical-align: top;
   }
+  /* The statute and Ohm's own surcharge line are reference text: small and quiet, not a boxed callout. */
   .notice {
     display: grid;
-    gap: var(--s-4);
-    padding: var(--s-4);
-    border: 1px solid var(--line-light);
-    border-radius: var(--radius);
+    gap: var(--s-3);
+    padding-top: var(--s-3);
+    border-top: 1px solid var(--line-light);
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: color-mix(in srgb, var(--text-on-light) 75%, var(--bg-light));
   }
   .notice p + p {
-    margin-top: var(--s-2);
+    margin-top: var(--s-1);
   }
   @media (min-width: 48rem) {
     .notice {
       grid-template-columns: 1fr 1fr;
-      gap: var(--s-8);
+      gap: var(--s-6);
     }
   }
 

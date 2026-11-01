@@ -153,14 +153,14 @@ const minPrice = Math.min(...Object.values(site.rates).map((r) => r.price));
     .hero {
       padding-block: var(--s-12);
     }
+    /* A watermark, not a picture: larger than the hero (it is cropped at the top and bottom), tucked inside
+       the container's right edge instead of the window's, and soft. The left edge fades into the hero. */
     .hero-art {
-      right: 2%;
-      opacity: 1;
-      /* Fade the art's left edge into the hero so it doesn't read as a box. */
-      mask-image:
-        linear-gradient(to right, transparent, black 30%),
-        linear-gradient(to bottom, transparent, black 8%, black 92%, transparent);
-      mask-composite: intersect;
+      top: -25%;
+      height: 150%;
+      right: max(0px, calc((100% - var(--container)) / 2 - var(--s-8)));
+      opacity: 0.5;
+      mask-image: linear-gradient(to right, transparent, black 35%);
     }
     .hero-text h1 {
       max-width: 40%;

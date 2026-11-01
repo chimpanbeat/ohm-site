@@ -22,7 +22,6 @@ const book = z.linkKey ? bookingUrl(z.linkKey) : null;
       <>
         <Heading tabindex="-1">You're in my {z.name} area.</Heading>
         <DayChips days={z.days} />
-        <p>I'm there {z.days}.</p>
         <p>
           Travel fee ${site.travelFee.amount}. {site.travelFee.note}
         </p>

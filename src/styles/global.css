@@ -306,6 +306,32 @@ main > .section:first-child {
   }
 }
 
+/* Dropdowns (Services, Pricing, Client policies) glide open and shut: the hidden content's height and opacity
+   transition instead of snapping. Needs ::details-content and interpolate-size (Chromium 131+, Safari 18.2+
+   for the first; elsewhere the section just opens and closes as before). */
+@supports selector(::details-content) {
+  @media (prefers-reduced-motion: no-preference) {
+    :root {
+      interpolate-size: allow-keywords;
+    }
+    details.dropdown::details-content,
+    details.policy::details-content {
+      height: 0;
+      overflow: clip;
+      opacity: 0;
+      transition:
+        height 350ms ease,
+        opacity 250ms ease,
+        content-visibility 350ms allow-discrete;
+    }
+    details.dropdown[open]::details-content,
+    details.policy[open]::details-content {
+      height: auto;
+      opacity: 1;
+    }
+  }
+}
+
 /* Focus */
 :focus-visible {
   outline: var(--focus-ring);

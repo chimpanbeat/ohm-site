@@ -20,7 +20,7 @@ const key = import.meta.env.PUBLIC_GOOGLE_MAPS_KEY ?? '';
   <section class="section">
     <div class="container book">
       <h1>Book a session</h1>
-      <p>Tell me where you want your session and I'll point you to the right booking page. Scheduling and intake forms are handled on PocketSuite. You'll put a card on file when you book, and after the session you can pay by card, cash or Zelle.</p>
+      <p>Scheduling and intake forms are handled on PocketSuite. You'll put a card on file when you book, and after the session you can pay by card, cash or Zelle.</p>
       <Credentials />
       <p>Booking means you agree to my <a href={href('/client-policies')}>client policies</a>.</p>
 
@@ -46,8 +46,6 @@ const key = import.meta.env.PUBLIC_GOOGLE_MAPS_KEY ?? '';
         </p>
       </section>
 
-      <PaymentNotice at="book" />
-
       {
         zoneOrder.map((zone) => (
           <template data-zone={zone}>
@@ -58,6 +56,12 @@ const key = import.meta.env.PUBLIC_GOOGLE_MAPS_KEY ?? '';
       <template data-zone="out" data-via="address">
         <ZoneCard zone="out" via="address" headingLevel={3} />
       </template>
+    </div>
+  </section>
+
+  <section class="note-end">
+    <div class="container">
+      <PaymentNotice at="footnote" />
     </div>
   </section>
 </Base>
@@ -183,5 +187,16 @@ const key = import.meta.env.PUBLIC_GOOGLE_MAPS_KEY ?? '';
   }
   .boundary {
     margin-top: var(--s-6);
+  }
+  /* The payment note sits at the bottom of the page, just above the footer: on a tall window the page
+     stretches (main is a column) and the note's section takes the slack above it. */
+  :global(main:has(.note-end)) {
+    display: flex;
+    flex-direction: column;
+  }
+  .note-end {
+    margin-top: auto;
+    padding-top: var(--s-12);
+    padding-bottom: var(--s-8);
   }
 </style>
