@@ -24,7 +24,7 @@ const LINE = String.raw`\.hello-line(?:\[[^\]]+\])?`;
 
 test('hello: the line breathes (scale keyframe, 6s, after the reveal)', { skip }, () => {
   const c = css();
-  assert.match(c, /@keyframes ohm-breathe\{[^@]*?scale\(1\.05\)/);
+  assert.match(c, /@keyframes ohm-breathe\{[^@]*?scale\(1\.08\)/);
   assert.match(c, new RegExp(`${LINE}\\{[^}]*animation:[^;}]*ohm-breathe 6s ease-in-out var\\(--breathe-delay\\) infinite`));
 });
 

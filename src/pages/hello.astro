@@ -142,6 +142,8 @@ const [, , vbW, vbH] = omega.viewBox.split(' ').map(Number);
   /* The Ω lights up on each inhale, so touch screens get the signal that hover gives a pointer. */
   .omega-pulse {
     opacity: 0;
+    stroke-width: 11;
+    filter: blur(8px);
     animation: ohm-hello-glow 6s ease-in-out var(--breathe-delay) infinite;
   }
   .hello.is-entering .omega-glow-wrap,
@@ -190,7 +192,7 @@ const [, , vbW, vbH] = omega.viewBox.split(' ').map(Number);
     text-shadow: 0 0 0.6em var(--text-on-dark);
   }
   @media (hover: hover) and (pointer: fine) {
-    .hello:hover .hello-cue {
+    .hello-mark:hover .hello-cue {
       text-shadow: 0 0 0.6em var(--text-on-dark);
     }
   }
@@ -204,17 +206,18 @@ const [, , vbW, vbH] = omega.viewBox.split(' ').map(Number);
   }
   @keyframes ohm-hello-glow {
     0%, 100% { opacity: 0; }
-    50% { opacity: 0.6; }
+    50% { opacity: 0.75; }
   }
   @keyframes ohm-breathe {
     0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
+    50% { transform: scale(1.08); }
   }
 
-  /* Hovering the Ω, not the page: the whole page is the link, so .hello:hover would glow whenever the
-     pointer is anywhere in the window (10R). */
+  /* Hovering the Ω or its (Enter) cue, not the page: the whole page is the link, so .hello:hover would glow
+     whenever the pointer is anywhere in the window (10R). The cue is a sibling of the svg, so the wrapper
+     takes the hover. */
   @media (hover: hover) and (pointer: fine) {
-    .hello-omega:hover .omega-glow-wrap {
+    .hello-mark:hover .omega-glow-wrap {
       opacity: 1;
     }
   }
