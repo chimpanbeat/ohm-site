@@ -60,9 +60,11 @@ test('w() returns the licensed variant (I-035)', () => {
   assert.equal(w('credential'), 'Brian Clarke, LMT, CNMT');
 });
 
-test('site is not indexable yet', () => {
-  assert.equal(site.deploy.live, false);
-  assert.equal(indexable, false);
+test('site is live and indexable on the custom domain (I-018 cutover)', () => {
+  assert.equal(site.deploy.live, true);
+  assert.equal(site.deploy.site, site.deploy.customDomain);
+  assert.equal(site.deploy.base, '/');
+  assert.equal(indexable, true);
 });
 
 test('Home text is unchanged by licensure (Brian, Oct 29 2026)', () => {

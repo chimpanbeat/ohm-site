@@ -153,11 +153,11 @@ export const site = {
     'https://www.google.com/maps/d/viewer?' + mapQuery({ mid: map.mid, ll: map.center, z: String(map.zoom) }),
 
   deploy: {
-    site: 'https://chimpanbeat.github.io',
-    base: '/ohm-site',
+    site: 'https://ohmprecisionbodywork.com',
+    base: '/',
     // Cutover (brief §10): set site to customDomain, base to '/', live to true.
     customDomain: 'https://ohmprecisionbodywork.com',
-    live: false,
+    live: true,
   },
 } as const;
 

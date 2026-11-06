@@ -17,7 +17,7 @@ import {
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const dist = join(root, 'dist');
-const base = site.deploy.base;
+const base = site.deploy.base.replace(/\/+$/, '');
 const host = new URL(site.deploy.customDomain).host;
 
 // Every string and Run.text in a block, section or the whole document, as plain text.

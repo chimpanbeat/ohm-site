@@ -5,7 +5,9 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { site } from '../src/data/site.ts';
 
+const base = site.deploy.base.replace(/\/+$/, '');
 const root = fileURLToPath(new URL('..', import.meta.url));
 const dist = join(root, 'dist');
 const script = join(root, 'src/scripts/terrain.ts');
@@ -31,7 +33,7 @@ test('dist: map pages ship the terrain image with data-href and no href', { skip
       assert.doesNotMatch(img, /\shref=/, `${p}: no href at load`);
       const src = img.match(/data-href="([^"]+)"/)?.[1];
       assert.ok(src, `${p}: data-href`);
-      assert.ok(existsSync(join(dist, src.replace(/^\/[^/]+\//, ''))), `${p}: ${src} exists`);
+      assert.ok(existsSync(join(dist, src.slice(base.length + 1))), `${p}: ${src} exists`);
     }
   }
 });
