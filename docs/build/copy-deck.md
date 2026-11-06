@@ -72,6 +72,8 @@ Header, Footer, OfficeCard, ZonePicker and ZoneCard keep their current text (ARC
 | `about-portrait.jpg` / `about-landscape.jpg` | About `<Picture>` (both sources share the one `alt`) | `Brian Clarke standing on a sandstone ledge above a forested canyon.` |
 | `logo-line.png`, `icon.png` | Header | `Ohm Precision Bodywork` (unchanged) |
 | `portrait-square.jpg` | Not used in 4B | — |
+| `events/launch-party/header-green.png`, `launch-mark-on-dark.png` | `/launch-party` header `<picture>` | `""` (the H1 carries the words); as the link preview, `og:image:alt` `Ohm Precision Bodywork Launch Party` |
+| `events/launch-party/marea-host.jpg` | `/launch-party` host | `Marea, the host.` |
 
 The OG image (5A) reuses the About alt text for `og:image:alt`.
 
@@ -406,7 +408,124 @@ The Pricing intro (→ Pricing, I-046; shortened again in step V) and the Book i
 
 ---
 
+## Events (`src/pages/[event].astro`, `src/data/events.ts`, I-048–I-050)
+
+Each event's strings live in its entry in `src/data/events.ts`; the RSVP strings shared by every event live in `rsvpText` there. The page, the feed and the Apps Script read them; nothing types them again. Layout: ARCHITECTURE §B10. **Brian's wording is verbatim** (I-048, Nov 6, 2026), including his capitals (`Self Care Launch Party`, `Important: Waiver Required`); don't reword or "fix" it. Lines marked *(architect)* are new wording for Brian to read.
+
+**References:** `{dateLabel}` = `dateLabel(start)` [Sunday, Nov 22, 2026] · `{timeLabel}` = `timeLabel(start, end, 'always')` [2:00–6:00 pm] · `{limit}` = `rsvp.session.limit` [20] · `{session}` = `session.label` lowercased [yoga], `{Session}` = `session.label` [Yoga] · `{time}` = the session item's `timeLabel(…, 'auto')` [2–3 pm] · `{n}` = a number · `{title}` = the event title · `{name}` = the guest's name as typed · `{email}` = `site.email` as a `mailHref` link (page) or text (email) · `{siteName}` = `site.name`.
+
+### Launch party (`slug: 'launch-party'`, page `/launch-party`)
+
+**Meta**
+- `title`: `Ohm Launch Party: A Celebration of Self-Care · Ohm Precision Bodywork`
+- `description`: `{dateLabel}, {timeLabel} at CityROCK. {summary}` → `Sunday, Nov 22, 2026, 2:00–6:00 pm at CityROCK. Restorative yoga, the Self Care Launch Party and an optional climb at the gym.`
+- `summary` *(architect, from Brian's timeline)*: `Restorative yoga, the Self Care Launch Party and an optional climb at the gym.`
+- `graphics.ogAlt`: `Ohm Precision Bodywork Launch Party` (the words on the graphic)
+
+**Hero** (green)
+- **H1** (`title`): `Ohm Launch Party: A Celebration of Self-Care`
+- **When:** `{dateLabel} · {timeLabel}` → `Sunday, Nov 22, 2026 · 2:00–6:00 pm`
+- **Where** (`venue.name`, `venue.address`; one link to Google Maps): `CityROCK, 21 N Nevada Ave, Colorado Springs, CO 80903`
+- **Buttons:** `RSVP` · `Add to calendar`
+- Header graphic: `alt=""` (the H1 carries the words).
+
+**Host** (cream band)
+- **H2** *(architect)*: `Your host`
+- Caption (`host.name`): `Marea`. No intro text (Brian).
+- Photo `alt` *(architect)*: `Marea, the host.`
+
+**Schedule** (cream band, after Host)
+- **H2** *(architect)*: `Schedule`
+- Items (time label from the data's times; title; notes), Brian's wording:
+  1. `1:45 pm` · `Arrive for yoga, get settled in`
+  2. `2–3 pm` · `Restorative yoga` · notes: `No supplies or experience needed` · `Water bottle and stretchy clothes recommended` · `Limited to first {limit} sign-ups`
+  3. `3–6 pm` · `Self Care Launch Party` · notes: `Open house style, come and go as you please` · `Refreshments provided`
+  4. `6–8 pm` · `Optional: climb at the gym until close` · notes: `Own day pass required` · `Harness and shoes provided` (`optional: true`, hollow marker)
+
+**Info blocks** (green; `info`, in this order)
+1. `id: 'wear'`, `inReminder: true`. **H2:** `What to wear`. Items (Brian): `Comfy cozy: yoga clothes or sweat pants` · `Fuzzy socks encouraged` · `Shoes off in the yoga room` · `Mats provided, own mats welcome`
+2. `id: 'parking'`, `inReminder: true`. **H2:** `Parking`. Text (Brian): `Metered street parking, or free parking along Wahsatch if you don't mind walking 2 blocks.`
+3. `id: 'raffle'`. **H2:** `Raffle`. Text *(architect, from Brian's note; no rules)*: `Complete the activities at the party for a chance to win a body care gift basket and limited-edition Ohm merch.`
+
+**Notice** (green, after the RSVP section; `notices`)
+- `id: 'waiver'`, `inEmails: true`.
+- **Title** (Brian): `Important: Waiver Required`
+- **Text** (Brian, verbatim): `If you haven't been to CityROCK in the last 2 years, you'll be required to fill out a waiver to enter the building. We recommend filling this out in advance, but it can be done in person if you forget!`
+- **Link** (label *(architect)*): `Fill out the waiver` → `https://portal.climbcityrock.com/cityrockdowntown/agreements/cityrock-waiver`
+
+### RSVP text (`rsvpText`, shared by every event) *(architect)*
+
+| Key | Text |
+|---|---|
+| `heading` | `RSVP` |
+| `intro` | `Let me know if you can make it, and add anyone you're bringing.` |
+| `name` | `Name` |
+| `email` | `Email` |
+| `status` | `Are you coming?` |
+| `going` · `maybe` · `cant` | `Going` · `Maybe` · `Can't go` |
+| `sessionQuestion` | `Joining {session} ({time})?` → `Joining yoga (2–3 pm)?` |
+| `yes` · `no` | `Yes` · `No` |
+| `guestsHeading` | `Guests` |
+| `guestsHelp` | `Bringing someone? Add each guest's name and whether they're joining {session}.` (events without a session: `guestsHelpPlain`) |
+| `guestsHelpPlain` | `Bringing someone? Add each guest's name.` |
+| `guestLegend` | `Guest {n}` |
+| `guestName` | `Name` |
+| `addGuest` | `Add a guest` |
+| `removeGuest` | `Remove guest {n}` |
+| `honeypot` | `Leave this field empty` |
+| `submit` | `Send RSVP` |
+| `sending` | `Sending…` |
+| `privacy` | `Your name and email go to a private Google Sheet I keep for this event. I use them only for this event's emails.` (TODO(Brian): confirm this promise) |
+| `spotsLeft` | `{n} {session} spots left` |
+| `spotLeft` | `1 {session} spot left` |
+| `fullWaitlist` | `{Session} is full. Answer yes to join the waitlist.` |
+| `full` | `{Session} is full.` |
+| `closed` | `RSVPs for this event are closed.` |
+| `doneTitle` | `You're on the list.` |
+| `doneText` | `I sent a confirmation to your email.` |
+| `cantTitle` | `Thanks for letting me know.` |
+| `cantText` | `I sent a short note to your email.` |
+| `outcomeConfirmed` · `outcomeWaitlist` · `outcomeFull` · `outcomeNo` | `{Session}: confirmed` · `{Session}: waitlist` · `{Session}: full` · `{Session}: no` (Brian: "Yoga: confirmed", "Yoga: waitlist") |
+| `outcomeLine` | `{name} · {outcome}` |
+| `calendar` | `Add to calendar` |
+| `errInvalid` | `Check the fields marked below.` |
+| `errName` | `Enter your name.` |
+| `errEmail` | `Enter a valid email address.` |
+| `errLength` | `Use 80 characters or fewer.` |
+| `errStatus` | `Choose Going, Maybe or Can't go.` |
+| `errSession` | `Answer the {session} question.` |
+| `errGuestName` | `Enter guest {n}'s name, or remove the guest.` |
+| `errGuestSession` | `Answer the {session} question for guest {n}.` |
+| `errDuplicate` | `This email already has an RSVP. To change it, reply to your confirmation email.` |
+| `errServer` | `Something went wrong and your RSVP wasn't saved. Try again in a minute, or email me at {email}.` (also `busy`, `unknown`, a timeout or a network error) |
+| `pageTitle` | `RSVP: {title}` (the script's no-JS reply page) |
+| `back` | `Back to the event page` |
+| `hi` | `Hi {name},` |
+| `confirmSubject` | `You're on the list: {title}` |
+| `confirmLead` | `Thanks for your RSVP to {title}. You said: {status}.` (`{status}` = `Going` or `Maybe`) |
+| `cantSubject` | `RSVP received: {title}` |
+| `cantLead` | `Thanks for letting me know you can't make {title}. If your plans change, reply to this email.` |
+| `reminderSubject` | `Reminder: {title}` |
+| `reminderLead` | `Here's a reminder about {title}.` |
+| `when` | `When: {dateLabel}, {timeLabel}` |
+| `where` | `Where: {venue}, {address}` |
+| `waitlistNote` | `The waitlist goes in sign-up order. I'll email you if a spot opens.` (TODO(Brian): confirm; freeing a spot is by hand) |
+| `calendarLine` | `Add it to your calendar: {icsUrl}` |
+| `detailsLine` | `Event details: {pageUrl}` |
+| `changeLine` | `To change your RSVP, reply to this email.` |
+| `signoff` | `{siteName}` |
+
+**Page states:** the spots line shows `spotsLeft` (n ≥ 2), `spotLeft` (n = 1), `fullWaitlist` or `full` (n = 0, by the event's waitlist setting). Success (going/maybe): `doneTitle`, `doneText`, one `outcomeLine` per person, the `calendar` button. Success (can't go): `cantTitle`, `cantText`. A failed RSVP shows its error above the form; field errors sit under their fields, with `errInvalid` above the form.
+
+### Emails (plain text, built by the Apps Script from `text`; blank lines as shown)
+- **Confirmation** (going or maybe), subject `confirmSubject`: `hi` · blank · `confirmLead` · blank · `when` · `where` · blank · one line `- {outcomeLine}` per person (when the event has a session), then `waitlistNote` if anyone is on the waitlist · blank · each `inEmails` notice: its title, its text, its link URL · blank · `calendarLine` · `detailsLine` · blank · `changeLine` · blank · `signoff`.
+- **Can't go**, subject `cantSubject`: `hi` · blank · `cantLead` · blank · `signoff`.
+- **Reminder** (going or maybe, at `reminderAt`), subject `reminderSubject`: `hi` · blank · `reminderLead` · blank · `when` · `where` · blank · each `inReminder` block: its title, then its text or `- item` lines · blank · `- {outcomeLine}` per person with the session cell as it is now in the sheet · blank · each `inEmails` notice (title, text, link) · blank · `detailsLine` · `calendarLine` · blank · `signoff`.
+
+---
+
 ## Checks Opus ran on this deck
+- **Events (I-048–I-050, Nov 6, 2026):** Brian's event strings are verbatim, including his capitals; the only change is layout (his "what to wear" sentence split into four list items at his commas and semicolon, his timeline notes split at semicolons, each word kept). The `20` in `Limited to first {limit} sign-ups` is the session limit, not typed. No licensed-only term, no "massage", no "home visit/office/mobile", no "treat/cure/diagnose/fix/heal/health"; "Self Care" and "restorative" make no outcome claim. New *(architect)* lines add no fact except two promises Brian must confirm: `privacy` (what the RSVP data is used for) and `waitlistNote` ("I'll email you if a spot opens"). The raffle line names no rules (Brian). No phone number; the only email shown is `site.email`. The venue address is CityROCK's public address, not the office's.
 - **Travel info, dropdowns, rate-card colours (step V; Brian, Oct 30 2026):** the only new words are the H2 `Travel info` (Brian's exact text): no digit, `$`, licensed-only term, "massage" or medical claim. The three travel paragraphs, the specialties text and the rate cards' words are unchanged; the dropdowns and the colours are layout (both rate cards Ohm green with terracotta accents; the terracotta 90-minute card was dropped the same day, no words change). The group rule still appears once on Pricing, now inside the closed Travel info dropdown (still in the built HTML, so test 16 holds).
 - **Pricing rework (step V; Brian, Oct 30 2026):** all new text is Brian's exact text. The intro is shortened; the group sentence moves to Travel fee P (2) with the fee count still from `terms.groupMax` (rendered as a word), so the rule appears once on the page (test 16). P (3) (`massage table, sheets and any extras`) is a new fact from Brian; "massage" is allowed while licensed (BRIEF §7) and `check:wording`'s forbidden pattern does not match "massage table". The deleted days paragraph was a pointer to `/book`; no fact is lost (the booking page still explains days by area). No digit, `$` literal, "treat/cure/diagnose/fix/heal/health". Rate-card labels reuse `At my office`, `At your place`; the small line is `includes travel` (Brian's exact text, Oct 30 2026; was `includes travel fee` earlier that day, before that `includes $… travel`, no digit or `$` now); the caption `Session rates` and the `Session` header go.
 - **Central & Southwest, travel-fee note (Brian, Oct 29):** both are Brian's exact text. The name has no "Springs" and no "home"; the `&` is escaped by Astro and decoded by `check:wording`. The new note has no digit, `$`, licensed-only term or "treat/cure/diagnose/fix/heal/health", and drops no fact from the site: the group rule stays in the Pricing intro and in Client Policies `mobile-visits` bullet 2. The zone card no longer mentions the group rule (Brian's call; flagged).

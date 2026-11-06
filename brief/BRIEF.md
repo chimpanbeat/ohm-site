@@ -29,14 +29,14 @@ PocketSuite (PS) handles booking, availability, intake forms, contracts, payment
 Do not build any of the following:
 
 - Intake, contracts, payments, or accounts.
-- A CMS, backend, database, or serverless functions.
+- A CMS, backend, database, or serverless functions. One exception (I-049, Nov 6, 2026): event RSVPs post to a Google Apps Script web app in Brian's Google account, which writes to his private sheet and sends the RSVP emails. The site itself stays static; no guest data, sheet ID or script ID is in the repo.
 - Analytics that capture addresses.
 - Storage or transmission of a visitor's address anywhere other than the Google autocomplete call.
 - Any guessing of PocketSuite URLs. Use only the links Brian supplies (in config since Oct 29, 2026, I-040).
 
 ## 3. Stack and hosting
 
-- **Framework:** Astro, static output, TypeScript. Ship zero JavaScript except on the Book page (address check) and a small script on `/client-policies` (Expand all / Collapse all, and opening the section named in the link; I-037, Oct 29, 2026), and a tiny script on Home only: a plain click on the header logo turns its Ω once, counter-clockwise, instead of reloading Home; the wordmark stays still (Brian, Oct 30, 2026, step V), and a small script on the map pages (`/book` and each `/book/<zone>`) that loads the map's terrain shading after the page has loaded (I-054, Brian, Nov 5, 2026). Every page works without JavaScript; the map pages then lose only the terrain shading. Page transitions and the other small motion Brian approved on Oct 30, 2026 are CSS only: the browser's native cross-document view transitions, never a client-side router, and no script (ARCHITECTURE §A3, fifth to tenth motion exceptions).
+- **Framework:** Astro, static output, TypeScript. Ship zero JavaScript except on the Book page (address check) and a small script on `/client-policies` (Expand all / Collapse all, and opening the section named in the link; I-037, Oct 29, 2026), and a tiny script on Home only: a plain click on the header logo turns its Ω once, counter-clockwise, instead of reloading Home; the wordmark stays still (Brian, Oct 30, 2026, step V), and a small script on the map pages (`/book` and each `/book/<zone>`) that loads the map's terrain shading after the page has loaded (I-054, Brian, Nov 5, 2026), and on event pages with an RSVP form a script that shows spots left and sends the RSVP without leaving the page (I-049, Nov 6, 2026). Every page works without JavaScript; the map pages then lose only the terrain shading, and the RSVP form posts to the Apps Script and shows its reply page. Page transitions and the other small motion Brian approved on Oct 30, 2026 are CSS only: the browser's native cross-document view transitions, never a client-side router, and no script (ARCHITECTURE §A3, fifth to tenth motion exceptions).
 - **Hosting:** GitHub Pages, deployed with the official Astro GitHub Action.
   - Build to the default `*.github.io` URL first.
   - The custom domain `ohmprecisionbodywork.com` (DNS at Porkbun) is cut over later; see §10.
@@ -92,6 +92,7 @@ The friends-and-family rate is **not** shown on the site. Packages appear only o
 | `/about`    | About Brian        | Uses the provided photos. Draft copy from §8, marked for Brian's review.    |
 | `/book`     | Booking router     | The core feature (§6).                                                      |
 | `/client-policies` | Client policies | The client agreement says the policies are posted on the site. The Client Policies doc, v1.4 (Oct 29, 2026), client-facing sections only, with two changes for the public page: the Zelle line asks clients to request Zelle details (no Zelle address), and the first Communication sentence points to the contact form and chat. One collapsible section per policy, closed at first; Expand all / Collapse all; a link to a section opens it. Version and date at the top, and a branded PDF of the same text (built in the doc kit, I-043). No phone number. Linked from the footer, Services, Pricing and Book; in the sitemap. Added Oct 29, 2026 (I-037). |
+| `/<event>` | Events | One page per event, all from `src/data/events.ts`: a new event is a data entry, not new code (I-048, Nov 6, 2026). First: `/launch-party`, the Ohm Launch Party on Sunday Nov 22, 2026 at CityROCK. Title, date and time, venue, host and photo, timeline, what to wear, parking, notices (the CityROCK waiver), graphics, an add-to-calendar file, and an RSVP form with a capped session (yoga, 20 spots, waitlist; I-049, I-050). Never shows who's going; the page shows only spots left. `noindex` and out of the sitemap unless the event says otherwise. |
 | `/404`      | Not found          | Plain, with a link to `/book`.                                              |
 
 **Services page content:**
@@ -277,6 +278,7 @@ Every AC is covered by a test or a named screenshot check.
 - [ ] **AC-6** No hardcoded rates, days, links, or zone names outside `src/data/`.
 - [ ] **AC-7** README covers: local dev, deploy, updating rates and links, re-exporting zones, the Google key setup, and the DNS cutover.
 - [ ] **AC-8** `/client-policies` and `ohm-client-policies.pdf` come from one source text (`src/data/client-policies.ts`, the Client Policies doc v1.4): the PDF is the doc kit's branded build of that text (I-043), and a test extracts its text and fails while any sentence of the source is missing from it. Both show the version and date (page: Version 1.4 · Oct 29, 2026; PDF: Effective: October 29, 2026, Version 1.4). Both I-037 changes are in place (the Zelle line and the first Communication sentence). Neither has a phone number or a Zelle address (added Oct 29, 2026, I-037).
+- [ ] **AC-9** Events (I-048–I-050, Nov 6, 2026): `/launch-party` renders only from `src/data/events.ts` and the shared event components, and a test adds a second event in data and gets a second page with no code change. The RSVP form works with and without JavaScript. The yoga cap holds under the script lock: the 21st yes-answer joins the waitlist, and while anyone is waitlisted new yes-answers queue. No reply carries an email address, a name or the guest list, and the repo holds no guest data, sheet ID or script ID.
 
 ## 13. Working agreement
 

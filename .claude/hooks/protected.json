@@ -3,6 +3,8 @@
     "src/data/site.ts",
     "src/data/wording.ts",
     "src/data/client-policies.ts",
+    "src/data/events.ts",
+    "apps-script/rsvp.js",
     "src/lib/geo.ts",
     "src/styles/tokens.css",
     "astro.config.mjs",
