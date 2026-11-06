@@ -171,7 +171,7 @@ No splash on Home (9A batch 5: it's on `/hello`, below).
 
 **Cream band**
 - `<PriceTable />` (step V; Brian, Oct 30 2026: two rate cards, no table). One card per `site.rates` entry:
-  - **H3:** `{site.rates.*.label}`, at the H2 size (`--fs-h2`, step V), with a rule under it the width of the title.
+  - **H2:** `{site.rates.*.label}` (I-052, Nov 5 2026; was H3), at the H2 size (`--fs-h2`, step V), with a rule under it across the card.
   - **Colours** (step V; Brian, Oct 30 2026): both cards are Ohm green with cream text and a terracotta top edge, title rule and icons; no second colour (the terracotta 90-minute card, set earlier that day, is dropped). Design only, no copy change.
   - Two price columns: label `At my office`, price `${price}`; label `At your place`, price `${price + site.travelFee.amount}`, with the small line `includes travel` under it, kept short so it does not wrap (step V, Brian, Oct 30 2026; was `includes travel fee` earlier that day, before that `includes ${site.travelFee.amount} travel`). Prices computed. Each label sits after its icon; the price and the small line are indented to line up with the label text, past the icon (CSS only).
   - Today: `60-minute session` $90 / $115 (includes travel); `90-minute session` $120 / $145 (includes travel). No visible caption (the list carries `aria-label="Session rates"`), no `Session` header.

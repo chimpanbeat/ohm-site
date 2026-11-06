@@ -8,7 +8,7 @@ const rows = Object.values(site.rates);
   {
     rows.map((r) => (
       <div class="rate-card rise" role="listitem">
-        <h3>{r.label}</h3>
+        <h2>{r.label}</h2>
         <div class="rate-card__prices">
           <p>
             <span class="rate-card__label">
@@ -48,10 +48,12 @@ const rows = Object.values(site.rates);
     color: var(--text-on-dark);
   }
   /* The accent shows as the card's top edge and a rule under its title, full width inside the card's padding; the prices stay cream. */
-  .rate-card h3 {
+  /* An h2 under the page's h1 (I-052); line-height kept at the h3 value so the card looks as before. */
+  .rate-card h2 {
     font-size: var(--fs-h2);
+    line-height: 1.3;
   }
-  .rate-card h3::after {
+  .rate-card h2::after {
     content: '';
     display: block;
     width: 100%;
