@@ -8,5 +8,8 @@ export default defineConfig({
   output: 'static',
   trailingSlash: 'ignore',
   server: { port: 4321 }, // must match the Google key's localhost referrer
-  build: { format: 'file' }, // services.html is served at /services with no 301 on GitHub Pages
+  build: {
+    format: 'file', // services.html is served at /services with no 301 on GitHub Pages
+    inlineStylesheets: 'always', // I-053: no render-blocking CSS request before first paint
+  },
 });
