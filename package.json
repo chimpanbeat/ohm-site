@@ -21,7 +21,7 @@
     "check:dist": "node scripts/check-dist.mjs",
     "check:secrets": "node tools/check-secrets.mjs",
     "check": "npm run build && npm test && npm run check:wording && npm run check:contrast && npm run check:dist && npm run check:secrets",
-    "shots": "node tools/shots.mjs --base /ohm-site",
+    "shots": "node tools/shots.mjs",
     "metrics": "node tools/method-metrics.mjs"
   },
   "dependencies": {

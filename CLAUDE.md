@@ -29,7 +29,7 @@ Rules live in .claude/ (settings, hooks, agents, skills); the spec's Guardrails 
 | `tools/` | Method metrics, secrets scan, screenshots (`npm run shots`) |
 
 ## Commands
-- `npm run dev`: dev server on http://localhost:4321/ohm-site/ (port 4321 is required by the Google key referrer).
+- `npm run dev`: dev server on http://localhost:4321/ (port 4321 is required by the Google key referrer).
 - `npm run check`, `npm run build`, `npm test`, `npm run shots [-- <step>]`, `npm run metrics`.
 - Data: `npm run zones` (KML → geojson), `npm run osm`, `npm run terrain`, `npm run icons`, `npm run omega`.
 

@@ -9,7 +9,7 @@ The repo is **public**. Never commit `.env`, the KML, client data, or anything u
 - Node 24 (22.12+ works).
 - `npm ci`
 - `cp .env.example .env`, then set `PUBLIC_GOOGLE_MAPS_KEY` (see [Google key setup](#google-key-setup)). Without a key the site still works: `/book` falls back to the zone picker and the map.
-- `npm run dev` serves http://localhost:4321/ohm-site/.
+- `npm run dev` serves http://localhost:4321/.
 
 The port is fixed at **4321** because the Google key allows the referrer `http://localhost:4321/*`. If the dev server picks another port, the address field stops working until that referrer is added to the key.
 
@@ -38,7 +38,7 @@ One-time setup:
 1. Repo **Settings → Pages → Source: GitHub Actions**.
 2. Repo **Settings → Secrets and variables → Actions → Variables** → add `PUBLIC_GOOGLE_MAPS_KEY`. It's a **variable**, not a secret: the key ends up in the page's JavaScript by design, and the referrer and API restrictions protect it.
 
-The preview is https://chimpanbeat.github.io/ohm-site/. It is `noindex` until the site is licensed and live.
+A push to `main` publishes production at https://ohmprecisionbodywork.com (live since Nov 6, 2026, I-018); the old https://chimpanbeat.github.io/ohm-site/ address redirects there. The site is indexable (`licensed` and `deploy.live` are both true); only `/hello` and the 404 page stay `noindex`.
 
 ## Updating rates, days and links
 
