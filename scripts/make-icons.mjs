@@ -1,8 +1,10 @@
 // Generates public/ icons from brief/logo (ARCHITECTURE §B6). Run: npm run icons
 import sharp from 'sharp';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, readFileSync } from 'node:fs';
 
-const GREEN = '#0C3F35';
+// The favicon square is --green-900, read from tokens.css so the hex stays in one place.
+const GREEN = readFileSync('src/styles/tokens.css', 'utf8').match(/--green-900:\s*(#[0-9a-f]{6})/i)?.[1];
+if (!GREEN) throw new Error('--green-900 not found in src/styles/tokens.css');
 mkdirSync('public', { recursive: true });
 
 // favicon: anatomy detail is unreadable at 32px, so the icon sits at 80% on a green square.

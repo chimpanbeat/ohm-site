@@ -3,7 +3,7 @@
 The pre-launch review (STATUS row PL) checks this; the `L` step runs it with Brian. Brian confirms every production change. The steps themselves live in README → "License-day checklist" (one home; not copied here).
 
 ## Before launch day
-- [ ] Every acceptance criterion in BRIEF §12 (AC-1–AC-7) checked in the pre-launch review, with evidence.
+- [ ] Every acceptance criterion in BRIEF §12 (AC-1–AC-8) checked in the pre-launch review, with evidence.
 - [ ] Every master-list item that blocks L is done: I-001 (tested PocketSuite links) and I-018 (domain cutover). I-035 (licensed wording) is applied.
 - [ ] The Google key's referrers include the production domain (README → Google key setup); the key stays outside git (`.env` locally, a repo variable in CI).
 - [ ] Rollback path below read once against the preview.
@@ -14,6 +14,7 @@ The pre-launch review (STATUS row PL) checks this; the `L` step runs it with Bri
 3. Brian: Search Console and Google Business Profile point at `/`; cards and QR codes use `/hello` (I-010).
 
 ## After launch
+- [ ] AC-5 closes here: Lighthouse mobile on the live domain (`/`, `/about`, `/services`, `/pricing`, `/book`, `/client-policies`), all four categories 90+. SEO was 66 before launch only because of `noindex` (`is-crawlable`, step PL); record the scores in STATUS.
 - [ ] Smoke test from a phone: Home, Services & Pricing, `/book` address lookup and zone buttons, each booking link, `/hello`.
 - [ ] Watch the Google Cloud quota and billing alerts (I-017) for 48 hours.
 - [ ] Tag the commit `v1.0` and note it in STATUS → Change log.
