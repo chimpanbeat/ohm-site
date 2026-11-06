@@ -17,7 +17,7 @@ States: `todo` · `doing` · `blocked` · `done` · `dropped`
 | V | Visual pass with Brian at 375 and 1280 px | medium | /next | done | 0f23bef |
 | M1 | Motion set two, part 1 (Brian approved Oct 30): 404 Ω trace, button settle, page cross-fade; CSS only (`steps/M1-motion-404-buttons-transitions.md`, §A3 exceptions 5–7) | medium | /next | done | 0f3306b |
 | M2 | Motion set two, part 2 (Brian approved Oct 30): scroll-linked header, one-time content entrance, Home hero drift; CSS only (`steps/M2-motion-scroll.md`, §A3 exceptions 8–10) | high | /next-high | done | 723cff3 |
-| PL | Pre-launch review against AC-1–AC-8, Lighthouse | high | /next-high | doing | |
+| PL | Pre-launch review against AC-1–AC-8, Lighthouse | high | /next-high | done | c8326c6 |
 | L | Launch: I-001 tested links, I-018 domain cutover, `deploy.live` on, Lighthouse re-run on the live domain to close AC-5 SEO (`docs/runbooks/launch.md`) | high | /next-high | blocked: I-001, I-018 | |
 | F1 | I-038: /faq page | — | — | blocked: I-038 (Brian opens it after launch) | |
 | F2 | I-039: /hello breathing text (the line only, 5% over 6 s; Brian OK'd Oct 29) | medium | /next | done | (this commit) |
