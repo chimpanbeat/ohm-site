@@ -245,7 +245,7 @@ No splash on Home (9A batch 5: it's on `/hello`, below).
 - **Credit line** (small, under the map) (9A): `Roads and places © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright). Terrain: USGS 3DEP.`
 - ~~**Link:** `Open the map in Google Maps`~~ → replaced by the Google Maps button above (8A), still → `{site.mapViewerUrl}`
 - **Boundary line** (9A): `Near a boundary or can't find your address? [Chat with me]({site.contact.chat}) or [send me an email]({mailHref}). Boundaries are approximate.`
-- `/book/[zone]` (not office) shows the same map, focused on that zone. The hint isn't shown there (no JS).
+- `/book/[zone]` (not office) shows the same map, focused on that zone. The hint isn't shown there (no booking script).
 
 **Payment notice** (step 15, I-041): `<PaymentNotice at="book" />` once on `/book`, after the `#mobile` section; on `/book/central`, `/book/midnorth`, `/book/north` and `/book/office` directly after the card; not on `/book/out` (→ Payment notice).
 

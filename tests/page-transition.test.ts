@@ -51,7 +51,18 @@ test('src: no Astro client router or transition directives', () => {
 const skip = existsSync(join(dist, 'index.html')) ? false : 'dist/index.html missing: run npm run build';
 
 test('dist: script inventory per page', { skip }, () => {
-  const want: Record<string, number> = { 'index.html': 1, 'book.html': 2, 'client-policies.html': 1, 'hello.html': 1 };
+  // I-054: every map page also loads terrain.ts (the zone pages' only script).
+  const want: Record<string, number> = {
+    'index.html': 1,
+    'book.html': 3,
+    'client-policies.html': 1,
+    'hello.html': 1,
+    'book/central.html': 1,
+    'book/midnorth.html': 1,
+    'book/north.html': 1,
+    'book/office.html': 1,
+    'book/out.html': 1,
+  };
   for (const f of walk(dist, /\.html$/)) {
     const rel = relative(dist, f).split(sep).join('/');
     const html = readFileSync(f, 'utf8');

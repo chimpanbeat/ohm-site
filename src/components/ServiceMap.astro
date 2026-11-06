@@ -292,7 +292,7 @@ const markProps = office ? {} : { href: href('/book/office'), tabindex: '-1', 'a
     }
     <image
       class="terrain"
-      href={terrainImg.src}
+      data-href={terrainImg.src}
       x={terrainX0}
       y={terrainY0}
       width={Number((terrainX1 - terrainX0).toFixed(1))}
@@ -395,6 +395,10 @@ const markProps = office ? {} : { href: href('/book/office'), tabindex: '-1', 'a
     Roads and places &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>. Terrain: USGS 3DEP.
   </p>
 </div>
+
+<script>
+  import '../scripts/terrain.ts';
+</script>
 
 <style>
   .service-map {

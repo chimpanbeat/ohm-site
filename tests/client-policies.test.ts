@@ -249,7 +249,7 @@ test('14. the sitemap lists the policies and still not /hello', { skip }, () => 
   assert.doesNotMatch(map, /hello/);
 });
 
-test('15. only Book, the policies, /hello and Home (logo spin, step V) carry a script besides JSON-LD', { skip }, () => {
+test('15. only Book, the zone pages (terrain, I-054), the policies, /hello and Home (logo spin, step V) carry a script besides JSON-LD', { skip }, () => {
   const withScript: string[] = [];
   const walk = (d: string) => {
     for (const n of readdirSync(d)) {
@@ -262,7 +262,17 @@ test('15. only Book, the policies, /hello and Home (logo spin, step V) carry a s
     }
   };
   walk(dist);
-  assert.deepEqual(withScript.sort(), ['book.html', 'client-policies.html', 'hello.html', 'index.html']);
+  assert.deepEqual(withScript.sort(), [
+    'book.html',
+    'book/central.html',
+    'book/midnorth.html',
+    'book/north.html',
+    'book/office.html',
+    'book/out.html',
+    'client-policies.html',
+    'hello.html',
+    'index.html',
+  ]);
 });
 
 test('16. Pricing states the group rule once, in the Travel fee section; the travel-fee note does not repeat it (Oct 29)', { skip }, () => {
