@@ -1,0 +1,82 @@
+---
+import { getImage } from 'astro:assets';
+import { rsvpText, type SiteEvent } from '../../data/events.ts';
+import { dateLabel, timeLabel, mapsUrl } from '../../lib/events.ts';
+import { eventAsset } from '../../lib/event-assets.ts';
+import { href } from '../../lib/url.ts';
+
+interface Props {
+  event: SiteEvent;
+}
+
+const { event } = Astro.props;
+const tz = event.timeZone;
+const wide = eventAsset(event.graphics.wide);
+const narrow = eventAsset(event.graphics.narrow);
+
+// Art direction as on About: the wide banner from 48rem, the narrow mark below. Never upscaled.
+const widthsOf = (src: ImageMetadata) => [Math.round(src.width * 0.5), src.width];
+const make = (src: ImageMetadata, format: 'avif' | 'webp') => getImage({ src, format, widths: widthsOf(src) });
+const [wideAvif, wideWebp, narrowAvif, narrowWebp, fallback] = await Promise.all([
+  make(wide, 'avif'),
+  make(wide, 'webp'),
+  make(narrow, 'avif'),
+  make(narrow, 'webp'),
+  getImage({ src: narrow, format: 'png', width: narrow.width }),
+]);
+
+const wideMedia = '(min-width: 48rem)';
+const wideSizes = `(min-width: 72rem) ${wide.width}px, (min-width: 48rem) 100vw, 100vw`;
+const narrowSizes = `(min-width: 30rem) ${narrow.width}px, 100vw`;
+---
+
+<!-- width/height on every source reserve the box for each art direction (no layout shift). alt="" because the H1 says the same. -->
+<picture>
+  <source media={wideMedia} type="image/avif" srcset={wideAvif.srcSet.attribute} sizes={wideSizes} width={wide.width} height={wide.height} />
+  <source media={wideMedia} type="image/webp" srcset={wideWebp.srcSet.attribute} sizes={wideSizes} width={wide.width} height={wide.height} />
+  <source type="image/avif" srcset={narrowAvif.srcSet.attribute} sizes={narrowSizes} width={narrow.width} height={narrow.height} />
+  <source type="image/webp" srcset={narrowWebp.srcSet.attribute} sizes={narrowSizes} width={narrow.width} height={narrow.height} />
+  <img src={fallback.src} width={narrow.width} height={narrow.height} alt="" loading="eager" decoding="async" fetchpriority="high" />
+</picture>
+
+<h1>{event.title}</h1>
+
+<p class="event-when">
+  <time datetime={event.start}>{dateLabel(event.start, tz)}</time> · {timeLabel(event.start, event.end, tz, 'always')}
+</p>
+<p class="event-where">
+  <a href={mapsUrl(event.venue)} target="_blank" rel="noopener">{event.venue.name}, {event.venue.address}</a>
+</p>
+<p class="event-actions">
+  <!-- The RSVP button arrives with the form (E2, ARCHITECTURE §B10). -->
+  <a class="btn btn--quiet" href={href(`/events/${event.slug}.ics`)} download>{rsvpText.calendar}</a>
+</p>
+
+<style>
+  picture {
+    display: block;
+    margin-bottom: var(--s-6);
+  }
+  picture img {
+    display: block;
+    width: 100%;
+    max-width: 24rem;
+    height: auto;
+    margin-inline: auto;
+  }
+  .event-when {
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+  .event-where {
+    margin-top: var(--s-2);
+  }
+  .event-actions {
+    margin-top: var(--s-6);
+  }
+  @media (min-width: 48rem) {
+    picture img {
+      max-width: 1000px;
+    }
+  }
+</style>

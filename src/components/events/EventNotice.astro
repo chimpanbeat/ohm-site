@@ -1,0 +1,41 @@
+---
+import type { Notice } from '../../data/events.ts';
+
+interface Props {
+  notice: Notice;
+}
+
+const { notice } = Astro.props;
+---
+
+<div class="event-notice" id={notice.id}>
+  <h2>{notice.title}</h2>
+  <p>{notice.text}</p>
+  {
+    notice.link && (
+      <p>
+        <a href={notice.link.url} target="_blank" rel="noopener">
+          {notice.link.label}
+        </a>
+      </p>
+    )
+  }
+</div>
+
+<style>
+  .event-notice {
+    padding: var(--s-4);
+    border: 1px solid var(--line-dark);
+    border-top: 3px solid var(--accent);
+    border-radius: var(--radius);
+  }
+  .event-notice + .event-notice {
+    margin-top: var(--s-6);
+  }
+  h2 + p {
+    margin-top: var(--s-2);
+  }
+  p + p {
+    margin-top: var(--s-4);
+  }
+</style>

@@ -13,17 +13,32 @@ import ogSource from '../assets/about-landscape.jpg';
 interface Props {
   title: string;
   description: string;
+  ogImage?: ImageMetadata; // link-preview art (events, §B10); unset: the About landscape crop
+  ogAlt?: string;
   noindex?: boolean;
   bare?: boolean; // /hello only: no skip link, Header or Footer
 }
 
-const { title, description, noindex = false, bare = false } = Astro.props;
+const { title, description, ogImage, ogAlt, noindex = false, bare = false } = Astro.props;
 // build.format is 'file': drop '.html' / 'index.html' so canonicals match the clean URLs we link to.
 const canonical = new URL(Astro.url.pathname.replace(/(?:index)?\.html$/, ''), Astro.site);
 
 // Default OG image: a 1200x630 crop of the landscape photo, as an absolute URL.
 const og = await getImage({ src: ogSource, width: 1200, height: 630, fit: 'cover', format: 'jpeg' });
 const ogUrl = new URL(og.src, Astro.site);
+
+// Link preview: the default photo, or `ogImage` cropped to 1.905:1 and never upscaled (ARCHITECTURE §B3).
+let social = { url: ogUrl, width: 1200, height: 630 };
+if (ogImage) {
+  let w = Math.min(1200, ogImage.width);
+  let h = Math.round(w / 1.905);
+  if (h > ogImage.height) {
+    h = ogImage.height;
+    w = Math.round(h * 1.905);
+  }
+  const img = await getImage({ src: ogImage, width: w, height: h, fit: 'cover', format: 'jpeg' });
+  social = { url: new URL(img.src, Astro.site), width: w, height: h };
+}
 
 // LocalBusiness JSON-LD (brief §11). No street address, ever.
 const prices = Object.values(site.rates).map((r) => r.price);
@@ -61,13 +76,15 @@ const jsonLd: Record<string, unknown> = {
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
-    <meta property="og:image" content={ogUrl} />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
+    <meta property="og:image" content={social.url} />
+    <meta property="og:image:width" content={social.width} />
+    <meta property="og:image:height" content={social.height} />
+    {ogAlt && <meta property="og:image:alt" content={ogAlt} />}
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={ogUrl} />
+    <meta name="twitter:image" content={social.url} />
+    {ogAlt && <meta name="twitter:image:alt" content={ogAlt} />}
 
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   </head>

@@ -473,9 +473,10 @@ Each event's strings live in its entry in `src/data/events.ts`; the RSVP strings
 | `addGuest` | `Add a guest` |
 | `removeGuest` | `Remove guest {n}` |
 | `honeypot` | `Leave this field empty` |
+| `optIn` | `Yes, send me Ohm news and offers.` (Brian, I-065: the label of an unchecked checkbox, `optin`, just above the submit button) |
 | `submit` | `Send RSVP` |
 | `sending` | `Sending…` |
-| `privacy` | `Your name and email go to a private Google Sheet I keep for this event. I use them only for this event's emails.` (TODO(Brian): confirm this promise) |
+| `privacy` | `I only use your name and email for Ohm. News and offers only if you check the box.` (Brian, I-065: under the form, after the submit button) |
 | `spotsLeft` | `{n} {session} spots left` |
 | `spotLeft` | `1 {session} spot left` |
 | `fullWaitlist` | `{Session} is full. Answer yes to join the waitlist.` |
@@ -486,6 +487,8 @@ Each event's strings live in its entry in `src/data/events.ts`; the RSVP strings
 | `cantTitle` | `Thanks for letting me know.` |
 | `cantText` | `I sent a short note to your email.` |
 | `outcomeConfirmed` · `outcomeWaitlist` · `outcomeFull` · `outcomeNo` | `{Session}: confirmed` · `{Session}: waitlist` · `{Session}: full` · `{Session}: no` (Brian: "Yoga: confirmed", "Yoga: waitlist") |
+| `outcomeMaybe` | `{Session}: no spot held while Maybe` *(architect, I-064)* |
+| `maybeNote` | `A Maybe doesn't hold a {session} spot. If you decide to come, RSVP again on the event page with this email and choose Going.` *(architect, I-064)* |
 | `outcomeLine` | `{name} · {outcome}` |
 | `calendar` | `Add to calendar` |
 | `errInvalid` | `Check the fields marked below.` |
@@ -496,7 +499,8 @@ Each event's strings live in its entry in `src/data/events.ts`; the RSVP strings
 | `errSession` | `Answer the {session} question.` |
 | `errGuestName` | `Enter guest {n}'s name, or remove the guest.` |
 | `errGuestSession` | `Answer the {session} question for guest {n}.` |
-| `errDuplicate` | `This email already has an RSVP. To change it, reply to your confirmation email.` |
+| `changeTitle` | `Check your email.` *(architect, I-064: the reply when the email already has an RSVP; replaces `errDuplicate`)* |
+| `changeText` | `This email already has an RSVP, so I sent a link to that address. Open it to confirm your change; nothing changes until you do.` *(architect, I-064)* |
 | `errServer` | `Something went wrong and your RSVP wasn't saved. Try again in a minute, or email me at {email}.` (also `busy`, `unknown`, a timeout or a network error) |
 | `pageTitle` | `RSVP: {title}` (the script's no-JS reply page) |
 | `back` | `Back to the event page` |
@@ -504,27 +508,44 @@ Each event's strings live in its entry in `src/data/events.ts`; the RSVP strings
 | `confirmSubject` | `You're on the list: {title}` |
 | `confirmLead` | `Thanks for your RSVP to {title}. You said: {status}.` (`{status}` = `Going` or `Maybe`) |
 | `cantSubject` | `RSVP received: {title}` |
-| `cantLead` | `Thanks for letting me know you can't make {title}. If your plans change, reply to this email.` |
+| `cantLead` | `Thanks for letting me know you can't make {title}. If your plans change, RSVP again on the event page with this email.` *(architect, I-064: was "reply to this email")* |
 | `reminderSubject` | `Reminder: {title}` |
 | `reminderLead` | `Here's a reminder about {title}.` |
 | `when` | `When: {dateLabel}, {timeLabel}` |
 | `where` | `Where: {venue}, {address}` |
-| `waitlistNote` | `The waitlist goes in sign-up order. I'll email you if a spot opens.` (TODO(Brian): confirm; freeing a spot is by hand) |
+| `waitlistNote` | `The waitlist goes in sign-up order. I'll email you if a spot opens.` (Brian, I-065: keep as drafted; freeing a spot is by hand) |
 | `calendarLine` | `Add it to your calendar: {icsUrl}` |
 | `detailsLine` | `Event details: {pageUrl}` |
-| `changeLine` | `To change your RSVP, reply to this email.` |
+| `changeLine` | `To change your RSVP, RSVP again on the event page with this email, or reply to this email.` *(architect, I-064: adds the repeat RSVP)* |
 | `signoff` | `{siteName}` |
+| `changeSubject` | `Confirm your RSVP change: {title}` *(architect, I-064)* |
+| `changeLead` | `Someone asked to change your RSVP to {title} using this email address. If it was you, confirm the new answer below.` *(architect, I-064)* |
+| `newAnswer` | `New answer: {status}` *(architect, I-064; `{status}` = the `going`, `maybe` or `cant` text)* |
+| `answerLine` | `{name} · {Session}: {answer}` *(architect, I-064; `{answer}` = the `yes` or `no` text; the change email and page list what was asked for, not outcomes)* |
+| `changeLinkLine` | `To make the change, open this link and press Confirm change within 6 hours: {changeUrl}` *(architect, I-064)* |
+| `changeIgnore` | `If you didn't ask for this, ignore this email. Your RSVP stays as it is.` *(architect, I-064)* |
+| `changeConfirmLead` | `Confirm this change to your RSVP:` *(architect, I-064: the script's confirm page)* |
+| `changeConfirm` | `Confirm change` *(architect, I-064: its button)* |
+| `changeExpired` | `This link has expired or was already used. To change your RSVP, send it again on the event page.` *(architect, I-064)* |
+| `changeDoneTitle` | `Your RSVP is updated.` *(architect, I-064)* |
+| `spotFreedSubject` | `A {session} spot opened: {title}` *(architect, I-064: to Brian only)* |
+| `spotFreedText` | `A guest's RSVP change freed {session} spots (freed: {n}) while people are on the waitlist. In the sheet, set the lowest Waitlist # to confirmed and email that guest, once for each freed spot.` *(architect, I-064: to Brian only)* |
 
-**Page states:** the spots line shows `spotsLeft` (n ≥ 2), `spotLeft` (n = 1), `fullWaitlist` or `full` (n = 0, by the event's waitlist setting). Success (going/maybe): `doneTitle`, `doneText`, one `outcomeLine` per person, the `calendar` button. Success (can't go): `cantTitle`, `cantText`. A failed RSVP shows its error above the form; field errors sit under their fields, with `errInvalid` above the form.
+**Page states:** the spots line shows `spotsLeft` (n ≥ 2), `spotLeft` (n = 1), `fullWaitlist` or `full` (n = 0, by the event's waitlist setting). Success (going/maybe): `doneTitle`, `doneText`, one `outcomeLine` per person, `maybeNote` when any outcome is `maybe`, the `calendar` button. Success (can't go): `cantTitle`, `cantText`. The email already has an RSVP (`pending`): `changeTitle`, `changeText`, nothing else. A failed RSVP shows its error above the form; field errors sit under their fields, with `errInvalid` above the form. The form ends with the `optIn` checkbox, the `submit` button and the `privacy` line, in that order; no text states how many guests can be added (I-060).
+
+**Script pages** (no-JS reply and the change link; `pageTitle` as the title, every link and form `target="_top"`, each ends with the `back` link): the no-JS reply shows the same states as the page. Confirm page: `changeConfirmLead` · `newAnswer` · one `answerLine` per person (session events, not `cant`) · the `changeConfirm` button. After confirming: `changeDoneTitle` · `doneText` · one `outcomeLine` per person · `maybeNote` when any outcome is `maybe` (can't go: `cantTitle` · `cantText`). A used or expired link: `changeExpired`. Closed: `closed`.
 
 ### Emails (plain text, built by the Apps Script from `text`; blank lines as shown)
-- **Confirmation** (going or maybe), subject `confirmSubject`: `hi` · blank · `confirmLead` · blank · `when` · `where` · blank · one line `- {outcomeLine}` per person (when the event has a session), then `waitlistNote` if anyone is on the waitlist · blank · each `inEmails` notice: its title, its text, its link URL · blank · `calendarLine` · `detailsLine` · blank · `changeLine` · blank · `signoff`.
-- **Can't go**, subject `cantSubject`: `hi` · blank · `cantLead` · blank · `signoff`.
-- **Reminder** (going or maybe, at `reminderAt`), subject `reminderSubject`: `hi` · blank · `reminderLead` · blank · `when` · `where` · blank · each `inReminder` block: its title, then its text or `- item` lines · blank · `- {outcomeLine}` per person with the session cell as it is now in the sheet · blank · each `inEmails` notice (title, text, link) · blank · `detailsLine` · `calendarLine` · blank · `signoff`.
+- **Confirmation** (going or maybe; also after a confirmed change), subject `confirmSubject`: `hi` · blank · `confirmLead` · blank · `when` · `where` · blank · one line `- {outcomeLine}` per person (when the event has a session), then `waitlistNote` if anyone is on the waitlist, then `maybeNote` if any outcome is `maybe` · blank · each `inEmails` notice: its title, its text, its link URL · blank · `calendarLine` · `detailsLine` · blank · `changeLine` · blank · `signoff`.
+- **Can't go** (also after a confirmed change to can't go), subject `cantSubject`: `hi` · blank · `cantLead` · blank · `signoff`.
+- **Change** (a repeat RSVP from an email that has one, I-064; to the stored address, `hi` with the stored name), subject `changeSubject`: `hi` · blank · `changeLead` · blank · `newAnswer` · one line `- {answerLine}` per person in the request (session events, not `cant`) · blank · `changeLinkLine` · `changeIgnore` · blank · `signoff`.
+- **Spot freed** (to `site.email` only, when a confirmed change frees a `confirmed` spot while anyone is waitlisted), subject `spotFreedSubject`: `spotFreedText` · blank · `detailsLine`. No guest name or email in it.
+- **Reminder** (going or maybe, at `reminderAt`), subject `reminderSubject`: `hi` · blank · `reminderLead` · blank · `when` · `where` · blank · each `inReminder` block: its title, then its text or `- item` lines · blank · `- {outcomeLine}` per person with the session cell as it is now in the sheet (a `maybe` cell reads `outcomeMaybe`), then `maybeNote` if any cell is `maybe` · blank · each `inEmails` notice (title, text, link) · blank · `detailsLine` · `calendarLine` · blank · `signoff`.
 
 ---
 
 ## Checks Opus ran on this deck
+- **Events, Brian's answers I-060–I-066 (Nov 6, 2026):** `optIn` and `privacy` are Brian's exact text (I-065); `waitlistNote` is kept as drafted, so the two promises flagged below are now Brian's and carry no `TODO(Brian)`. "News and offers" is a promise about use, not a fact claim; the opt-in box is unchecked by default and only `you` rows that ticked it may get news (I-066). New *(architect)* lines (I-064, the change-by-email path): `outcomeMaybe`, `maybeNote`, `changeTitle`, `changeText`, `changeSubject`, `changeLead`, `newAnswer`, `answerLine`, `changeLinkLine`, `changeIgnore`, `changeConfirmLead`, `changeConfirm`, `changeExpired`, `changeDoneTitle`, `spotFreedSubject`, `spotFreedText`; `cantLead` and `changeLine` now point to a repeat RSVP; `errDuplicate` is gone. They add one fact, the 6-hour link life, which is the script's cache time (§B10 Changes). No text states the guest ceiling (I-060: no limit on +1s). No licensed-only term, no "massage", no "treat/cure/diagnose/fix/heal/health", no phone, no email but `site.email`, no address.
 - **Events (I-048–I-050, Nov 6, 2026):** Brian's event strings are verbatim, including his capitals; the only change is layout (his "what to wear" sentence split into four list items at his commas and semicolon, his timeline notes split at semicolons, each word kept). The `20` in `Limited to first {limit} sign-ups` is the session limit, not typed. No licensed-only term, no "massage", no "home visit/office/mobile", no "treat/cure/diagnose/fix/heal/health"; "Self Care" and "restorative" make no outcome claim. New *(architect)* lines add no fact except two promises Brian must confirm: `privacy` (what the RSVP data is used for) and `waitlistNote` ("I'll email you if a spot opens"). The raffle line names no rules (Brian). No phone number; the only email shown is `site.email`. The venue address is CityROCK's public address, not the office's.
 - **Travel info, dropdowns, rate-card colours (step V; Brian, Oct 30 2026):** the only new words are the H2 `Travel info` (Brian's exact text): no digit, `$`, licensed-only term, "massage" or medical claim. The three travel paragraphs, the specialties text and the rate cards' words are unchanged; the dropdowns and the colours are layout (both rate cards Ohm green with terracotta accents; the terracotta 90-minute card was dropped the same day, no words change). The group rule still appears once on Pricing, now inside the closed Travel info dropdown (still in the built HTML, so test 16 holds).
 - **Pricing rework (step V; Brian, Oct 30 2026):** all new text is Brian's exact text. The intro is shortened; the group sentence moves to Travel fee P (2) with the fee count still from `terms.groupMax` (rendered as a word), so the rule appears once on the page (test 16). P (3) (`massage table, sheets and any extras`) is a new fact from Brian; "massage" is allowed while licensed (BRIEF §7) and `check:wording`'s forbidden pattern does not match "massage table". The deleted days paragraph was a pointer to `/book`; no fact is lost (the booking page still explains days by area). No digit, `$` literal, "treat/cure/diagnose/fix/heal/health". Rate-card labels reuse `At my office`, `At your place`; the small line is `includes travel` (Brian's exact text, Oct 30 2026; was `includes travel fee` earlier that day, before that `includes $… travel`, no digit or `$` now); the caption `Session rates` and the `Session` header go.

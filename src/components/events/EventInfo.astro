@@ -1,0 +1,38 @@
+---
+import type { InfoBlock } from '../../data/events.ts';
+
+interface Props {
+  block: InfoBlock;
+}
+
+const { block } = Astro.props;
+---
+
+<div class="event-info" id={block.id}>
+  <h2>{block.title}</h2>
+  {block.text && <p>{block.text}</p>}
+  {
+    block.items && (
+      <ul>
+        {block.items.map((item) => (
+          <li>{item}</li>
+        ))}
+      </ul>
+    )
+  }
+</div>
+
+<style>
+  .event-info + .event-info {
+    margin-top: var(--s-8);
+  }
+  h2 + :is(p, ul) {
+    margin-top: var(--s-2);
+  }
+  ul {
+    padding-left: 1.1em;
+  }
+  li + li {
+    margin-top: var(--s-1);
+  }
+</style>

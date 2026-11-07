@@ -1,0 +1,51 @@
+---
+import { Image } from 'astro:assets';
+import type { SiteEvent } from '../../data/events.ts';
+import { eventAsset } from '../../lib/event-assets.ts';
+
+interface Props {
+  event: SiteEvent;
+}
+
+const { host } = Astro.props.event;
+const photo = host?.photo ? eventAsset(host.photo) : undefined;
+---
+
+{
+  host && (
+    <div class="event-host">
+      <h2>Your host</h2>
+      <figure>
+        {photo && <Image src={photo} width={320} height={400} densities={[1, 2]} fit="cover" formats={['avif', 'webp']} alt={host.alt} />}
+        <figcaption>{host.name}</figcaption>
+      </figure>
+    </div>
+  )
+}
+
+<style>
+  .event-host {
+    margin-bottom: var(--s-12);
+  }
+  figure {
+    margin: var(--s-4) 0 0;
+    max-width: 20rem;
+  }
+  figure :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    border-radius: var(--radius);
+  }
+  figcaption {
+    margin-top: var(--s-2);
+    font-weight: 700;
+  }
+  /* No photo: the name stands alone. */
+  figure:not(:has(img)) figcaption {
+    margin-top: 0;
+    font-size: var(--fs-h3);
+  }
+</style>

@@ -1,0 +1,61 @@
+---
+import Base from '../layouts/Base.astro';
+import EventHero from '../components/events/EventHero.astro';
+import EventHost from '../components/events/EventHost.astro';
+import EventTimeline from '../components/events/EventTimeline.astro';
+import EventInfo from '../components/events/EventInfo.astro';
+import EventNotice from '../components/events/EventNotice.astro';
+import { events } from '../data/events.ts';
+import { site } from '../data/site.ts';
+import { dateLabel, eventPaths, timeLabel } from '../lib/events.ts';
+import { eventAsset } from '../lib/event-assets.ts';
+
+// One page per entry in src/data/events.ts (ARCHITECTURE §B10); the guards run here, so a bad event fails the build.
+export function getStaticPaths() {
+  return eventPaths(events);
+}
+
+const { event } = Astro.props;
+const description = `${dateLabel(event.start, event.timeZone)}, ${timeLabel(event.start, event.end, event.timeZone, 'always')} at ${event.venue.name}. ${event.summary}`;
+---
+
+<Base
+  title={`${event.title} · ${site.name}`}
+  description={description}
+  ogImage={eventAsset(event.graphics.og)}
+  ogAlt={event.graphics.ogAlt}
+  noindex={!event.index}
+>
+  <section class="section">
+    <div class="container">
+      <EventHero event={event} />
+    </div>
+  </section>
+
+  <section class="section band-light">
+    <div class="container">
+      <EventHost event={event} />
+      <EventTimeline event={event} />
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      {event.info.map((block) => <EventInfo block={block} />)}
+    </div>
+  </section>
+
+  {/* The RSVP section goes here (E2). */}
+
+  {
+    event.notices.length > 0 && (
+      <section class="section">
+        <div class="container">
+          {event.notices.map((notice) => (
+            <EventNotice notice={notice} />
+          ))}
+        </div>
+      </section>
+    )
+  }
+</Base>
