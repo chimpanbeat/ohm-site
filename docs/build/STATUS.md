@@ -19,7 +19,7 @@ States: `todo` · `doing` · `blocked` · `done` · `dropped`
 | M2 | Motion set two, part 2 (Brian approved Oct 30): scroll-linked header, one-time content entrance, Home hero drift; CSS only (`steps/M2-motion-scroll.md`, §A3 exceptions 8–10) | high | /next-high | done | 723cff3 |
 | PL | Pre-launch review against AC-1–AC-8, Lighthouse | high | /next-high | done | c8326c6 |
 | L | Launch: I-001 tested links, I-018 domain cutover, `deploy.live` on, Lighthouse re-run on the live domain to close AC-5 SEO (`docs/runbooks/launch.md`) | high | /next-high | done | 07aef26 |
-| E1 | I-048: events framework and `/launch-party` from data (`events.ts`, shared components, header graphics, host photo, `.ics`, feed, `Base` og image; `steps/E1-events-page.md`, §B10) | high | /next-high | doing | |
+| E1 | I-048: events framework and `/launch-party` from data (`events.ts`, shared components, header graphics, host photo, `.ics`, feed, `Base` og image; `steps/E1-events-page.md`, §B10) | high | /next-high | done | 3368412 |
 | E2 | I-049, I-050: RSVP form and client (`site.rsvpUrl`, +1s, validation, spots left and waitlist states, no-JS post; `steps/E2-rsvp-form.md`) | high | /next-high | todo | |
 | E3 | I-049, I-050: Apps Script source (lock, cap, waitlist queue, honeypot, one RSVP per email, emails, reminders), its tests and `docs/runbooks/events.md`; Brian pastes it in I-058 (`steps/E3-rsvp-script.md`) | high | /next-high | todo | |
 | F1 | I-038: /faq page | — | — | blocked: I-038 (Brian opens it after launch) | |
