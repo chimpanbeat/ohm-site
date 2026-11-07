@@ -1,6 +1,7 @@
 ---
 import type { SiteEvent } from '../../data/events.ts';
 import { timeLabel } from '../../lib/events.ts';
+import EventRich from './EventRich.astro';
 
 interface Props {
   event: SiteEvent;
@@ -22,7 +23,9 @@ const { event } = Astro.props;
           {item.notes && item.notes.length > 0 && (
             <ul>
               {item.notes.map((note) => (
-                <li>{note}</li>
+                <li>
+                  <EventRich text={note} />
+                </li>
               ))}
             </ul>
           )}

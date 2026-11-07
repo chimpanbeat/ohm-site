@@ -72,8 +72,12 @@ Header, Footer, OfficeCard, ZonePicker and ZoneCard keep their current text (ARC
 | `about-portrait.jpg` / `about-landscape.jpg` | About `<Picture>` (both sources share the one `alt`) | `Brian Clarke standing on a sandstone ledge above a forested canyon.` |
 | `logo-line.png`, `icon.png` | Header | `Ohm Precision Bodywork` (unchanged) |
 | `portrait-square.jpg` | Not used in 4B | — |
-| `events/launch-party/header-green.png`, `launch-mark-on-dark.png` | `/launch-party` header `<picture>` | `""` (the H1 carries the words); as the link preview, `og:image:alt` `Ohm Precision Bodywork Launch Party` |
-| `events/launch-party/marea-host.jpg` | `/launch-party` host | `Marea, the host.` |
+| `events/launch-party/header-green.png`, `launch-mark-on-dark.png` | `/launch-party` header `<picture>` and link preview (`graphics.alt`) | `Ohm Precision Bodywork Launch Party` (the words on the graphic). E4: the H1 no longer repeats them (was `""`) |
+| `events/launch-party/marea-host.jpg` | Not shown since E4 (source of `marea-thumb.jpg`) | — |
+| `events/launch-party/marea-thumb.jpg` | `/launch-party` credits, Maréa | `""` *(architect, E4)*: inside the link with her name; a name in the alt would be read twice |
+| `events/launch-party/cityrock-logo.png` | `/launch-party` credits, CityROCK | `""` *(architect, E4)*: the logo's word is the name beside it |
+| `events/launch-party/britt-thumb.jpg` | `/launch-party` credits, Britt Maddy | `""` *(architect, E4)*: inside the link with her name |
+| `events/launch-party/johnmark-logo.png` | `/launch-party` credits, JohnMark | `Rantala Creative` *(architect, E4)*: the words on the logo, which differ from the name beside it |
 
 The OG image (5A) reuses the About alt text for `og:image:alt`.
 
@@ -416,34 +420,39 @@ Each event's strings live in its entry in `src/data/events.ts`; the RSVP strings
 
 ### Launch party (`slug: 'launch-party'`, page `/launch-party`)
 
+**Changes in E4 (Nov 7, 2026; Marea's review, Brian approved; I-077–I-080):** the description under the hero (new); the H1 drops `Ohm Launch Party` (the graphic says it), the meta title keeps it; `Maréa` with the accent; schedule edits (yoga title, mats note moved from What to wear, `Activities and merch`, the linked day-pass note); the Host section becomes "This event made possible by…" at the bottom; the guest yoga question is visible; the privacy line is Brian's new text (→ RSVP text). Below is the deck as it stands after E4.
+
 **Meta**
-- `title`: `Ohm Launch Party: A Celebration of Self-Care · Ohm Precision Bodywork`
+- `title`: `Ohm Launch Party: A Celebration of Self-Care · Ohm Precision Bodywork` (`title` stays the full name: meta title, link preview, calendar file, feed, email subjects)
 - `description`: `{dateLabel}, {timeLabel} at CityROCK. {summary}` → `Sunday, Nov 22, 2026, 2:00–6:00 pm at CityROCK. Restorative yoga, the Self Care Launch Party and an optional climb at the gym.`
 - `summary` *(architect, from Brian's timeline)*: `Restorative yoga, the Self Care Launch Party and an optional climb at the gym.`
-- `graphics.ogAlt`: `Ohm Precision Bodywork Launch Party` (the words on the graphic)
+- `graphics.alt` (was `ogAlt`): `Ohm Precision Bodywork Launch Party` (the words on the graphic; the header `alt` and `og:image:alt`)
 
 **Hero** (green)
-- **H1** (`title`): `Ohm Launch Party: A Celebration of Self-Care`
+- **H1** (`heading`, E4, Marea): `A Celebration of Self-Care` (visible; was `Ohm Launch Party: A Celebration of Self-Care`)
 - **When:** `{dateLabel} · {timeLabel}` → `Sunday, Nov 22, 2026 · 2:00–6:00 pm`
 - **Where** (`venue.name`, `venue.address`; one link to Google Maps): `CityROCK, 21 N Nevada Ave, Colorado Springs, CO 80903`
 - **Buttons:** `RSVP` · `Add to calendar`
-- Header graphic: `alt=""` (the H1 carries the words).
+- Header graphic: `alt` = `graphics.alt` (E4; the H1 no longer carries the words).
 
-**Host** (cream band)
-- **H2** *(architect)*: `Your host`
-- Caption (`host.name`): `Marea`. No intro text (Brian).
-- Photo `alt` *(architect)*: `Marea, the host.`
+**Description** (cream band, first, no heading; `description`, E4, I-077). Brian's Partiful description with Marea's edits on P1 (`650 hours`, Brian confirmed; `and passed his state test to become a licensed neuromuscular massage therapist`). Emoji kept as Brian wrote them. `[text](url)` is a link in a new tab; `{w:launchStateTest}` is the licensure clause from `wording.ts`.
+- **P1:** `A year and a half ago, Brian left his electrical engineering career and stepped into the unknown, in search of a more soul-fulfilling way to contribute to the world. Last month, he completed 650 hours of studies{w:launchStateTest}! 🎉 We invite our community to join us as we celebrate the beginning of Brian's new career and the launch of his business: Ohm Precision Bodywork.`
+  - `{w:launchStateTest}` licensed: ` and passed his state test to become a licensed neuromuscular massage therapist`; unlicensed: empty (P1 then reads `… 650 hours of studies! 🎉 …`).
+  - "Last month" is kept verbatim: the page serves a Nov 22 event, so it means October (the license, Oct 12, 2026). Flagged to Brian (the studies ended in September).
+- **P2:** `This event welcomes you into a space of celebration as well as self-care, equal parts joy and rest. Our beloved friend [Britt](https://www.instagram.com/brittandspirit/) will be guiding us through a beginner-friendly restorative yoga practice and sound bath, meant to help you release tension and reconnect with your body.`
+- **P3:** `Following the yoga class, you're invited to enjoy healthy snacks and cozy drinks, make new friends, and participate in activities designed to reset your nervous system. By completing activities, you'll have the opportunity to win a body care gift basket and some limited edition Ohm merch!`
+- **P4:** `We hope you'll bless us with your presence as we come together to usher Brian into a joyful new era. ⚡`
 
-**Schedule** (cream band, after Host)
+**Schedule** (same cream band, after the description)
 - **H2** *(architect)*: `Schedule`
-- Items (time label from the data's times; title; notes), Brian's wording:
+- Items (time label from the data's times; title; notes), Brian's wording, E4 edits by Marea:
   1. `1:45 pm` · `Arrive for yoga, get settled in`
-  2. `2–3 pm` · `Restorative yoga` · notes: `No supplies or experience needed` · `Water bottle and stretchy clothes recommended` · `Limited to first {limit} sign-ups`
-  3. `3–6 pm` · `Self Care Launch Party` · notes: `Open house style, come and go as you please` · `Refreshments provided`
-  4. `6–8 pm` · `Optional: climb at the gym until close` · notes: `Own day pass required` · `Harness and shoes provided` (`optional: true`, hollow marker)
+  2. `2–3 pm` · `Restorative Yoga with Britt` · notes: `No supplies or experience needed` · `Mats provided, or bring your own` · `Water bottle and stretchy clothes recommended` · `Limited to first {limit} sign-ups`
+  3. `3–6 pm` · `Self Care Launch Party` · notes: `Open house style, come and go as you please` · `Refreshments provided` · `Activities and merch`
+  4. `6–8 pm` · `Optional: climb at the gym until close` · notes: `[Day pass purchase required](https://climbcityrock.com/day-passes)` · `Harness and shoes provided` (`optional: true`, hollow marker). Marea changed only the day-pass wording and added the link; `Harness and shoes provided` stays.
 
 **Info blocks** (green; `info`, in this order)
-1. `id: 'wear'`, `inReminder: true`. **H2:** `What to wear`. Items (Brian): `Comfy cozy: yoga clothes or sweat pants` · `Fuzzy socks encouraged` · `Shoes off in the yoga room` · `Mats provided, own mats welcome`
+1. `id: 'wear'`, `inReminder: true`. **H2:** `What to wear`. Items (Brian): `Comfy cozy: yoga clothes or sweat pants` · `Fuzzy socks encouraged` · `Shoes off in the yoga room` (E4: `Mats provided, own mats welcome` removed; the mats note is on the yoga item, so the reminder email no longer mentions mats)
 2. `id: 'parking'`, `inReminder: true`. **H2:** `Parking`. Text (Brian): `Metered street parking, or free parking along Wahsatch if you don't mind walking 2 blocks.`
 3. `id: 'raffle'`. **H2:** `Raffle`. Text *(architect, from Brian's note; no rules)*: `Complete the activities at the party for a chance to win a body care gift basket and limited-edition Ohm merch.`
 
@@ -452,6 +461,16 @@ Each event's strings live in its entry in `src/data/events.ts`; the RSVP strings
 - **Title** (Brian): `Important: Waiver Required`
 - **Text** (Brian, verbatim): `If you haven't been to CityROCK in the last 2 years, you'll be required to fill out a waiver to enter the building. We recommend filling this out in advance, but it can be done in person if you forget!`
 - **Link** (label *(architect)*): `Fill out the waiver` → `https://portal.climbcityrock.com/cityrockdowntown/agreements/cityrock-waiver`
+- E4 (I-080): same words; the box becomes a light surface on the green band (ARCHITECTURE §B10).
+
+**This event made possible by…** (cream band, last section; `credits`, E4, I-079; replaces the Host section, its `Your host` H2 and its photo alt)
+- **H2** (Marea; the ellipsis is the single character `…`, as in `Sending…`): `This event made possible by…`
+- Entries, in this order, each `{name}, {role}` as one link (new tab) with its image (Marea's labels, exact):
+  1. `Maréa, host` → `https://dreamcatcherwed.com` · photo `marea-thumb.jpg`
+  2. `CityROCK, venue space donated` → `https://climbcityrock.com` · logo `cityrock-logo.png`
+  3. `Britt Maddy, yoga class generously provided` → `https://www.instagram.com/brittandspirit/` · photo `britt-thumb.jpg`
+  4. `JohnMark, graphic design` → `https://johnmark.co` (Marea typed `JohnMark.co`; written as an https URL with a lowercase host) · logo `johnmark-logo.png`
+- Image alts: → Alt text.
 
 ### RSVP text (`rsvpText`, shared by every event) *(architect)*
 
@@ -463,7 +482,7 @@ Each event's strings live in its entry in `src/data/events.ts`; the RSVP strings
 | `email` | `Email` |
 | `status` | `Are you coming?` |
 | `going` · `maybe` · `cant` | `Going` · `Maybe` · `Can't go` |
-| `sessionQuestion` | `Joining {session} ({time})?` → `Joining yoga (2–3 pm)?` |
+| `sessionQuestion` | `Joining {session} ({time})?` → `Joining yoga (2–3 pm)?` (also the visible legend of each guest's yes/no, E4, I-078; was visually hidden there) |
 | `yes` · `no` | `Yes` · `No` |
 | `guestsHeading` | `Guests` |
 | `guestsHelp` | `Bringing someone? Add each guest's name and whether they're joining {session}.` (events without a session: `guestsHelpPlain`) |
@@ -476,7 +495,7 @@ Each event's strings live in its entry in `src/data/events.ts`; the RSVP strings
 | `optIn` | `Yes, send me Ohm news and offers.` (Brian, I-065: the label of an unchecked checkbox, `optin`, just above the submit button) |
 | `submit` | `Send RSVP` |
 | `sending` | `Sending…` |
-| `privacy` | `I only use your name and email for Ohm. News and offers only if you check the box.` (Brian, I-065: under the form, after the submit button) |
+| `privacy` | `I'll only use your name and email for event reminders. You'll also receive Ohm news and offers if you check the box.` (Brian and Marea, I-078, Nov 7, 2026; was I-065's `I only use your name and email for Ohm. News and offers only if you check the box.`: under the form, after the submit button) |
 | `spotsLeft` | `{n} {session} spots left` |
 | `spotLeft` | `1 {session} spot left` |
 | `fullWaitlist` | `{Session} is full. Answer yes to join the waitlist.` |
@@ -545,7 +564,8 @@ Each event's strings live in its entry in `src/data/events.ts`; the RSVP strings
 ---
 
 ## Checks Opus ran on this deck
-- **Events, Brian's answers I-060–I-066 (Nov 6, 2026):** `optIn` and `privacy` are Brian's exact text (I-065); `waitlistNote` is kept as drafted, so the two promises flagged below are now Brian's and carry no `TODO(Brian)`. "News and offers" is a promise about use, not a fact claim; the opt-in box is unchecked by default and covers news and offers only (I-069): event emails (confirmation, can't-go, change, reminder) go to every RSVPer, invitations to future events may go to every `you` row that RSVPed, and only `you` rows that ticked the box may get news and offers (I-066; §B10 Privacy). New *(architect)* lines (I-064, the change-by-email path): `outcomeMaybe`, `maybeNote`, `changeTitle`, `changeText`, `changeSubject`, `changeLead`, `newAnswer`, `answerLine`, `changeLinkLine`, `changeIgnore`, `changeConfirmLead`, `changeConfirm`, `changeExpired`, `changeDoneTitle`, `spotFreedSubject`, `spotFreedText`; `cantLead` and `changeLine` now point to a repeat RSVP; `errDuplicate` is gone. They add one fact, the 6-hour link life, which is the script's cache time (§B10 Changes). No text states the guest ceiling (I-060: no limit on +1s). No licensed-only term, no "massage", no "treat/cure/diagnose/fix/heal/health", no phone, no email but `site.email`, no address.
+- **Events, E4 (I-077–I-080, Nov 7, 2026):** every new string is Brian's or Marea's exact text (Brian approved Marea's requests); the architect wrote only the four credit alts (three empty, one the logo's words). Licensure: the description's only licensed-only words ("licensed", "massage therapist") sit in `wording.ts` `launchStateTest`, whose unlicensed variant is empty, so the unlicensed page has no licensure claim and no bare "massage"; Marea's "licensed" replaces the Partiful text's "certified" and "state licensure", and matches the credential (licensed in Colorado, Oct 12, 2026, I-035). `check:wording` will warn on "healthy" (P3; the scan matches `heal…`): a food word, accepted. Flagged to Brian, kept verbatim: "Last month" (P1; true for the license, a month off for the studies, which ended in September, and wrong after November) and "designed to reset your nervous system" / "help you release tension" (activity aims in Brian's own words, not treat/cure/diagnose/fix/heal; §A6 asks for no medical claims). The privacy line (I-078) is narrower than I-065/I-069: event emails only, plus news, offers and invitations for opted-in addresses (ARCHITECTURE §B10 Privacy). The guest yoga label reuses `sessionQuestion`; no new RSVP string. "Maréa" is written with the precomposed é (U+00E9). The day-pass, Britt and credit URLs returned 200 on Nov 7, 2026 (`dreamcatcherwed.com` redirects to `www.`). No phone, no email, no address but CityROCK's public one.
+- **Events, Brian's answers I-060–I-066 (Nov 6, 2026):** `optIn` and `privacy` are Brian's exact text (I-065); `waitlistNote` is kept as drafted, so the two promises flagged below are now Brian's and carry no `TODO(Brian)`. "News and offers" is a promise about use, not a fact claim; the opt-in box is unchecked by default and covers news and offers only (I-069): event emails (confirmation, can't-go, change, reminder) go to every RSVPer, invitations to future events may go to every `you` row that RSVPed (superseded Nov 7, 2026 by I-078: invitations only to opted-in rows), and only `you` rows that ticked the box may get news and offers (I-066; §B10 Privacy). New *(architect)* lines (I-064, the change-by-email path): `outcomeMaybe`, `maybeNote`, `changeTitle`, `changeText`, `changeSubject`, `changeLead`, `newAnswer`, `answerLine`, `changeLinkLine`, `changeIgnore`, `changeConfirmLead`, `changeConfirm`, `changeExpired`, `changeDoneTitle`, `spotFreedSubject`, `spotFreedText`; `cantLead` and `changeLine` now point to a repeat RSVP; `errDuplicate` is gone. They add one fact, the 6-hour link life, which is the script's cache time (§B10 Changes). No text states the guest ceiling (I-060: no limit on +1s). No licensed-only term, no "massage", no "treat/cure/diagnose/fix/heal/health", no phone, no email but `site.email`, no address.
 - **Events (I-048–I-050, Nov 6, 2026):** Brian's event strings are verbatim, including his capitals; the only change is layout (his "what to wear" sentence split into four list items at his commas and semicolon, his timeline notes split at semicolons, each word kept). The `20` in `Limited to first {limit} sign-ups` is the session limit, not typed. No licensed-only term, no "massage", no "home visit/office/mobile", no "treat/cure/diagnose/fix/heal/health"; "Self Care" and "restorative" make no outcome claim. New *(architect)* lines add no fact except two promises Brian must confirm: `privacy` (what the RSVP data is used for) and `waitlistNote` ("I'll email you if a spot opens"). The raffle line names no rules (Brian). No phone number; the only email shown is `site.email`. The venue address is CityROCK's public address, not the office's.
 - **Travel info, dropdowns, rate-card colours (step V; Brian, Oct 30 2026):** the only new words are the H2 `Travel info` (Brian's exact text): no digit, `$`, licensed-only term, "massage" or medical claim. The three travel paragraphs, the specialties text and the rate cards' words are unchanged; the dropdowns and the colours are layout (both rate cards Ohm green with terracotta accents; the terracotta 90-minute card was dropped the same day, no words change). The group rule still appears once on Pricing, now inside the closed Travel info dropdown (still in the built HTML, so test 16 holds).
 - **Pricing rework (step V; Brian, Oct 30 2026):** all new text is Brian's exact text. The intro is shortened; the group sentence moves to Travel fee P (2) with the fee count still from `terms.groupMax` (rendered as a word), so the rule appears once on the page (test 16). P (3) (`massage table, sheets and any extras`) is a new fact from Brian; "massage" is allowed while licensed (BRIEF §7) and `check:wording`'s forbidden pattern does not match "massage table". The deleted days paragraph was a pointer to `/book`; no fact is lost (the booking page still explains days by area). No digit, `$` literal, "treat/cure/diagnose/fix/heal/health". Rate-card labels reuse `At my office`, `At your place`; the small line is `includes travel` (Brian's exact text, Oct 30 2026; was `includes travel fee` earlier that day, before that `includes $… travel`, no digit or `$` now); the caption `Session rates` and the `Session` header go.

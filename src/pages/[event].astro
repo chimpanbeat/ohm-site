@@ -1,10 +1,11 @@
 ---
 import Base from '../layouts/Base.astro';
 import EventHero from '../components/events/EventHero.astro';
-import EventHost from '../components/events/EventHost.astro';
+import EventDescription from '../components/events/EventDescription.astro';
 import EventTimeline from '../components/events/EventTimeline.astro';
 import EventInfo from '../components/events/EventInfo.astro';
 import EventNotice from '../components/events/EventNotice.astro';
+import EventCredits from '../components/events/EventCredits.astro';
 import RsvpForm from '../components/events/RsvpForm.astro';
 import { events } from '../data/events.ts';
 import { site } from '../data/site.ts';
@@ -24,7 +25,7 @@ const description = `${dateLabel(event.start, event.timeZone)}, ${timeLabel(even
   title={`${event.title} · ${site.name}`}
   description={description}
   ogImage={eventAsset(event.graphics.og)}
-  ogAlt={event.graphics.ogAlt}
+  ogAlt={event.graphics.alt}
   noindex={!event.index}
 >
   <section class="section">
@@ -35,7 +36,7 @@ const description = `${dateLabel(event.start, event.timeZone)}, ${timeLabel(even
 
   <section class="section band-light">
     <div class="container">
-      <EventHost event={event} />
+      <EventDescription event={event} />
       <EventTimeline event={event} />
     </div>
   </section>
@@ -63,6 +64,16 @@ const description = `${dateLabel(event.start, event.timeZone)}, ${timeLabel(even
           {event.notices.map((notice) => (
             <EventNotice notice={notice} />
           ))}
+        </div>
+      </section>
+    )
+  }
+
+  {
+    event.credits && (
+      <section class="section band-light">
+        <div class="container">
+          <EventCredits event={event} />
         </div>
       </section>
     )

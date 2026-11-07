@@ -23,11 +23,18 @@ const { notice } = Astro.props;
 </div>
 
 <style>
+  /* A light box on the green band (E4, I-080): it reads as part of the page, not the footer. */
   .event-notice {
-    padding: var(--s-4);
-    border: 1px solid var(--line-dark);
+    max-width: var(--measure);
+    padding: var(--s-6);
+    background: var(--bg-light);
+    color: var(--text-on-light);
+    border: 1px solid var(--green-300);
     border-top: 3px solid var(--accent);
     border-radius: var(--radius);
+  }
+  .event-notice a {
+    color: var(--link-on-light);
   }
   .event-notice + .event-notice {
     margin-top: var(--s-6);

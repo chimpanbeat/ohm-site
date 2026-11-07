@@ -44,7 +44,8 @@ Do all of this signed in to the **Ohm Workspace account**, not a personal Google
 
 **Error replies.** `busy` means two RSVPs arrived at the same moment and the script could not get its lock within 20 seconds; the guest sees the "something went wrong" line and tries again. A quota error shows up as missing emails with saved rows; check the Executions page in the script editor.
 
-## Keeping and using the data (I-065, I-066, I-069)
-- The sheet is kept for future events; there is no deletion date.
-- **Three kinds of mail, three rules.** (1) Emails about this event (confirmation, can't-go note, change link, reminder) go to every RSVPer whatever the `Opt-in` column says, and the script sends only these (plus the spot-freed note to the business address). (2) Invitations to future events may go to every `you` row that RSVPed, opted in or not. (3) News and offers go only to `you` rows whose `Opt-in` is `yes`. Guests (`guest` rows) have no email and are never contacted.
+## Keeping and using the data (I-065, I-066, I-069; narrowed by I-078, Nov 7, 2026)
+- The form promises: "I'll only use your name and email for event reminders. You'll also receive Ohm news and offers if you check the box."
+- The sheet is kept; there is no deletion date.
+- **Two kinds of mail, two rules.** (1) Emails about this event (confirmation, can't-go note, change link, reminder) go to every RSVPer whatever the `Opt-in` column says, and the script sends only these (plus the spot-freed note to the business address). (2) News, offers and invitations to future events go only to `you` rows whose `Opt-in` is `yes`. A row without `yes` is never emailed again after this event. Guests (`guest` rows) have no email and are never contacted.
 - Send invitations and news from a mail tool that gives every message an opt-out link and Ohm's postal address, and honour an opt-out within 10 business days. An opt-out from either kind ends both for that address (CAN-SPAM: [FTC guide](https://www.ftc.gov/business-guidance/resources/can-spam-act-compliance-guide-business), read Nov 6, 2026). The script does none of this.

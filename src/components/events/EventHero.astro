@@ -14,12 +14,14 @@ const tz = event.timeZone;
 const wide = eventAsset(event.graphics.wide);
 const narrow = eventAsset(event.graphics.narrow);
 
-// Art direction as on About: the wide banner from 48rem, the narrow mark below. Never upscaled.
+// Art direction as on About: the wide banner from 48rem, the narrow mark below. Never upscaled by the
+// pipeline. The wide banner is cropped and scaled up 1.5x by CSS (E4, I-080), so it ships one width: its
+// 500w file would be upscaled 3x.
 const widthsOf = (src: ImageMetadata) => [Math.round(src.width * 0.5), src.width];
-const make = (src: ImageMetadata, format: 'avif' | 'webp') => getImage({ src, format, widths: widthsOf(src) });
+const make = (src: ImageMetadata, format: 'avif' | 'webp', widths = widthsOf(src)) => getImage({ src, format, widths });
 const [wideAvif, wideWebp, narrowAvif, narrowWebp, fallback] = await Promise.all([
-  make(wide, 'avif'),
-  make(wide, 'webp'),
+  make(wide, 'avif', [wide.width]),
+  make(wide, 'webp', [wide.width]),
   make(narrow, 'avif'),
   make(narrow, 'webp'),
   getImage({ src: narrow, format: 'png', width: narrow.width }),
@@ -30,16 +32,16 @@ const wideSizes = `(min-width: 72rem) ${wide.width}px, (min-width: 48rem) 100vw,
 const narrowSizes = `(min-width: 30rem) ${narrow.width}px, 100vw`;
 ---
 
-<!-- width/height on every source reserve the box for each art direction (no layout shift). alt="" because the H1 says the same. -->
+<!-- width/height on every source reserve the box for each art direction (no layout shift). The graphic's words are its alt: the H1 no longer repeats them (E4). -->
 <picture>
   <source media={wideMedia} type="image/avif" srcset={wideAvif.srcSet.attribute} sizes={wideSizes} width={wide.width} height={wide.height} />
   <source media={wideMedia} type="image/webp" srcset={wideWebp.srcSet.attribute} sizes={wideSizes} width={wide.width} height={wide.height} />
   <source type="image/avif" srcset={narrowAvif.srcSet.attribute} sizes={narrowSizes} width={narrow.width} height={narrow.height} />
   <source type="image/webp" srcset={narrowWebp.srcSet.attribute} sizes={narrowSizes} width={narrow.width} height={narrow.height} />
-  <img src={fallback.src} width={narrow.width} height={narrow.height} alt="" loading="eager" decoding="async" fetchpriority="high" />
+  <img src={fallback.src} width={narrow.width} height={narrow.height} alt={event.graphics.alt} loading="eager" decoding="async" fetchpriority="high" />
 </picture>
 
-<h1>{event.title}</h1>
+<h1>{event.heading ?? event.title}</h1>
 
 <p class="event-when">
   <time datetime={event.start}>{dateLabel(event.start, tz)}</time> · {timeLabel(event.start, event.end, tz, 'always')}
@@ -77,9 +79,24 @@ const narrowSizes = `(min-width: 30rem) ${narrow.width}px, 100vw`;
     gap: var(--s-3);
     margin-top: var(--s-6);
   }
+  /* Wide banner crop (E4, I-080): header-green.png's art spans x 214-784, y 143-307 of 1000x450. An 11:4 box with
+     object-fit: cover keeps its full width; scale 1.5152 about the centre shows source x 170-830, y 105-345, so the
+     words draw about 1.45x larger. The file itself is JohnMark's design and is not edited. */
   @media (min-width: 48rem) {
+    picture {
+      overflow: hidden;
+      aspect-ratio: 11 / 4;
+      width: 100%;
+      max-width: 60rem;
+      margin-inline: auto;
+    }
     picture img {
-      max-width: 1000px;
+      width: 100%;
+      height: 100%;
+      max-width: none;
+      object-fit: cover;
+      object-position: 50% 50%;
+      scale: 1.5152;
     }
   }
 </style>

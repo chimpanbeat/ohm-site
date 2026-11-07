@@ -1,0 +1,67 @@
+---
+// "This event made possible by…" (E4, I-079): one linked card per credit, image first (ARCHITECTURE §B10).
+// The link's name is alt + name + role; an empty alt means the name beside the image already says it.
+import { Image } from 'astro:assets';
+import type { SiteEvent } from '../../data/events.ts';
+import { eventAsset } from '../../lib/event-assets.ts';
+
+interface Props {
+  event: SiteEvent;
+}
+
+const { credits } = Astro.props.event;
+---
+
+{
+  credits && (
+    <div class="event-credits">
+      <h2>{credits.heading}</h2>
+      <ul class="credits">
+        {credits.items.map((credit) => (
+          <li>
+            <a class="credit" href={credit.url} target="_blank" rel="noopener">
+              <Image
+                src={eventAsset(credit.image)}
+                height={56}
+                densities={[1, 2]}
+                formats={['avif', 'webp']}
+                alt={credit.alt}
+              />
+              <span class="credit__text">
+                <strong>{credit.name}</strong>, {credit.role}
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+<style>
+  .credits {
+    list-style: none;
+    padding: 0;
+    margin-top: var(--s-6);
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: var(--s-6);
+  }
+  .credit {
+    display: block;
+  }
+  .credit :global(img) {
+    display: block;
+    height: 3.5rem;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+    object-position: left center;
+    border: 1px solid var(--line-light);
+    border-radius: var(--radius);
+  }
+  .credit__text {
+    display: block;
+    margin-top: var(--s-2);
+  }
+</style>

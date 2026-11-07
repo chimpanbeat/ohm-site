@@ -5,25 +5,36 @@
 // No imports: tests and scripts load this under Node type stripping (no enum, namespace or parameter properties).
 
 export type Iso = string; // '2026-11-22T14:00:00-07:00': local wall time plus the UTC offset in force in timeZone on that date
-export interface TimelineItem { start: Iso; end?: Iso; title: string; notes?: string[]; optional?: boolean }
+// Running text with inline pieces (E4, I-077/I-078; same idea as client-policies.ts `Run`/`Rich`):
+// a plain string; a link (`href` is https, opens in a new tab with rel="noopener"); or a licensure-dependent piece,
+// `{ w: key }`, rendered as w(key) from src/data/wording.ts (the key must exist there; a guard checks it).
+export type Run = string | { text: string; href: string } | { w: string };
+export type Rich = string | Run[];
+export interface TimelineItem { start: Iso; end?: Iso; title: string; notes?: Rich[]; optional?: boolean }
 export interface InfoBlock { id: string; title: string; text?: string; items?: string[]; inReminder?: boolean }
 export interface Notice { id: string; title: string; text: string; link?: { label: string; url: string }; inEmails?: boolean }
 // label 'Yoga'; item = index into timeline (its time goes in the question); limit and waitlist per I-050
 export interface CappedSession { key: string; label: string; item: number; limit: number; waitlist: boolean }
 export interface EventRsvp { closesAt: Iso; maxGuests: number; reminderAt: Iso; showGoing: boolean; session?: CappedSession }
+// One "made possible by" entry (E4, I-079): `name`, then `, role`, as one link (new tab) with the image before it.
+// image: a path under src/assets/events/; alt '' when the name beside it already says what the image shows.
+export interface Credit { name: string; role: string; url: string; image: string; alt: string }
 export interface SiteEvent {
   slug: string;
-  title: string;
+  title: string; // the full name: meta title, link preview, calendar file, feed and emails
+  heading?: string; // the on-page H1 when it differs from title (E4, I-078); absent: the H1 is title
   summary: string; // second sentence of the meta description
   start: Iso;
   end: Iso;
   timeZone: string; // 'America/Denver'
   venue: { name: string; address: string }; // a public venue only, never the office
-  host?: { name: string; photo?: string; alt: string }; // no intro text (I-048); photo is a path under src/assets/events/
+  description?: Rich[]; // paragraphs under the hero (E4, I-077)
   timeline: TimelineItem[];
   info: InfoBlock[];
   notices: Notice[];
-  graphics: { wide: string; narrow: string; og: string; ogAlt: string }; // paths under src/assets/events/
+  credits?: { heading: string; items: Credit[] }; // the last section (E4, I-079; replaces `host`)
+  // paths under src/assets/events/; alt = the words on the header graphic: the header <picture> alt and og:image:alt
+  graphics: { wide: string; narrow: string; og: string; alt: string };
   index: boolean; // false: noindex and out of the sitemap
   rsvp?: EventRsvp; // absent: no form, no feed
 }
@@ -35,31 +46,53 @@ export function launchParty(limit: number): SiteEvent {
   return {
     slug: 'launch-party',
     title: 'Ohm Launch Party: A Celebration of Self-Care',
+    heading: 'A Celebration of Self-Care', // I-078 (Marea): the header graphic already says "Ohm Launch Party"
     summary: 'Restorative yoga, the Self Care Launch Party and an optional climb at the gym.',
     start: '2026-11-22T14:00:00-07:00', // MST: DST ended Nov 1, 2026
     end: '2026-11-22T18:00:00-07:00',
     timeZone: 'America/Denver',
     venue: { name: 'CityROCK', address: '21 N Nevada Ave, Colorado Springs, CO 80903' },
-    host: { name: 'Marea', photo: 'launch-party/marea-host.jpg', alt: 'Marea, the host.' },
+    // I-077: Brian's Partiful description with Marea's edits (650 hours; "passed his state test to become a licensed
+    // neuromuscular massage therapist"). The licensure clause is w('launchStateTest'): empty while unlicensed.
+    description: [
+      [
+        'A year and a half ago, Brian left his electrical engineering career and stepped into the unknown, in search of a more soul-fulfilling way to contribute to the world. Last month, he completed 650 hours of studies',
+        { w: 'launchStateTest' },
+        "! 🎉 We invite our community to join us as we celebrate the beginning of Brian's new career and the launch of his business: Ohm Precision Bodywork.",
+      ],
+      [
+        'This event welcomes you into a space of celebration as well as self-care, equal parts joy and rest. Our beloved friend ',
+        { text: 'Britt', href: 'https://www.instagram.com/brittandspirit/' },
+        ' will be guiding us through a beginner-friendly restorative yoga practice and sound bath, meant to help you release tension and reconnect with your body.',
+      ],
+      "Following the yoga class, you're invited to enjoy healthy snacks and cozy drinks, make new friends, and participate in activities designed to reset your nervous system. By completing activities, you'll have the opportunity to win a body care gift basket and some limited edition Ohm merch!",
+      "We hope you'll bless us with your presence as we come together to usher Brian into a joyful new era. ⚡",
+    ],
     timeline: [
       { start: '2026-11-22T13:45:00-07:00', title: 'Arrive for yoga, get settled in' },
       {
         start: '2026-11-22T14:00:00-07:00',
         end: '2026-11-22T15:00:00-07:00',
-        title: 'Restorative yoga',
-        notes: ['No supplies or experience needed', 'Water bottle and stretchy clothes recommended', `Limited to first ${limit} sign-ups`],
+        title: 'Restorative Yoga with Britt', // I-078 (Marea)
+        notes: [
+          'No supplies or experience needed',
+          'Mats provided, or bring your own', // I-078: moved here from What to wear
+          'Water bottle and stretchy clothes recommended',
+          `Limited to first ${limit} sign-ups`,
+        ],
       },
       {
         start: '2026-11-22T15:00:00-07:00',
         end: '2026-11-22T18:00:00-07:00',
         title: 'Self Care Launch Party',
-        notes: ['Open house style, come and go as you please', 'Refreshments provided'],
+        notes: ['Open house style, come and go as you please', 'Refreshments provided', 'Activities and merch'], // I-078
       },
       {
         start: '2026-11-22T18:00:00-07:00',
         end: '2026-11-22T20:00:00-07:00',
         title: 'Optional: climb at the gym until close',
-        notes: ['Own day pass required', 'Harness and shoes provided'],
+        // I-078: "Own day pass required" becomes the linked "Day pass purchase required" (URL confirmed by Brian)
+        notes: [[{ text: 'Day pass purchase required', href: 'https://climbcityrock.com/day-passes' }], 'Harness and shoes provided'],
         optional: true,
       },
     ],
@@ -67,7 +100,7 @@ export function launchParty(limit: number): SiteEvent {
       {
         id: 'wear',
         title: 'What to wear',
-        items: ['Comfy cozy: yoga clothes or sweat pants', 'Fuzzy socks encouraged', 'Shoes off in the yoga room', 'Mats provided, own mats welcome'],
+        items: ['Comfy cozy: yoga clothes or sweat pants', 'Fuzzy socks encouraged', 'Shoes off in the yoga room'], // I-078: mats moved to the yoga item
         inReminder: true,
       },
       {
@@ -91,11 +124,28 @@ export function launchParty(limit: number): SiteEvent {
         inEmails: true,
       },
     ],
+    // I-079 (Marea's labels): replaces the host section. Images made by `npm run event-images` (E4).
+    credits: {
+      heading: 'This event made possible by…',
+      items: [
+        { name: 'Maréa', role: 'host', url: 'https://dreamcatcherwed.com', image: 'launch-party/marea-thumb.jpg', alt: '' },
+        { name: 'CityROCK', role: 'venue space donated', url: 'https://climbcityrock.com', image: 'launch-party/cityrock-logo.png', alt: '' },
+        {
+          name: 'Britt Maddy',
+          role: 'yoga class generously provided',
+          url: 'https://www.instagram.com/brittandspirit/',
+          image: 'launch-party/britt-thumb.jpg',
+          alt: '',
+        },
+        // Marea typed "JohnMark.co"; the logo is his Rantala Creative mark, so its alt gives the words on it
+        { name: 'JohnMark', role: 'graphic design', url: 'https://johnmark.co', image: 'launch-party/johnmark-logo.png', alt: 'Rantala Creative' },
+      ],
+    },
     graphics: {
       wide: 'launch-party/header-green.png',
       narrow: 'launch-party/launch-mark-on-dark.png',
       og: 'launch-party/header-green.png',
-      ogAlt: 'Ohm Precision Bodywork Launch Party',
+      alt: 'Ohm Precision Bodywork Launch Party',
     },
     index: false, // I-063 (Brian, Nov 6): hidden for now, shared by URL only; a Home link may come later
     rsvp: {
@@ -139,7 +189,7 @@ export const rsvpText = {
   optIn: 'Yes, send me Ohm news and offers.',
   submit: 'Send RSVP',
   sending: 'Sending…',
-  privacy: 'I only use your name and email for Ohm. News and offers only if you check the box.',
+  privacy: "I'll only use your name and email for event reminders. You'll also receive Ohm news and offers if you check the box.",
   spotsLeft: '{n} {session} spots left',
   spotLeft: '1 {session} spot left',
   fullWaitlist: '{Session} is full. Answer yes to join the waitlist.',

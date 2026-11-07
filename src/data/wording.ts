@@ -42,6 +42,8 @@ export const wording = {
   licensedIn: ['', 'Licensed in Colorado.'],
   /** Link text; the link goes to site.licenseVerifyUrl. */
   verifyLicense: ['', 'Verify my license'],
+  /** Launch party description P1 (I-077): the licensure clause, after "650 hours of studies". Unlicensed: empty, so the sentence makes no licensure claim. */
+  launchStateTest: ['', ' and passed his state test to become a licensed neuromuscular massage therapist'],
 } as const satisfies Record<string, readonly [string, string]>;
 
 export type WordingKey = keyof typeof wording;

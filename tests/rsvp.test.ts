@@ -432,6 +432,21 @@ test('6. dist: section order, one script, the hero RSVP button', { skip: skipBui
   assert.match(section(), new RegExp(`<h2\\b[^>]*>\\s*${rsvpText.heading}\\s*</h2>`));
 });
 
+test("6. dist: each guest's yoga question is a visible legend (E4, I-078)", { skip: skipBuilt }, () => {
+  const item = party.timeline[party.rsvp!.session!.item];
+  const time = timeLabel(item.start, item.end, party.timeZone, 'auto');
+  const want = fill(rsvpText.sessionQuestion, { session: 'yoga', Session: 'Yoga', time });
+  assert.equal(want, 'Joining yoga (2–3 pm)?');
+  for (let n = 1; n <= 10; n++) {
+    const input = form().indexOf(`name="g${n}session"`);
+    assert.ok(input > 0, `g${n}session`);
+    const before = form().slice(0, input);
+    const legend = before.slice(before.lastIndexOf('<legend')).match(/^<legend\b[^>]*>[\s\S]*?<\/legend>/)![0];
+    assert.ok(!/visually-hidden/.test(legend), `guest ${n}'s legend is visible: ${legend}`);
+    assert.equal(text(legend), want, `guest ${n}'s legend text`);
+  }
+});
+
 test('6. dist: the session question carries the timeline time', { skip: skipBuilt }, () => {
   const item = party.timeline[party.rsvp!.session!.item];
   const time = timeLabel(item.start, item.end, party.timeZone, 'auto');

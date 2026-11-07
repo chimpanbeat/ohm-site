@@ -1,0 +1,35 @@
+---
+// The event description under the hero (E4, I-077): one paragraph per entry, no heading (ARCHITECTURE §B10).
+import type { SiteEvent } from '../../data/events.ts';
+import EventRich from './EventRich.astro';
+
+interface Props {
+  event: SiteEvent;
+}
+
+const { description } = Astro.props.event;
+---
+
+{
+  description && description.length > 0 && (
+    <div class="event-description">
+      {description.map((paragraph) => (
+        <p>
+          <EventRich text={paragraph} />
+        </p>
+      ))}
+    </div>
+  )
+}
+
+<style>
+  .event-description {
+    margin-bottom: var(--s-12);
+  }
+  .event-description p {
+    max-width: var(--measure);
+  }
+  .event-description p + p {
+    margin-top: var(--s-4);
+  }
+</style>

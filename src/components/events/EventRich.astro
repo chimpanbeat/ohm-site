@@ -1,0 +1,27 @@
+---
+// Running text from events.ts (E4; ARCHITECTURE §B10): a string, or runs of plain text, links and licensure
+// pieces. Inline only: no wrapper element, so the parent decides the block. Types no copy.
+import type { Rich } from '../../data/events.ts';
+import { w, type WordingKey } from '../../data/wording.ts';
+
+interface Props {
+  text: Rich;
+}
+
+const { text } = Astro.props;
+const runs = typeof text === 'string' ? [text] : text;
+---
+
+{
+  runs.map((run) =>
+    typeof run === 'string' ? (
+      run
+    ) : 'w' in run ? (
+      w(run.w as WordingKey)
+    ) : (
+      <a href={run.href} target="_blank" rel="noopener">
+        {run.text}
+      </a>
+    ),
+  )
+}

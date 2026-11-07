@@ -1,8 +1,22 @@
 // Pure helpers for events (E1, I-048; ARCHITECTURE §B10): labels, Maps link, calendar file, public feed, guards.
 // Node-tested; no Astro or Vite imports. Event facts live in src/data/events.ts, never here.
 import { rsvpText } from '../data/events.ts';
-import type { Iso, SiteEvent } from '../data/events.ts';
+import type { Iso, Rich, SiteEvent } from '../data/events.ts';
 import { site } from '../data/site.ts';
+import { wording } from '../data/wording.ts';
+
+// Running text as plain text: strings and link text joined; a `{ w }` piece is wording[key][variant] (0 unlicensed, 1 licensed).
+// For tests and anything that needs the words without markup.
+export function plainText(rich: Rich, variant: 0 | 1): string {
+  if (typeof rich === 'string') return rich;
+  return rich
+    .map((run) => {
+      if (typeof run === 'string') return run;
+      if ('w' in run) return wording[run.w as keyof typeof wording]?.[variant] ?? '';
+      return run.text;
+    })
+    .join('');
+}
 
 // Every top-level name in src/pages/ and public/ (without extension), plus the folders the build owns.
 // An event slug can't be any of them: its page would collide with a file the site already serves.
@@ -223,6 +237,27 @@ export function assertEvent(event: SiteEvent, seen: string[] = []): void {
   event.timeline.forEach((item, i) => {
     checkTime(slug, `timeline[${i}].start`, item.start, tz);
     if (item.end) checkTime(slug, `timeline[${i}].end`, item.end, tz);
+  });
+
+  // E4: running text (description, timeline notes) holds only https links and known wording keys
+  const checkRich = (rich: Rich) => {
+    if (typeof rich === 'string') return;
+    for (const run of rich) {
+      if (typeof run === 'string') continue;
+      if ('w' in run) {
+        if (!(run.w in wording)) throw new Error(`event "${slug}": unknown wording key "${run.w}"`);
+      } else if (!run.href.startsWith('https://')) {
+        throw new Error(`event "${slug}": link "${run.href}" must be https`);
+      }
+    }
+  };
+  event.description?.forEach(checkRich);
+  event.timeline.forEach((item) => item.notes?.forEach(checkRich));
+  event.credits?.items.forEach((c, i) => {
+    if (!c.url.startsWith('https://')) throw new Error(`event "${slug}": link "${c.url}" must be https`);
+    for (const field of ['name', 'role', 'image'] as const) {
+      if (!c[field].trim()) throw new Error(`event "${slug}": credits.items[${i}].${field} is empty`);
+    }
   });
 
   const rsvp = event.rsvp;

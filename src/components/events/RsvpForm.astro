@@ -108,7 +108,7 @@ const answers = ['yes', 'no'] as const;
               </span>
               {session && (
                 <fieldset class="group">
-                  <legend class="visually-hidden">{question}</legend>
+                  <legend>{question}</legend>
                   <span class="choices">
                     {answers.map((v) => (
                       <label class="choice">

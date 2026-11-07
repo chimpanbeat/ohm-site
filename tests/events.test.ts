@@ -16,6 +16,7 @@ import {
   icsFor,
   feedFor,
   eventPaths,
+  plainText,
 } from '../src/lib/events.ts';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
@@ -41,7 +42,7 @@ const text = (html: string) =>
     .replace(/\s+/g, ' ')
     .trim();
 
-// A second, minimal event: no RSVP, no host.
+// A second, minimal event: no RSVP, no description, no credits.
 const synthetic: SiteEvent = {
   slug: 'summer-yoga',
   title: 'Summer Yoga',
@@ -53,7 +54,7 @@ const synthetic: SiteEvent = {
   timeline: [{ start: '2027-07-10T11:30:00-06:00', end: '2027-07-10T13:00:00-06:00', title: 'Brunch' }],
   info: [],
   notices: [],
-  graphics: { wide: 'launch-party/header-green.png', narrow: 'launch-party/launch-mark-on-dark.png', og: 'launch-party/header-green.png', ogAlt: 'Summer Yoga' },
+  graphics: { wide: 'launch-party/header-green.png', narrow: 'launch-party/launch-mark-on-dark.png', og: 'launch-party/header-green.png', alt: 'Summer Yoga' },
   index: true,
 };
 
@@ -64,20 +65,59 @@ test('1a. launch party data equals the copy deck', () => {
   assert.equal(party.end, '2026-11-22T18:00:00-07:00');
   assert.equal(party.timeZone, TZ);
   assert.deepEqual(party.venue, { name: 'CityROCK', address: '21 N Nevada Ave, Colorado Springs, CO 80903' });
-  assert.equal(party.host?.name, 'Marea');
-  assert.equal(party.host?.alt, 'Marea, the host.');
+  assert.equal(party.heading, 'A Celebration of Self-Care'); // E4, I-078: the on-page H1
+  assert.ok(!('host' in party), 'the host section is gone (E4, I-079)');
   assert.equal(party.index, false);
-  assert.equal(party.graphics.ogAlt, 'Ohm Precision Bodywork Launch Party');
+  assert.equal(party.graphics.alt, 'Ohm Precision Bodywork Launch Party');
+  assert.ok(!('ogAlt' in party.graphics));
 
+  // E4, I-077: the description (licensed variant), P1 to P4
   assert.deepEqual(
-    party.timeline.map((i) => [i.title, i.notes ?? [], Boolean(i.optional)]),
+    party.description!.map((p) => plainText(p, 1)),
     [
-      ['Arrive for yoga, get settled in', [], false],
-      ['Restorative yoga', ['No supplies or experience needed', 'Water bottle and stretchy clothes recommended', 'Limited to first 20 sign-ups'], false],
-      ['Self Care Launch Party', ['Open house style, come and go as you please', 'Refreshments provided'], false],
-      ['Optional: climb at the gym until close', ['Own day pass required', 'Harness and shoes provided'], true],
+      "A year and a half ago, Brian left his electrical engineering career and stepped into the unknown, in search of a more soul-fulfilling way to contribute to the world. Last month, he completed 650 hours of studies and passed his state test to become a licensed neuromuscular massage therapist! 🎉 We invite our community to join us as we celebrate the beginning of Brian's new career and the launch of his business: Ohm Precision Bodywork.",
+      'This event welcomes you into a space of celebration as well as self-care, equal parts joy and rest. Our beloved friend Britt will be guiding us through a beginner-friendly restorative yoga practice and sound bath, meant to help you release tension and reconnect with your body.',
+      "Following the yoga class, you're invited to enjoy healthy snacks and cozy drinks, make new friends, and participate in activities designed to reset your nervous system. By completing activities, you'll have the opportunity to win a body care gift basket and some limited edition Ohm merch!",
+      "We hope you'll bless us with your presence as we come together to usher Brian into a joyful new era. ⚡",
     ],
   );
+  assert.deepEqual(party.description![0], [
+    party.description![0][0],
+    { w: 'launchStateTest' },
+    party.description![0][2],
+  ]);
+  assert.deepEqual(party.description![1][1], { text: 'Britt', href: 'https://www.instagram.com/brittandspirit/' });
+
+  // E4, I-078: the schedule (notes flattened to text, licensed variant)
+  assert.deepEqual(
+    party.timeline.map((i) => [i.title, (i.notes ?? []).map((n) => plainText(n, 1)), Boolean(i.optional)]),
+    [
+      ['Arrive for yoga, get settled in', [], false],
+      [
+        'Restorative Yoga with Britt',
+        ['No supplies or experience needed', 'Mats provided, or bring your own', 'Water bottle and stretchy clothes recommended', 'Limited to first 20 sign-ups'],
+        false,
+      ],
+      ['Self Care Launch Party', ['Open house style, come and go as you please', 'Refreshments provided', 'Activities and merch'], false],
+      ['Optional: climb at the gym until close', ['Day pass purchase required', 'Harness and shoes provided'], true],
+    ],
+  );
+  assert.deepEqual(party.timeline[3].notes![0], [{ text: 'Day pass purchase required', href: 'https://climbcityrock.com/day-passes' }]);
+
+  // E4, I-079: "This event made possible by…" (Marea's labels)
+  assert.deepEqual(party.credits, {
+    heading: 'This event made possible by…',
+    items: [
+      { name: 'Maréa', role: 'host', url: 'https://dreamcatcherwed.com', image: 'launch-party/marea-thumb.jpg', alt: '' },
+      { name: 'CityROCK', role: 'venue space donated', url: 'https://climbcityrock.com', image: 'launch-party/cityrock-logo.png', alt: '' },
+      { name: 'Britt Maddy', role: 'yoga class generously provided', url: 'https://www.instagram.com/brittandspirit/', image: 'launch-party/britt-thumb.jpg', alt: '' },
+      { name: 'JohnMark', role: 'graphic design', url: 'https://johnmark.co', image: 'launch-party/johnmark-logo.png', alt: 'Rantala Creative' },
+    ],
+  });
+  const name = party.credits!.items[0].name;
+  assert.equal(name, 'Maréa');
+  assert.equal(name, name.normalize('NFC'), 'the é is one character');
+  assert.ok(!JSON.stringify(party).includes('Marea'), 'no unaccented Marea anywhere in the data');
 
   assert.deepEqual(
     party.info.map((b) => b.id),
@@ -85,7 +125,7 @@ test('1a. launch party data equals the copy deck', () => {
   );
   const [wear, parking, raffle] = party.info;
   assert.equal(wear.title, 'What to wear');
-  assert.deepEqual(wear.items, ['Comfy cozy: yoga clothes or sweat pants', 'Fuzzy socks encouraged', 'Shoes off in the yoga room', 'Mats provided, own mats welcome']);
+  assert.deepEqual(wear.items, ['Comfy cozy: yoga clothes or sweat pants', 'Fuzzy socks encouraged', 'Shoes off in the yoga room']); // E4: mats moved to the yoga item
   assert.equal(wear.inReminder, true);
   assert.equal(parking.title, 'Parking');
   assert.equal(parking.text, "Metered street parking, or free parking along Wahsatch if you don't mind walking 2 blocks.");
@@ -118,8 +158,12 @@ test('1b. RSVP settings; the sign-up note follows the limit', () => {
 
   const twelve = launchParty(12);
   assert.equal(twelve.rsvp?.session?.limit, 12);
-  assert.ok(twelve.timeline[1].notes?.includes('Limited to first 12 sign-ups'));
-  assert.ok(!twelve.timeline[1].notes?.some((n) => n.includes('20')));
+  const notesOf = (e: SiteEvent) => e.timeline[1].notes!.map((n) => plainText(n, 1));
+  assert.ok(notesOf(twelve).includes('Limited to first 12 sign-ups'));
+  assert.ok(!notesOf(twelve).some((n) => n.includes('20')));
+  assert.equal(notesOf(twelve)[1], 'Mats provided, or bring your own'); // E4: the mats note stays second
+  assert.equal(notesOf(launchParty(20))[1], 'Mats provided, or bring your own');
+  assert.ok(notesOf(launchParty(20)).includes('Limited to first 20 sign-ups'));
   assert.equal(eventBySlug('launch-party'), party);
   assert.equal(eventBySlug('nope'), undefined);
 });
@@ -145,9 +189,27 @@ test('1c. rsvpText equals the copy deck table', () => {
 });
 
 test('1d. every image path in the data exists under src/assets/events/', () => {
-  const paths = [party.graphics.wide, party.graphics.narrow, party.graphics.og];
-  if (party.host?.photo) paths.push(party.host.photo);
+  const paths = [party.graphics.wide, party.graphics.narrow, party.graphics.og, ...party.credits!.items.map((c) => c.image)];
   for (const p of paths) assert.ok(existsSync(join(root, 'src/assets/events', p)), `missing ${p}`);
+  // the source of marea-thumb.jpg stays committed (E4 re-runs `npm run event-images` from it)
+  assert.ok(existsSync(join(root, 'src/assets/events/launch-party/marea-host.jpg')));
+});
+
+test('1e. licensure clause: the unlicensed description claims nothing (§A6, E4)', () => {
+  const claim = /\bmassage|\bLMT\b|\blicen/i;
+  const p1 = party.description![0];
+  const unlicensed = plainText(p1, 0);
+  assert.ok(!claim.test(unlicensed), unlicensed);
+  assert.ok(unlicensed.includes('650 hours of studies! 🎉 We invite'), unlicensed);
+  assert.ok(plainText(p1, 1).includes('passed his state test to become a licensed neuromuscular massage therapist! 🎉'));
+  // every plain string in the event: the licensure words only ever come from a { w } piece
+  const strings: string[] = [];
+  (function walk(v: unknown) {
+    if (typeof v === 'string') strings.push(v);
+    else if (Array.isArray(v)) v.forEach(walk);
+    else if (v && typeof v === 'object' && !('w' in v)) Object.values(v).forEach(walk);
+  })(launchParty(20));
+  for (const s of strings) assert.ok(!claim.test(s), `licensure word in plain string: ${s}`);
 });
 
 test('2. guards', () => {
@@ -169,6 +231,34 @@ test('2. guards', () => {
   going.rsvp!.showGoing = true;
   assert.throws(() => assertEvent(going), /showGoing has no design yet \(I-049\): decide what it shows first/);
   assert.doesNotThrow(() => assertEvent(synthetic));
+
+  // E4 guards: https links, known wording keys, complete credits
+  const http = clone();
+  http.timeline[3].notes = [[{ text: 'Day pass', href: 'http://climbcityrock.com/day-passes' }]];
+  assert.throws(() => assertEvent(http), /https/);
+  const httpDesc = clone();
+  httpDesc.description![1] = [{ text: 'Britt', href: 'http://www.instagram.com/brittandspirit/' }];
+  assert.throws(() => assertEvent(httpDesc), /https/);
+  const httpCredit = clone();
+  httpCredit.credits!.items[1].url = 'http://climbcityrock.com';
+  assert.throws(() => assertEvent(httpCredit), /https/);
+  const badKey = clone();
+  badKey.description![0] = ['Text ', { w: 'nope' }];
+  assert.throws(() => assertEvent(badKey), /unknown wording key "nope"/);
+  const noName = clone();
+  noName.credits!.items[0].name = '';
+  assert.throws(() => assertEvent(noName));
+  const noImage = clone();
+  noImage.credits!.items[2].image = '';
+  assert.throws(() => assertEvent(noImage));
+  assert.doesNotThrow(() => assertEvent(clone()));
+  assert.doesNotThrow(() => assertEvent(launchParty(12)));
+});
+
+test('2c. plainText joins strings, link text and the chosen wording variant', () => {
+  assert.equal(plainText('Plain', 0), 'Plain');
+  assert.equal(plainText(['A ', { text: 'link', href: 'https://example.com' }, ' B', { w: 'credential' }], 0), 'A link B');
+  assert.equal(plainText(['A', { w: 'licensedIn' }], 1), 'ALicensed in Colorado.');
 });
 
 test('2b. RESERVED_SLUGS covers every top-level entry of src/pages/ and public/', () => {
@@ -284,6 +374,33 @@ test('8. source: event facts live in events.ts only; no hex in the components', 
   }
 });
 
+test('8b. source: E4 components and styles', () => {
+  const comp = (n: string) => readFileSync(join(root, 'src/components/events', n), 'utf8');
+  assert.ok(!existsSync(join(root, 'src/components/events/EventHost.astro')), 'EventHost is deleted');
+  for (const n of ['EventRich.astro', 'EventDescription.astro', 'EventCredits.astro']) assert.ok(existsSync(join(root, 'src/components/events', n)), n);
+
+  // the guest's yoga question is visible (I-078 part 4)
+  assert.ok(!/<legend class="visually-hidden">/.test(comp('RsvpForm.astro')), 'no visually-hidden legend left in the RSVP form');
+
+  // the waiver notice is a light box on the green band (I-080 part 1)
+  const notice = comp('EventNotice.astro');
+  for (const token of ['--bg-light', '--green-300', '--link-on-light']) assert.ok(notice.includes(`var(${token})`), `notice uses ${token}`);
+  assert.ok(!notice.includes('--line-dark'), 'the notice has no dark-band border');
+
+  // the wide banner crop (I-080 part 2): inside the 48rem block
+  const hero = comp('EventHero.astro');
+  const wide = hero.slice(hero.indexOf('@media (min-width: 48rem)'));
+  assert.ok(wide.length > 0 && hero.includes('@media (min-width: 48rem)'), 'a 48rem media block');
+  for (const decl of ['aspect-ratio: 11 / 4', 'object-fit: cover', 'object-position: 50% 50%', 'scale: 1.5152', 'max-width: 60rem']) {
+    assert.ok(wide.includes(decl), `wide block has ${decl}`);
+  }
+  assert.ok(hero.includes('alt={event.graphics.alt}'), 'the header graphic has its alt');
+  assert.ok(hero.includes('event.heading ?? event.title'), 'the H1 is heading ?? title');
+
+  // check:contrast knows the notice's link pair
+  assert.match(readFileSync(join(root, 'scripts/check-contrast.mjs'), 'utf8'), /green-700 \(link on light\)/);
+});
+
 // Built output. Skipped with a reason when the site hasn't been built.
 const built = existsSync(join(dist, 'launch-party.html'));
 const skipBuilt = built ? false : 'dist/launch-party.html is missing; run `npm run build` first';
@@ -294,7 +411,7 @@ const meta = (html: string, key: string, name = 'property') =>
 
 test('9a. built page: head', { skip: skipBuilt }, () => {
   const html = page();
-  assert.equal(text(html.match(/<h1\b[\s\S]*?<\/h1>/)![0]), party.title);
+  assert.equal(text(html.match(/<h1\b[\s\S]*?<\/h1>/)![0]), 'A Celebration of Self-Care'); // E4: the graphic says the rest
   assert.match(html, /<meta\b[^>]*\bname="robots"[^>]*\bcontent="noindex"/);
   assert.match(html, new RegExp(`<link\\b[^>]*\\brel="canonical"[^>]*\\bhref="${origin}${base}/launch-party"`));
   const og = meta(html, 'og:image')!;
@@ -339,7 +456,7 @@ test('9b. built page: hero, timeline, links, notice', { skip: skipBuilt }, () =>
 
   const body = text(html);
   assert.ok(body.indexOf('What to wear') < body.indexOf('Important: Waiver Required'), 'notice is lower than info');
-  assert.ok(body.indexOf('Your host') < body.indexOf('Schedule'));
+  assert.ok(!body.includes('Your host'), 'the host section is gone (E4)');
   assert.ok(body.includes(party.notices[0].text));
   assert.equal([...html.matchAll(/<form\b/g)].length, 1, 'the RSVP form (E2)');
   // E2: JSON-LD plus the one RSVP client script (rsvp.test.ts counts it).
@@ -347,15 +464,59 @@ test('9b. built page: hero, timeline, links, notice', { skip: skipBuilt }, () =>
   assert.equal(scripts.length, 1, 'one non-JSON-LD script');
 });
 
-const noPhoto = party.host?.photo ? false : 'the host photo marea_host.jpg is missing (I-059); name only';
-test('9c. built page: host photo', { skip: noPhoto }, () => {
-  const img = page().match(/<img\b[^>]*\balt="Marea, the host\."[^>]*>/)?.[0];
-  assert.ok(img, 'host img');
-  assert.ok(attr(img!, 'width') && attr(img!, 'height'));
+test('9c. built page: header alt, description, section order (E4)', { skip: skipBuilt }, () => {
+  const html = page();
+  const hero = html.match(/<section\b[\s\S]*?<\/section>/)![0];
+  const img = hero.match(/<img\b[^>]*>/)![0];
+  assert.equal(attr(img, 'alt'), party.graphics.alt);
+
+  const variant = site.licensed ? 1 : 0;
+  const body = text(html);
+  for (const p of party.description!) assert.ok(body.includes(plainText(p, variant)), `description paragraph missing: ${plainText(p, variant).slice(0, 50)}`);
+  if (site.licensed) assert.ok(body.includes('passed his state test to become a licensed neuromuscular massage therapist! 🎉'));
+
+  const at = (re: RegExp) => html.search(re);
+  const order = [
+    at(/A year and a half ago/),
+    at(/<h2\b[^>]*>Schedule<\/h2>/),
+    at(/<h2\b[^>]*>What to wear<\/h2>/),
+    at(/id="rsvp"/),
+    at(/Important: Waiver Required/),
+    at(/This event made possible by…/),
+  ];
+  assert.ok(order.every((n) => n > 0), `a section is missing: ${order}`);
+  assert.deepEqual([...order].sort((a, b) => a - b), order, 'description, schedule, info, RSVP, notice, credits in that order');
+  assert.ok(!html.includes('Your host'));
+  assert.ok(!/Own day pass required|Mats provided, own mats welcome/.test(html));
 });
 
-test('9d. built page: host without a photo shows the name', { skip: party.host?.photo ? 'has a photo' : skipBuilt }, () => {
-  assert.match(text(page()), /Your host\s+Marea/);
+test('9d. built page: links open in a new tab; four credits in order with images', { skip: skipBuilt }, () => {
+  const html = page();
+  const links = [...html.matchAll(/<a\b[^>]*>/g)].map((m) => m[0]);
+  for (const href of ['https://www.instagram.com/brittandspirit/', 'https://climbcityrock.com/day-passes']) {
+    const a = links.find((l) => attr(l, 'href') === href);
+    assert.ok(a, `link ${href}`);
+    assert.equal(attr(a!, 'target'), '_blank');
+    assert.match(attr(a!, 'rel')!, /noopener/);
+  }
+
+  const credits = [...html.matchAll(/<a\b[^>]*class="[^"]*\bcredit\b[^"]*"[^>]*>([\s\S]*?)<\/a>/g)];
+  assert.equal(credits.length, 4);
+  const want = ['Maréa, host', 'CityROCK, venue space donated', 'Britt Maddy, yoga class generously provided', 'JohnMark, graphic design'];
+  credits.forEach((m, i) => {
+    const item = party.credits!.items[i];
+    assert.equal(attr(m[0], 'href'), item.url);
+    assert.equal(attr(m[0], 'target'), '_blank');
+    assert.match(attr(m[0], 'rel')!, /noopener/);
+    assert.equal(text(m[1]).replace(/ ,/g, ','), want[i], `credit ${i} text`);
+    const img = m[1].match(/<img\b[^>]*>/)?.[0];
+    assert.ok(img, `credit ${i} image`);
+    assert.ok(attr(img!, 'width') && attr(img!, 'height'), `credit ${i} width and height`);
+    // the build minifies alt="" to a bare `alt`
+    const alt = attr(img!, 'alt') ?? (/\salt(\s|>|\/)/.test(img!) ? '' : undefined);
+    assert.equal(alt, item.alt, `credit ${i} alt`);
+  });
+  assert.match(html, /<h2\b[^>]*>This event made possible by…<\/h2>/);
 });
 
 test('9e. other pages keep the default preview; sitemap; feed; ics', { skip: skipBuilt }, () => {

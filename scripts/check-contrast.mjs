@@ -47,6 +47,8 @@ const pairs = [
   ['cream', hex('cream'), 'green-700', hex('green-700'), 4.5],
   ['ink', hex('ink'), 'cream', hex('cream'), 4.5],
   ['cream', hex('cream'), 'terra-700', hex('terra-700'), 4.5],
+  // Links on a cream band: the event notice box and the credits (--link-on-light is green-700), E4.
+  ['green-700 (link on light)', hex('green-700'), 'cream', hex('cream'), 4.5],
   ['terra-500', hex('terra-500'), 'green-900', hex('green-900'), 3.0], // large text only
   // Zone buttons: ink text on each tint, and each tint against the page (the button's edge).
   ...Object.entries(tint).flatMap(([name, color]) => [
