@@ -24,10 +24,10 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - run: npm test
       - run: npm run build
         env:
           PUBLIC_GOOGLE_MAPS_KEY: ${{ vars.PUBLIC_GOOGLE_MAPS_KEY }}
+      - run: npm test
       - run: npm run check:wording
       - run: npm run check:dist
       - uses: actions/configure-pages@v6
