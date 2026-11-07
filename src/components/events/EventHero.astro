@@ -48,7 +48,7 @@ const narrowSizes = `(min-width: 30rem) ${narrow.width}px, 100vw`;
   <a href={mapsUrl(event.venue)} target="_blank" rel="noopener">{event.venue.name}, {event.venue.address}</a>
 </p>
 <p class="event-actions">
-  <!-- The RSVP button arrives with the form (E2, ARCHITECTURE §B10). -->
+  {event.rsvp && <a class="btn" href="#rsvp">{rsvpText.heading}</a>}
   <a class="btn btn--quiet" href={href(`/events/${event.slug}.ics`)} download>{rsvpText.calendar}</a>
 </p>
 
@@ -72,6 +72,9 @@ const narrowSizes = `(min-width: 30rem) ${narrow.width}px, 100vw`;
     margin-top: var(--s-2);
   }
   .event-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-3);
     margin-top: var(--s-6);
   }
   @media (min-width: 48rem) {

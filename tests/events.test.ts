@@ -315,7 +315,7 @@ test('9b. built page: hero, timeline, links, notice', { skip: skipBuilt }, () =>
   const hero = html.match(/<section\b[\s\S]*?<\/section>/)![0];
   assert.ok(hero.includes('<picture'), 'hero is a picture');
   assert.match(text(hero), /Sunday, Nov 22, 2026 · 2:00–6:00 pm/);
-  assert.ok(!/href="#rsvp"/.test(html), 'no RSVP button until E2');
+  assert.ok(hero.includes('href="#rsvp"'), 'the hero has the RSVP button (E2)');
 
   const ol = html.match(/<ol\b[^>]*class="[^"]*\btimeline\b[^"]*"[\s\S]*?<\/ol>/)![0];
   const times = [...ol.matchAll(/<time\b[^>]*\bdatetime="([^"]*)"/g)].map((m) => m[1]);
@@ -341,8 +341,10 @@ test('9b. built page: hero, timeline, links, notice', { skip: skipBuilt }, () =>
   assert.ok(body.indexOf('What to wear') < body.indexOf('Important: Waiver Required'), 'notice is lower than info');
   assert.ok(body.indexOf('Your host') < body.indexOf('Schedule'));
   assert.ok(body.includes(party.notices[0].text));
-  assert.ok(!/<form\b/.test(html), 'no form until E2');
-  for (const m of html.matchAll(/<script\b([^>]*)>/g)) assert.match(m[1], /application\/ld\+json/, 'only JSON-LD scripts');
+  assert.equal([...html.matchAll(/<form\b/g)].length, 1, 'the RSVP form (E2)');
+  // E2: JSON-LD plus the one RSVP client script (rsvp.test.ts counts it).
+  const scripts = [...html.matchAll(/<script\b([^>]*)>/g)].filter((m) => !/application\/ld\+json/.test(m[1]));
+  assert.equal(scripts.length, 1, 'one non-JSON-LD script');
 });
 
 const noPhoto = party.host?.photo ? false : 'the host photo marea_host.jpg is missing (I-059); name only';

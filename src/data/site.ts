@@ -97,6 +97,13 @@ export const site = {
   },
 
   /**
+   * The RSVP web app (Apps Script, Ohm Workspace account): one deployment serves every event (ARCHITECTURE §B10).
+   * Public by design (Brian, I-049, Nov 6 2026). If I-058 deploys a new project, only this line changes.
+   * The form posts here and nothing else on the site makes this request.
+   */
+  rsvpUrl: 'https://script.google.com/macros/s/AKfycbztJsWy8MhhaQXrMIfGBtxM8ZpqGIrBcGaZcO_ZWRmNhbwCm8_3epqZYg1yY18Nvb6N/exec',
+
+  /**
    * PocketSuite booking links: the items page filtered by a keyword tag, one per link key
    * (Brian, Oct 29 2026, I-040). Never guess PS URLs; only Brian changes these.
    */

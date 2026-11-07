@@ -1,0 +1,292 @@
+---
+// The RSVP form (E2, I-049/I-050; ARCHITECTURE §B10). Works without JS: it posts to the Apps Script with
+// mode=html. src/scripts/rsvp.ts (client script 5) layers on spots left, validation and the in-page result.
+// Every string is rsvpText's; nothing here types copy. maxGuests is a hidden ceiling (I-060): all rows exist,
+// rows past NOJS_GUEST_ROWS are `hidden`, and no text names a limit.
+import { rsvpText as t, type SiteEvent } from '../../data/events.ts';
+import { site } from '../../data/site.ts';
+import { timeLabel } from '../../lib/events.ts';
+import { configOf, fill, words, NOJS_GUEST_ROWS } from '../../lib/rsvp.ts';
+import { href } from '../../lib/url.ts';
+
+interface Props {
+  event: SiteEvent;
+}
+
+const { event } = Astro.props;
+const cfg = configOf(event);
+const session = event.rsvp?.session;
+const w = session ? words(session.label) : {};
+const item = session ? event.timeline[session.item] : undefined;
+const question = session && item ? fill(t.sessionQuestion, { ...w, time: timeLabel(item.start, item.end, event.timeZone, 'auto') }) : '';
+const guestsHelp = fill(session ? t.guestsHelp : t.guestsHelpPlain, w);
+const rows = Array.from({ length: cfg.maxGuests }, (_, i) => i + 1);
+const statuses = ['going', 'maybe', 'cant'] as const;
+const answers = ['yes', 'no'] as const;
+---
+
+<div class="rsvp">
+  <h2>{t.heading}</h2>
+  <p class="rsvp-intro">{t.intro}</p>
+  <p class="rsvp-closed" hidden>{t.closed}</p>
+  <p class="rsvp-spots" aria-live="polite" hidden></p>
+  <p class="rsvp-banner" role="alert" hidden></p>
+
+  <form
+    class="rsvp-form"
+    method="post"
+    action={site.rsvpUrl}
+    data-slug={cfg.slug}
+    data-closes-at={cfg.closesAt}
+    data-max-guests={cfg.maxGuests}
+    data-session-label={cfg.session?.label}
+    data-waitlist={cfg.session ? String(cfg.session.waitlist) : undefined}
+    data-email={site.email}
+    data-text={JSON.stringify(t)}
+  >
+    <input type="hidden" name="slug" value={event.slug} />
+    <input type="hidden" name="mode" value="html" />
+    <div class="visually-hidden" aria-hidden="true">
+      <label>{t.honeypot}<input type="text" name="website" tabindex="-1" autocomplete="off" value="" /></label>
+    </div>
+
+    <p class="field">
+      <label for="rsvp-name">{t.name}</label>
+      <input id="rsvp-name" type="text" name="name" autocomplete="name" required />
+      <span class="rsvp-error" id="err-name" data-error-for="name" hidden></span>
+    </p>
+    <p class="field">
+      <label for="rsvp-email">{t.email}</label>
+      <input id="rsvp-email" type="email" name="email" autocomplete="email" required />
+      <span class="rsvp-error" id="err-email" data-error-for="email" hidden></span>
+    </p>
+
+    <fieldset class="group">
+      <legend>{t.status}</legend>
+      <span class="choices">
+        {
+          statuses.map((v) => (
+            <label class="choice">
+              <input type="radio" name="status" value={v} required />
+              {t[v]}
+            </label>
+          ))
+        }
+      </span>
+      <span class="rsvp-error" id="err-status" data-error-for="status" hidden></span>
+    </fieldset>
+
+    {
+      session && (
+        <fieldset class="group" data-attending>
+          <legend>{question}</legend>
+          <span class="choices">
+            {answers.map((v) => (
+              <label class="choice">
+                <input type="radio" name="session" value={v} />
+                {t[v]}
+              </label>
+            ))}
+          </span>
+          <span class="rsvp-error" id="err-session" data-error-for="session" hidden />
+        </fieldset>
+      )
+    }
+
+    <fieldset class="group rsvp-guests" data-attending>
+      <legend>{t.guestsHeading}</legend>
+      <span class="help">{guestsHelp}</span>
+      {
+        rows.map((n) => (
+          <div class="guest" data-guest={n} hidden={n > NOJS_GUEST_ROWS}>
+            <fieldset class="group">
+              <legend>{fill(t.guestLegend, { n })}</legend>
+              <span class="field">
+                <label for={`rsvp-g${n}name`}>{t.guestName}</label>
+                <input id={`rsvp-g${n}name`} type="text" name={`g${n}name`} autocomplete="off" />
+                <span class="rsvp-error" id={`err-g${n}name`} data-error-for={`g${n}name`} hidden />
+              </span>
+              {session && (
+                <fieldset class="group">
+                  <legend class="visually-hidden">{question}</legend>
+                  <span class="choices">
+                    {answers.map((v) => (
+                      <label class="choice">
+                        <input type="radio" name={`g${n}session`} value={v} />
+                        {t[v]}
+                      </label>
+                    ))}
+                  </span>
+                  <span class="rsvp-error" id={`err-g${n}session`} data-error-for={`g${n}session`} hidden />
+                </fieldset>
+              )}
+              <button type="button" class="link-button guest-remove" hidden>
+                {fill(t.removeGuest, { n })}
+              </button>
+            </fieldset>
+          </div>
+        ))
+      }
+      <button type="button" class="link-button guest-add" hidden>{t.addGuest}</button>
+    </fieldset>
+
+    <p class="optin">
+      <label class="choice"><input type="checkbox" name="optin" value="yes" />{t.optIn}</label>
+    </p>
+    <button class="btn" type="submit">{t.submit}</button>
+    <p class="rsvp-privacy">{t.privacy}</p>
+  </form>
+
+  <div class="rsvp-result" role="status" tabindex="-1" hidden>
+    <h3 class="rsvp-result__title"></h3>
+    <p class="rsvp-result__text"></p>
+    <ul class="rsvp-lines"></ul>
+    <p class="rsvp-result__note" hidden></p>
+    <a class="btn rsvp-result__calendar" href={href(`/events/${event.slug}.ics`)} download hidden>{t.calendar}</a>
+  </div>
+</div>
+
+<script>
+  import '../../scripts/rsvp.ts';
+</script>
+
+<style>
+  .rsvp {
+    max-width: 36rem;
+  }
+  /* A class that sets `display` would otherwise beat the hidden attribute (.btn is inline-flex). */
+  .rsvp [hidden] {
+    display: none !important;
+  }
+  .rsvp-intro,
+  .rsvp-closed,
+  .rsvp-spots {
+    margin-top: var(--s-2);
+  }
+  .rsvp-spots {
+    font-weight: 600;
+  }
+  .rsvp-banner {
+    margin-top: var(--s-4);
+    padding: var(--s-3) var(--s-4);
+    border: 2px solid var(--terra-700);
+    border-radius: var(--radius);
+    font-weight: 600;
+  }
+  .rsvp-form {
+    display: grid;
+    gap: var(--s-6);
+    margin-top: var(--s-6);
+  }
+  fieldset {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  legend,
+  .field > label {
+    display: block;
+    padding: 0;
+    margin-bottom: var(--s-1);
+    font-weight: 600;
+  }
+  .field {
+    display: block;
+  }
+  input[type='text'],
+  input[type='email'] {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    padding: var(--s-2) var(--s-3);
+    border: 1px solid var(--ink);
+    border-radius: var(--radius);
+    background: var(--bg-light);
+    color: var(--text-on-light);
+  }
+  /* The focus ring stays (global :focus-visible); an invalid field gets a heavier terracotta border. */
+  input[aria-invalid='true'] {
+    border-color: var(--terra-700);
+    box-shadow: 0 0 0 1px var(--terra-700);
+  }
+  .rsvp-error {
+    display: block;
+    margin-top: var(--s-1);
+    color: var(--text-on-light);
+    font-weight: 600;
+  }
+  .choices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-1) var(--s-6);
+  }
+  .choice {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    min-height: 44px;
+    font-weight: 400;
+  }
+  .choice input {
+    flex: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    accent-color: var(--green-700);
+  }
+  .help {
+    display: block;
+    margin-bottom: var(--s-3);
+  }
+  .guest {
+    padding: var(--s-4);
+    border: 1px solid var(--line-light);
+    border-radius: var(--radius);
+  }
+  .guest + .guest {
+    margin-top: var(--s-3);
+  }
+  .guest .group + .group {
+    margin-top: var(--s-3);
+  }
+  .link-button {
+    min-height: 44px;
+    padding: var(--s-2) 0;
+    border: 0;
+    background: none;
+    color: var(--link-on-light);
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .guest-add {
+    display: block;
+    margin-top: var(--s-2);
+  }
+  .rsvp-form .btn {
+    justify-self: start;
+  }
+  .btn[disabled] {
+    opacity: 0.7;
+    cursor: progress;
+  }
+  .rsvp-privacy {
+    font-size: var(--fs-small);
+  }
+  .rsvp-result {
+    margin-top: var(--s-6);
+    padding: var(--s-6);
+    border: 1px solid var(--line-light);
+    border-top: 3px solid var(--accent);
+    border-radius: var(--radius);
+  }
+  .rsvp-result > * + * {
+    margin-top: var(--s-3);
+  }
+  .rsvp-lines {
+    padding-left: 1.1em;
+  }
+  .rsvp-lines :global(li) + :global(li) {
+    margin-top: var(--s-1);
+  }
+</style>

@@ -272,6 +272,7 @@ test('15. only Book, the zone pages (terrain, I-054), the policies, /hello and H
     'client-policies.html',
     'hello.html',
     'index.html',
+    'launch-party.html', // E2: the RSVP client
   ]);
 });
 

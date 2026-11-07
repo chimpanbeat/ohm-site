@@ -1,0 +1,649 @@
+[
+  {
+    "label": "going, yes",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "session": "yes"
+    },
+    "ok": true,
+    "fields": [],
+    "normalized": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "guests": [],
+      "optin": false,
+      "session": "yes"
+    }
+  },
+  {
+    "label": "maybe, no",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "maybe",
+      "session": "no"
+    },
+    "ok": true,
+    "fields": [],
+    "normalized": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "maybe",
+      "guests": [],
+      "optin": false,
+      "session": "no"
+    }
+  },
+  {
+    "label": "maybe, yes (valid)",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "maybe",
+      "session": "yes"
+    },
+    "ok": true,
+    "fields": [],
+    "normalized": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "maybe",
+      "guests": [],
+      "optin": false,
+      "session": "yes"
+    }
+  },
+  {
+    "label": "cant drops guests and answers",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "cant",
+      "session": "yes",
+      "g1name": "Sam",
+      "g1session": "yes",
+      "g2name": "Jo",
+      "g2session": "no"
+    },
+    "ok": true,
+    "fields": [],
+    "normalized": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "cant",
+      "guests": [],
+      "optin": false
+    }
+  },
+  {
+    "label": "blank name",
+    "event": "session",
+    "input": {
+      "name": "   ",
+      "email": "alex@example.com",
+      "status": "going",
+      "session": "yes"
+    },
+    "ok": false,
+    "fields": [
+      "name"
+    ]
+  },
+  {
+    "label": "81-character name",
+    "event": "session",
+    "input": {
+      "name": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "email": "alex@example.com",
+      "status": "going",
+      "session": "yes"
+    },
+    "ok": false,
+    "fields": [
+      "name"
+    ]
+  },
+  {
+    "label": "80-character name",
+    "event": "session",
+    "input": {
+      "name": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "email": "alex@example.com",
+      "status": "going",
+      "session": "yes"
+    },
+    "ok": true,
+    "fields": [],
+    "normalized": {
+      "name": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "email": "alex@example.com",
+      "status": "going",
+      "guests": [],
+      "optin": false,
+      "session": "yes"
+    }
+  },
+  {
+    "label": "email a@b",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "a@b",
+      "status": "going",
+      "session": "yes"
+    },
+    "ok": false,
+    "fields": [
+      "email"
+    ]
+  },
+  {
+    "label": "email with a space",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "a b@c.d",
+      "status": "going",
+      "session": "yes"
+    },
+    "ok": false,
+    "fields": [
+      "email"
+    ]
+  },
+  {
+    "label": "email over 254 characters",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@example.com",
+      "status": "going",
+      "session": "yes"
+    },
+    "ok": false,
+    "fields": [
+      "email"
+    ]
+  },
+  {
+    "label": "email trimmed and lowercased",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": " Alex@Example.COM ",
+      "status": "going",
+      "session": "yes"
+    },
+    "ok": true,
+    "fields": [],
+    "normalized": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "guests": [],
+      "optin": false,
+      "session": "yes"
+    }
+  },
+  {
+    "label": "no status",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "session": "yes"
+    },
+    "ok": false,
+    "fields": [
+      "status"
+    ]
+  },
+  {
+    "label": "unknown status",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "yes",
+      "session": "yes"
+    },
+    "ok": false,
+    "fields": [
+      "status"
+    ]
+  },
+  {
+    "label": "going without session",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going"
+    },
+    "ok": false,
+    "fields": [
+      "session"
+    ]
+  },
+  {
+    "label": "name, email and status missing, plain event",
+    "event": "plain",
+    "input": {
+      "name": "",
+      "email": "nope",
+      "status": ""
+    },
+    "ok": false,
+    "fields": [
+      "name",
+      "email",
+      "status"
+    ]
+  },
+  {
+    "label": "guest name without answer",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "session": "yes",
+      "g1name": "Sam"
+    },
+    "ok": false,
+    "fields": [
+      "g1session"
+    ]
+  },
+  {
+    "label": "guest answer without name",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "session": "yes",
+      "g1session": "yes"
+    },
+    "ok": false,
+    "fields": [
+      "g1name"
+    ]
+  },
+  {
+    "label": "guest answer is not yes or no",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "session": "yes",
+      "g1name": "Sam",
+      "g1session": "maybe"
+    },
+    "ok": false,
+    "fields": [
+      "g1session"
+    ]
+  },
+  {
+    "label": "81-character guest name",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "session": "yes",
+      "g1name": "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+      "g1session": "yes"
+    },
+    "ok": false,
+    "fields": [
+      "g1name"
+    ]
+  },
+  {
+    "label": "errors in field order",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "session": "",
+      "g1name": "Sam",
+      "g2session": "no"
+    },
+    "ok": false,
+    "fields": [
+      "session",
+      "g1session",
+      "g2name"
+    ]
+  },
+  {
+    "label": "blank g1, filled g2 is kept",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "session": "yes",
+      "g1name": " ",
+      "g1session": "",
+      "g2name": " Sam ",
+      "g2session": "yes"
+    },
+    "ok": true,
+    "fields": [],
+    "normalized": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "guests": [
+        {
+          "name": "Sam",
+          "session": "yes"
+        }
+      ],
+      "optin": false,
+      "session": "yes"
+    }
+  },
+  {
+    "label": "ten filled guests",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "session": "yes",
+      "g1name": "Guest 1",
+      "g1session": "yes",
+      "g2name": "Guest 2",
+      "g2session": "no",
+      "g3name": "Guest 3",
+      "g3session": "yes",
+      "g4name": "Guest 4",
+      "g4session": "no",
+      "g5name": "Guest 5",
+      "g5session": "yes",
+      "g6name": "Guest 6",
+      "g6session": "no",
+      "g7name": "Guest 7",
+      "g7session": "yes",
+      "g8name": "Guest 8",
+      "g8session": "no",
+      "g9name": "Guest 9",
+      "g9session": "yes",
+      "g10name": "Guest 10",
+      "g10session": "no"
+    },
+    "ok": true,
+    "fields": [],
+    "normalized": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "guests": [
+        {
+          "name": "Guest 1",
+          "session": "yes"
+        },
+        {
+          "name": "Guest 2",
+          "session": "no"
+        },
+        {
+          "name": "Guest 3",
+          "session": "yes"
+        },
+        {
+          "name": "Guest 4",
+          "session": "no"
+        },
+        {
+          "name": "Guest 5",
+          "session": "yes"
+        },
+        {
+          "name": "Guest 6",
+          "session": "no"
+        },
+        {
+          "name": "Guest 7",
+          "session": "yes"
+        },
+        {
+          "name": "Guest 8",
+          "session": "no"
+        },
+        {
+          "name": "Guest 9",
+          "session": "yes"
+        },
+        {
+          "name": "Guest 10",
+          "session": "no"
+        }
+      ],
+      "optin": false,
+      "session": "yes"
+    }
+  },
+  {
+    "label": "g11 is ignored",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "session": "yes",
+      "g11name": "Extra",
+      "g11session": "yes"
+    },
+    "ok": true,
+    "fields": [],
+    "normalized": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "guests": [],
+      "optin": false,
+      "session": "yes"
+    }
+  },
+  {
+    "label": "guests with Maybe are kept",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "maybe",
+      "session": "no",
+      "g1name": "Sam",
+      "g1session": "yes"
+    },
+    "ok": true,
+    "fields": [],
+    "normalized": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "maybe",
+      "guests": [
+        {
+          "name": "Sam",
+          "session": "yes"
+        }
+      ],
+      "optin": false,
+      "session": "no"
+    }
+  },
+  {
+    "label": "session fields on a plain event are ignored",
+    "event": "plain",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "session": "yes",
+      "g1name": "Sam",
+      "g1session": "no"
+    },
+    "ok": true,
+    "fields": [],
+    "normalized": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "guests": [
+        {
+          "name": "Sam"
+        }
+      ],
+      "optin": false
+    }
+  },
+  {
+    "label": "plain event, going, no guests",
+    "event": "plain",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going"
+    },
+    "ok": true,
+    "fields": [],
+    "normalized": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "guests": [],
+      "optin": false
+    }
+  },
+  {
+    "label": "optin yes",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "session": "yes",
+      "optin": "yes"
+    },
+    "ok": true,
+    "fields": [],
+    "normalized": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "guests": [],
+      "optin": true,
+      "session": "yes"
+    }
+  },
+  {
+    "label": "optin absent",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "session": "yes"
+    },
+    "ok": true,
+    "fields": [],
+    "normalized": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "guests": [],
+      "optin": false,
+      "session": "yes"
+    }
+  },
+  {
+    "label": "optin on is not yes",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "session": "yes",
+      "optin": "on"
+    },
+    "ok": true,
+    "fields": [],
+    "normalized": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "guests": [],
+      "optin": false,
+      "session": "yes"
+    }
+  },
+  {
+    "label": "optin YES is not yes",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "session": "yes",
+      "optin": "YES"
+    },
+    "ok": true,
+    "fields": [],
+    "normalized": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "guests": [],
+      "optin": false,
+      "session": "yes"
+    }
+  },
+  {
+    "label": "optin yes with cant",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "cant",
+      "session": "yes",
+      "optin": "yes"
+    },
+    "ok": true,
+    "fields": [],
+    "normalized": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "cant",
+      "guests": [],
+      "optin": true
+    }
+  },
+  {
+    "label": "honeypot filled",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "session": "yes",
+      "website": "http://spam.example"
+    },
+    "ok": true,
+    "fields": [],
+    "bot": true
+  }
+]
