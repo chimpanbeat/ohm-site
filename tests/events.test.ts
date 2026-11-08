@@ -17,6 +17,7 @@ import {
   timeLabel,
   mapsUrl,
   icsFor,
+  googleCalUrl,
   feedFor,
   eventPaths,
   plainText,
@@ -360,7 +361,7 @@ test('6. eventPaths', () => {
 test('7. feed', () => {
   const feed = feedFor(party, siteUrl);
   assert.deepEqual(Object.keys(feed).sort(), [
-    'bookUrl', 'closesAt', 'dateLabel', 'end', 'icsUrl', 'mail', 'maxGuests', 'notices', 'pageUrl', 'reminderAt', 'reminderInfo',
+    'bookUrl', 'closesAt', 'dateLabel', 'end', 'googleCalUrl', 'icsUrl', 'mail', 'maxGuests', 'notices', 'pageUrl', 'reminderAt', 'reminderInfo',
     'sender', 'session', 'signature', 'slug', 'start', 'text', 'timeLabel', 'tips', 'title', 'v', 'venue',
   ]);
   assert.equal(feed.v, 1);
@@ -398,10 +399,23 @@ test('7b. feed (E13): the book link, the event words for the emails, the signatu
   const json = JSON.stringify(feed);
   assert.ok(!/\(?\b[2-9]\d{2}\)?[\s.-]\d{3}[\s.-]\d{4}\b/.test(json) && !/tel:|PHONE/.test(json), 'no phone number or phone property in the feed');
   // the new copy keys, and the sign-off is gone (the signature replaces it)
-  for (const k of ['detailsHead', 'yourRsvp', 'guestRsvp', 'sessionAnswer', 'sessionWaitlist', 'bookHead', 'bookLine', 'bookLink', 'questions', 'questionsHost', 'seeYou']) {
+  for (const k of ['detailsHead', 'yourRsvp', 'guestsHead', 'guestLine', 'sessionAnswer', 'sessionWaitlist', 'bookHead', 'bookLine', 'bookLink', 'calendarGoogleLine', 'changeConfirming', 'questions', 'questionsHost', 'seeYou']) {
     assert.ok(k in feed.text, `text.${k}`);
   }
-  assert.ok(!('signoff' in feed.text));
+  assert.ok(!('signoff' in feed.text) && !('guestRsvp' in feed.text));
+});
+
+test('7c. feed (E14): the Google Calendar link carries the same title, time, place and page as the .ics', () => {
+  const feed = feedFor(party, siteUrl);
+  const url = new URL(feed.googleCalUrl);
+  assert.equal(url.origin + url.pathname, 'https://calendar.google.com/calendar/render');
+  assert.equal(url.searchParams.get('action'), 'TEMPLATE');
+  assert.equal(url.searchParams.get('text'), party.title);
+  assert.equal(url.searchParams.get('dates'), '20261122T210000Z/20261123T010000Z'); // 2–6 pm MST
+  assert.equal(url.searchParams.get('location'), `${party.venue.name}, ${party.venue.address}`);
+  assert.equal(url.searchParams.get('details'), feed.pageUrl);
+  assert.equal(googleCalUrl(party, siteUrl), feed.googleCalUrl);
+  assert.ok(new URL(feed.googleCalUrl).origin === 'https://calendar.google.com' && !/office/i.test(feed.googleCalUrl));
 });
 
 test('8. source: event facts live in events.ts only; no hex in the components', () => {

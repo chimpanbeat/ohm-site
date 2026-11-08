@@ -357,7 +357,7 @@ function change(env: Env, stored: string, p: P): string {
 // ---- Expected email text, built from the copy deck's layout (§Emails) --------------------------------------------
 
 const T = rsvpText as Record<string, string>;
-const vars = (f: Feed) => ({ title: f.title, eventName: f.mail.name, thanks: f.mail.thanks, dateLabel: f.dateLabel, timeLabel: f.timeLabel, venue: f.venue.name, address: f.venue.address, icsUrl: f.icsUrl, pageUrl: f.pageUrl });
+const vars = (f: Feed) => ({ title: f.title, eventName: f.mail.name, thanks: f.mail.thanks, dateLabel: f.dateLabel, timeLabel: f.timeLabel, venue: f.venue.name, address: f.venue.address, icsUrl: f.icsUrl, googleUrl: f.googleCalUrl, pageUrl: f.pageUrl });
 const OUT_KEY: Record<string, string> = { confirmed: 'confirmed', waitlist: 'waitlist', full: 'full', maybe: 'maybe', no: 'no' };
 const noticeBlocks = (f: Feed) => f.notices.map((n: any) => [n.title, n.text, n.url].filter(Boolean).join('\n'));
 // E13: the session answer each cell gives in the confirmation (a Maybe holds no spot: No)
@@ -368,25 +368,27 @@ function expectSig(env: Env): string {
   const phone = env.props.SIGNATURE_PHONE;
   return [`${s.name}${s.credentials ? `, ${s.credentials}` : ''}`, s.business, phone ? `${phone} • ${s.label}` : s.label].join('\n');
 }
-const bookBlock = (f: Feed) => [T.bookHead, fill(T.bookLine, { link: T.bookLink }), f.bookUrl].join('\n');
+const bookBlock = (f: Feed) => [T.bookHead, T.bookLine, T.bookLink, f.bookUrl].join('\n'); // E14: the link is a button on its own line
+const calendarBlock = (f: Feed) => [fill(T.calendarGoogleLine, vars(f)), fill(T.calendarLine, vars(f))].join('\n');
 const hostLine = (env: Env) => (env.props.HOST_PHONE ? fill(T.questionsHost, { host: env.feed.mail.host, hostPhone: env.props.HOST_PHONE }) : T.questions);
 /** E13: people = [name, cell], you first. */
 function expectConfirm(env: Env, name: string, status: 'going' | 'maybe', people: [string, string][], opts: { waitlist?: boolean } = {}): string {
   const f = env.feed;
   const v = vars(f);
-  const details = [T.detailsHead];
-  people.forEach(([n, cell], i) => {
-    details.push(i === 0 ? fill(T.yourRsvp, { status: T[status] }) : fill(T.guestRsvp, { name: n, status: T[status] }));
-    if (f.session) details.push(fill(T.sessionAnswer, { Session: 'Yoga', answer: ANSWER[cell] }));
-  });
-  if (opts.waitlist) details.push(T.waitlistNote);
+  // E14: Yoga lines only for Going on a session event; guests are a "Guests:" heading and one bullet each
+  const asks = Boolean(f.session) && status === 'going';
+  const main = [T.detailsHead, fill(T.yourRsvp, { status: T[status] })];
+  if (asks) main.push(fill(T.sessionAnswer, { Session: 'Yoga', answer: ANSWER[people[0][1]] }));
+  const guests = people.slice(1).map(([n, cell]) => `- ${asks ? fill(T.guestLine, { name: n, Session: 'Yoga', answer: ANSWER[cell] }) : n}`);
   return [
     fill(T.hi, { name }),
     fill(T.confirmLead, v).trim(),
-    details.join('\n'),
+    main.join('\n'),
+    ...(guests.length ? [[T.guestsHead, ...guests].join('\n')] : []),
+    ...(opts.waitlist ? [T.waitlistNote] : []),
     [T.changeLine, f.pageUrl].join('\n'),
     [fill(T.when, v), fill(T.where, v)].join('\n'),
-    fill(T.calendarLine, v),
+    calendarBlock(f),
     ...noticeBlocks(f),
     bookBlock(f),
     hostLine(env),
@@ -400,7 +402,7 @@ function expectCant(env: Env, name: string): string {
 function expectReminder(env: Env, name: string, people: [string, string][], maybe = false): string {
   const f = env.feed;
   const v = vars(f);
-  const lines = people.map(([n, o]) => `- ${outcomeLine(T, 'Yoga', n, OUT_KEY[o] as any)}`);
+  const lines = people.filter(([, o]) => o !== 'maybe').map(([n, o]) => `- ${outcomeLine(T, 'Yoga', n, OUT_KEY[o] as any)}`); // E14: a maybe cell has no line
   if (maybe) lines.push(fill(T.maybeNote, words('Yoga')));
   return [
     fill(T.hi, { name }),
@@ -409,7 +411,7 @@ function expectReminder(env: Env, name: string, people: [string, string][], mayb
     ...f.reminderInfo.map((b: any) => [b.title, b.text ?? '', ...(b.items ?? []).map((i: string) => `- ${i}`)].filter(Boolean).join('\n')),
     lines.join('\n'),
     ...noticeBlocks(f),
-    [fill(T.detailsLine, v), fill(T.calendarLine, v)].join('\n'),
+    [fill(T.detailsLine, v), fill(T.calendarGoogleLine, v), fill(T.calendarLine, v)].join('\n'),
     expectSig(env),
   ]
     .filter(Boolean)
@@ -585,7 +587,8 @@ test('6. change confirm page, apply, single use, expiry, closing', () => {
   assert.equal(JSON.stringify(env.sheet().rows), rowsBefore, 'a GET writes nothing');
   assert.ok(page.includes(T.changeConfirmLead));
   assert.ok(page.includes(fill(T.newAnswer, { status: T.maybe })));
-  for (const n of ['Alex R', 'Sam']) assert.ok(page.includes(fill(T.answerLine, { name: n, Session: 'Yoga', answer: T.yes })), `answer line for ${n}`);
+  // E14: a Maybe has no session answers, so the page lists none
+  for (const n of ['Alex R', 'Sam']) assert.ok(!page.includes(fill(T.answerLine, { name: n, Session: 'Yoga', answer: T.yes })), `no answer line for ${n}`);
   const form = /<form[^>]*>/.exec(page)![0];
   assert.ok(/method="post"/i.test(form) && /target="_top"/.test(form), form);
   assert.ok(form.includes(EXEC));
@@ -607,11 +610,15 @@ test('6. change confirm page, apply, single use, expiry, closing', () => {
   assert.equal(env.status().session.spotsLeft, 20, 'GET +2');
   const conf = env.mails[env.mails.length - 1];
   assert.equal(env.mails.length, mailsBefore + 1);
-  // E13: the Maybe confirmation shows every person's yoga as No and drops maybeNote (the change line says how)
+  // E14: the Maybe confirmation lists the guests by name, has no Yoga lines, and drops maybeNote (the change line says how)
   assert.equal(conf.body, expectConfirm(env, 'Alex R', 'maybe', [['Alex R', 'maybe'], ['Sam', 'maybe']]));
   assert.ok(!conf.body.includes(fill(T.maybeNote, words('Yoga'))), 'no maybeNote in the confirmation');
 
-  assert.ok(env.applyChange(token).includes(T.changeExpired), 'the same token again');
+  // E14: pressing Confirm again (or reopening the link) shows the finished page, not "expired", and sends no second mail
+  const again = env.applyChange(token);
+  assert.ok(again.includes(T.changeDoneTitle) && !again.includes(T.changeExpired), 'the same token again shows the result');
+  assert.equal(env.mails.length, mailsBefore + 1, 'no second email');
+  assert.ok(env.getPage({ change: token }).includes(T.changeDoneTitle), 'the link opened again shows the result too');
 
   // two tokens, one applied
   env.clock.now += MIN;
@@ -747,7 +754,7 @@ test('9. no leaks: JSON replies carry no email, name, token or sheet id; GET key
     f.session.limit = 2;
   });
   rsvp(env, { name: 'Zed Quill', email: 'zed@example.com', guests: [['Yara Stone', 'yes'], ['Xan Moss', 'yes']] });
-  env.post(params({ name: 'Nova Plume', email: 'zed@example.com', status: 'maybe', guests: [['Wren Ash', 'yes']] }));
+  env.post(params({ name: 'Nova Plume', email: 'zed@example.com', status: 'going', guests: [['Wren Ash', 'yes']] }));
   const token = env.token('zed@example.com');
   env.status();
   env.get({ slug: SLUG });
@@ -762,9 +769,9 @@ test('9. no leaks: JSON replies carry no email, name, token or sheet id; GET key
   for (const stored of ['Zed Quill', 'Yara Stone', 'Xan Moss']) assert.ok(!page.includes(stored), `the confirm page never shows stored name ${stored}`);
   const done = env.applyChange(token);
   for (const stored of ['Zed Quill', 'Yara Stone', 'Xan Moss']) assert.ok(!done.includes(stored), 'the apply page never shows a stored name');
-  assert.ok(env.applyChange(token).includes(T.changeExpired));
+  assert.ok(env.applyChange(token).includes(T.changeDoneTitle)); // E14: the same token again shows the result
 
-  const names = ['Zed Quill', 'Yara Stone', 'Xan Moss', 'Nova Plume', 'Wren Ash', 'Vik Dune'];
+  const names =['Zed Quill', 'Yara Stone', 'Xan Moss', 'Nova Plume', 'Wren Ash', 'Vik Dune'];
   for (const r of env.jsonReplies) {
     assert.ok(!r.includes('@'), `no email in ${r}`);
     for (const n of names) assert.ok(!r.includes(n), `no name in ${r}`);
@@ -866,9 +873,9 @@ test('13. emails: going, all confirmed, can\'t go, change, a mail error still sa
 
   rsvp(e2, { name: 'Eli Ray', email: 'eli@example.com', status: 'maybe', guests: [['Fox', 'no']] });
   m = e2.mails[2];
-  assert.equal(m.body, expectConfirm(e2, 'Eli Ray', 'maybe', [['Eli Ray', 'maybe'], ['Fox', 'no']]));
+  assert.equal(m.body, expectConfirm(e2, 'Eli Ray', 'maybe', [['Eli Ray', 'maybe'], ['Fox', 'maybe']]));
 
-  // the change mail
+  // the change mail (E14: a Maybe has no session answers to list)
   e2.post(params({ name: 'Nova', email: 'bo@example.com', status: 'maybe', guests: [['Cat', 'no']] }));
   m = e2.mails[3];
   const token = e2.token('bo@example.com');
@@ -878,7 +885,7 @@ test('13. emails: going, all confirmed, can\'t go, change, a mail error still sa
     [
       fill(T.hi, { name: 'Bo Park' }),
       fill(T.changeLead, vars(e2.feed)),
-      [fill(T.newAnswer, { status: T.maybe }), `- ${fill(T.answerLine, { name: 'Nova', Session: 'Yoga', answer: T.yes })}`, `- ${fill(T.answerLine, { name: 'Cat', Session: 'Yoga', answer: T.no })}`].join('\n'),
+      fill(T.newAnswer, { status: T.maybe }),
       [fill(T.changeLinkLine, { changeUrl: `${EXEC}?change=${token}` }), T.changeIgnore].join('\n'),
       expectSig(e2),
     ].join('\n\n'),
@@ -1003,7 +1010,7 @@ test('16. hand-typed cells ("Confirmed ", " Waitlist") still count; an odd cell 
 test('17. control characters in names never reach a mail or a page', () => {
   const env = makeEnv();
   rsvp(env, { name: 'Dee Dune', email: 'dee@example.com' });
-  env.post(params({ name: 'A\nOpen this link: https://x.example', email: 'dee@example.com', status: 'maybe', guests: [['G\r\nH', 'yes']] }));
+  env.post(params({ name: 'A\nOpen this link: https://x.example', email: 'dee@example.com', status: 'going', guests: [['G\r\nH', 'yes']] }));
   rsvp(env, { name: 'Eve\nEnd', email: 'eve@example.com', guests: [['F\tG', 'no']] });
   const page = env.postHtml(params({ name: 'Q\nR', email: 'q@example.com' }));
   const confirm = env.getPage({ change: env.token('dee@example.com') });
@@ -1060,7 +1067,7 @@ test('18. real Sheets values (Date objects, numbers): a change matches its base 
   env.post(params({ email: 'ann@example.com', status: 'going' }));
   const t = env.token('ann@example.com');
   assert.ok(env.applyChange(t).includes(T.changeDoneTitle));
-  assert.ok(env.applyChange(t).includes(T.changeExpired));
+  assert.ok(env.applyChange(t).includes(T.changeDoneTitle)); // E14: the same token again shows the result
   env.clock.now = REMINDER_AT;
   env.api.sendDueReminders();
   const n = env.mails.length;
@@ -1372,6 +1379,7 @@ test('G7. source: GmailApp.sendEmail only inside send_; no MailApp.sendEmail', (
 const ORIGIN = site.deploy.site;
 const HOST_LABEL = new URL(ORIGIN).host;
 const SIG_TEXT = (phone?: string) => [w('credential'), site.name, phone ? `${phone} • ${HOST_LABEL}` : HOST_LABEL].join('\n');
+const esc = (v: string) => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 const lastMail = (env: Env, to: string) => [...env.mails].reverse().find((m) => m.to === to)!;
 
 test('E13-1. the Going confirmation is Marea\'s copy, line for line; the subject is unchanged', () => {
@@ -1385,12 +1393,13 @@ test('E13-1. the Going confirmation is Marea\'s copy, line for line; the subject
     [
       'Hi Alex Rivera,',
       'Thanks for your RSVP to Ohm Launch Party. We look forward to celebrating this milestone moment with you.',
-      "Here's all the details:\nYour RSVP: Going\nYoga? Yes\nSam: Going\nYoga? No",
+      "Here's all of the details:\nYour RSVP: Going\nYoga: Yes",
+      'Guests:\n- Sam — Yoga: No',
       `To change your RSVP, register again on the event page with the same email address.\n${ORIGIN}/events/launch-party`,
       `When: Sunday, Nov 22, 2026, 2:00–6:00 pm\nWhere: ${party.venue.name}, ${party.venue.address}`,
-      `Add it to your calendar: ${ORIGIN}/events/launch-party.ics`,
+      `Add to Google Calendar: ${env.feed.googleCalUrl}\nAdd to another calendar: ${ORIGIN}/events/launch-party.ics`,
       `Important: Waiver Required\n${waiver.text}\n${waiver.link!.url}`,
-      `Need to book a massage?\nBrian's site is now live! Click here to book.\n${ORIGIN}/book`,
+      `Need to book a massage?\nBrian's site is now live!\nClick here to book\n${ORIGIN}/book`,
       `If you have any questions, reply to this email or text Maréa: ${HOST_NUM}.`,
       'See you there!',
       SIG_TEXT(SIG_PHONE),
@@ -1406,15 +1415,22 @@ test('E13-2. HTML: the headings bold and green, links from the feed only, names 
   const m = env.mails[0];
   const html = m.htmlBody;
   assert.ok(html && html.startsWith('<div>') && html.endsWith('</div>'), 'an htmlBody beside the plain body');
-  for (const head of ["Here's all the details:", 'Important: Waiver Required', 'Need to book a massage?']) {
+  for (const head of ["Here's all of the details:", 'Guests:', 'Important: Waiver Required', 'Need to book a massage?']) {
     assert.ok(html.includes(`<strong style="color:#125245">${head.replace("'", '&#39;')}</strong>`), `heading ${head}`);
   }
   assert.ok(!m.body.includes('<strong'), 'the plain body has no markup');
-  assert.ok(html.includes(`<a href="${ORIGIN}/book">Click here to book</a>.`), 'the book link');
-  for (const url of [env.feed.pageUrl, env.feed.icsUrl, env.feed.notices[0].url]) assert.ok(html.includes(`<a href="${url}">${url}</a>`), `link ${url}`);
+  // E14: the book link is a button on its own line (a table cell carries the fill), in the site's button colours
+  assert.ok(html.includes(`<a href="${ORIGIN}/book" style="display:inline-block;padding:12px 24px;`) && html.includes('>Click here to book</a></td></tr></table>'), 'the book button');
+  assert.ok(html.includes('bgcolor="#9C5739"') && html.includes('color:#F3F2F0;text-decoration:none'), 'the site button colours');
+  assert.ok(!html.includes('now live! <a'), 'the link is no longer inside the sentence');
+  for (const url of [env.feed.pageUrl, env.feed.icsUrl, env.feed.googleCalUrl, env.feed.notices[0].url]) assert.ok(html.includes(`<a href="${esc(url)}">${esc(url)}</a>`), `link ${url}`);
   assert.ok(html.includes('Hi Kim &lt;b&gt;Lee&lt;/b&gt; &amp; Co,') && !html.includes('<b>Lee'), 'the name is escaped');
-  assert.ok(html.includes('https://evil.example: Going') && !html.includes('href="https://evil.example'), 'a name is never a link');
-  assert.ok(html.includes("<br>Yoga? Yes<br>https://evil.example: Going<br>Yoga? Yes"), 'one <br> per line');
+  assert.ok(html.includes('<li>https://evil.example — Yoga: <strong style="color:#125245">Yes</strong></li>') && !html.includes('href="https://evil.example'), 'a name is never a link');
+  // E14: your own Yoga line, Yes green; the guests a real bulleted list; No terracotta
+  assert.ok(html.includes('Your RSVP: Going<br>Yoga: <strong style="color:#125245">Yes</strong></p>'), 'your answer, coloured');
+  assert.ok(html.includes('<ul style="margin:0 0 16px;padding-left:20px"><li>'), 'a bulleted list');
+  rsvp(env, { name: 'Lou', email: 'lou@example.com', guests: [['Max', 'no']] });
+  assert.ok(env.mails[1].htmlBody.includes('<li>Max — Yoga: <strong style="color:#9C5739">No</strong></li>'), 'No is terracotta');
   // the signature: Brian's styles, regular-weight credentials, business and site linked, tel: link and bullet
   assert.ok(html.includes('<table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,sans-serif;font-size:12px;line-height:16px;color:#125245">'));
   assert.ok(html.includes('<td style="border-left:2px solid #C37A5B;padding-left:10px">'));
@@ -1459,14 +1475,14 @@ test('E13-4. the questions line: with HOST_PHONE and the event host, else the sh
   assert.ok(!noHost.mails[0].body.includes(HOST_NUM));
 });
 
-test('E13-5. Maybe: every person Maybe and Yoga? No, no maybeNote, no waitlist note', () => {
+test('E13-5 (E14). Maybe: your RSVP and the guests by name; no Yoga line, no maybeNote, no waitlist note', () => {
   const env = makeEnv();
   rsvp(env, { name: 'Eli Ray', email: 'eli@example.com', status: 'maybe', guests: [['Fox', 'yes'], ['Gus', 'no']] });
   const m = env.mails[0];
-  assert.ok(m.body.includes("Here's all the details:\nYour RSVP: Maybe\nYoga? No\nFox: Maybe\nYoga? No\nGus: Maybe\nYoga? No\n\n"));
+  assert.ok(m.body.includes("Here's all of the details:\nYour RSVP: Maybe\n\nGuests:\n- Fox\n- Gus\n\n"));
   assert.ok(!m.body.includes(fill(T.maybeNote, words('Yoga'))) && !m.body.includes(T.waitlistNote));
-  assert.ok(!m.body.includes('Yoga? Yes'));
-  assert.equal(m.body, expectConfirm(env, 'Eli Ray', 'maybe', [['Eli Ray', 'maybe'], ['Fox', 'maybe'], ['Gus', 'no']]));
+  assert.ok(!m.body.includes('Yoga:'), 'no Yoga text at all, even though the request sent answers');
+  assert.equal(m.body, expectConfirm(env, 'Eli Ray', 'maybe', [['Eli Ray', 'maybe'], ['Fox', 'maybe'], ['Gus', 'maybe']]));
 });
 
 test('E13-6. the yoga answer per cell: confirmed Yes, waitlist Waitlist with the note after the list, full No', () => {
@@ -1474,14 +1490,14 @@ test('E13-6. the yoga answer per cell: confirmed Yes, waitlist Waitlist with the
     f.session.limit = 1;
   });
   rsvp(env, { name: 'Ann', email: 'ann@example.com', guests: [['Bea', 'yes'], ['Cy', 'no']] });
-  assert.ok(env.mails[0].body.includes(`Your RSVP: Going\nYoga? Yes\nBea: Going\nYoga? Waitlist\nCy: Going\nYoga? No\n${T.waitlistNote}\n\n`));
+  assert.ok(env.mails[0].body.includes(`Your RSVP: Going\nYoga: Yes\n\nGuests:\n- Bea — Yoga: Waitlist\n- Cy — Yoga: No\n\n${T.waitlistNote}\n\n`));
   const full = makeEnv((f) => {
     f.session.limit = 1;
     f.session.waitlist = false;
   });
   rsvp(full, { name: 'Ann', email: 'ann@example.com' });
   rsvp(full, { name: 'Dee', email: 'dee@example.com' });
-  assert.ok(full.mails[1].body.includes("Here's all the details:\nYour RSVP: Going\nYoga? No\n\n"), 'full reads No');
+  assert.ok(full.mails[1].body.includes("Here's all of the details:\nYour RSVP: Going\nYoga: No\n\n"), 'full reads No');
   assert.ok(!full.mails[1].body.includes(T.waitlistNote));
 });
 
@@ -1491,8 +1507,8 @@ test('E13-7. an event with no session: no yoga lines', () => {
   });
   rsvp(env, { name: 'Ann', email: 'ann@example.com', guests: [['Bea', 'yes']] });
   const m = env.mails[0];
-  assert.ok(m.body.includes("Here's all the details:\nYour RSVP: Going\nBea: Going\n\n"));
-  assert.ok(!m.body.includes('Yoga?'));
+  assert.ok(m.body.includes("Here's all of the details:\nYour RSVP: Going\n\nGuests:\n- Bea\n\n"));
+  assert.ok(!m.body.includes('Yoga'));
   assert.equal(m.body, expectConfirm(env, 'Ann', 'going', [['Ann', ''], ['Bea', '']]));
 });
 
@@ -1506,12 +1522,12 @@ test("E13-8. Can't go: Marea's copy, the book block and the signature; subject u
     [
       'Hi Dan Lee,',
       `Thanks for letting me know you can't make it to Ohm Launch Party. We'll miss you! If your plans change, RSVP again on the event page with this email address.\n${ORIGIN}/events/launch-party`,
-      `Need to book a massage?\nBrian's site is now live! Click here to book.\n${ORIGIN}/book`,
+      `Need to book a massage?\nBrian's site is now live!\nClick here to book\n${ORIGIN}/book`,
       SIG_TEXT(SIG_PHONE),
     ].join('\n\n'),
   );
   assert.ok(!m.body.includes('See you there') && !m.body.includes('questions'));
-  assert.ok(m.htmlBody.includes(`<a href="${ORIGIN}/book">Click here to book</a>`) && m.htmlBody.includes('border-left:2px solid #C37A5B'));
+  assert.ok(m.htmlBody.includes(`<a href="${ORIGIN}/book" style="display:inline-block;`) && m.htmlBody.includes('border-left:2px solid #C37A5B'));
 });
 
 test('E13-9. the change email keeps its words, gains the signature, and its link still works from either body', () => {
@@ -1589,8 +1605,94 @@ test('E13-13. source: the email colours equal tokens.css; no credential, name, b
   const constant = (name: string) => new RegExp(`var ${name} = '(#[0-9a-fA-F]{6})'`).exec(src)![1].toLowerCase();
   assert.equal(constant('MAIL_GREEN'), token('--green-700'));
   assert.equal(constant('MAIL_TERRA'), token('--terra-500'));
-  assert.equal([...src.matchAll(/#[0-9a-fA-F]{6}\b/g)].length, 2, 'no other colour in the script');
+  assert.equal(constant('MAIL_CTA'), token('--terra-700')); // E14: the site button's fill
+  assert.equal(constant('MAIL_CTA_TEXT'), token('--cream'));
+  assert.equal([...src.matchAll(/#[0-9a-fA-F]{6}\b/g)].length, 4, 'no other colour in the script');
   for (const word of ['LMT', 'CNMT', site.owner, site.name, '/book', 'Maréa', 'Ohm Launch Party']) assert.ok(!src.includes(word), `rsvp.js types "${word}"`);
   assert.ok(!/\(?\b[2-9]\d{2}\)?[\s.-]\d{3}[\s.-]\d{4}\b/.test(src), 'no phone number');
   assert.ok(src.includes("prop_('SIGNATURE_PHONE')") && src.includes("prop_('HOST_PHONE')"));
+});
+
+// ---- E14: Maybe asks no session question; calendar links; the confirm button ---------------------------------------------
+
+test('E14-6. a Maybe holds no spot for anyone: every cell maybe, answers sent with it are ignored, the reply says maybe', () => {
+  const env = makeEnv();
+  const before = JSON.stringify(env.status());
+  // what the form sends: no session answers at all
+  const r = env.post({ slug: SLUG, mode: 'json', name: 'Eli Ray', email: 'eli@example.com', status: 'maybe', g1name: 'Fox', g2name: 'Gus' });
+  assert.deepStrictEqual(r, { ok: true, status: 'maybe', outcomes: ['maybe', 'maybe', 'maybe'] });
+  // an old page that still sends answers
+  rsvp(env, { name: 'Old Page', email: 'old@example.com', status: 'maybe', session: 'yes', guests: [['Kin', 'yes']] });
+  assert.deepStrictEqual(env.data().filter((x) => x[COL.status] === 'maybe').map((x) => x[COL.cell]), ['maybe', 'maybe', 'maybe', 'maybe', 'maybe']);
+  assert.equal(JSON.stringify(env.status()), before, 'a Maybe holds no spot');
+  // Going still needs the answers
+  const bad = env.post({ slug: SLUG, mode: 'json', name: 'Gil', email: 'gil@example.com', status: 'going', g1name: 'Hal' });
+  assert.deepStrictEqual(bad, { ok: false, error: 'invalid', fields: ['session', 'g1session'] });
+});
+
+test('E14-6b. the Maybe pages and reminder list no session lines but keep the note', () => {
+  const env = makeEnv();
+  const html = env.postHtml({ slug: SLUG, mode: 'html', name: 'Eli Ray', email: 'eli@example.com', status: 'maybe', g1name: 'Fox' });
+  assert.ok(html.includes(esc(fill(T.maybeNote, words('Yoga')))), 'the note');
+  assert.ok(!html.includes('<li>') && !html.includes('no spot held while Maybe'), 'no per-person lines');
+  env.clock.now = REMINDER_AT;
+  env.api.sendDueReminders();
+  const m = lastMail(env, 'eli@example.com');
+  assert.ok(m.body.includes(fill(T.maybeNote, words('Yoga'))) && !m.body.includes('Eli Ray ·') && !m.body.includes('Fox ·'), m.body);
+});
+
+test('E14-5. the Google Calendar link sits before the .ics in the confirmation and the reminder; an older feed keeps the .ics alone', () => {
+  const env = makeEnv();
+  rsvp(env, { name: 'Ann', email: 'ann@example.com' });
+  const m = env.mails[0];
+  const google = fill(T.calendarGoogleLine, { googleUrl: env.feed.googleCalUrl });
+  assert.ok(m.body.includes(`${google}\n${fill(T.calendarLine, { icsUrl: env.feed.icsUrl })}`));
+  assert.ok(m.htmlBody.includes(`Add to Google Calendar: <a href="${esc(env.feed.googleCalUrl)}">${esc(env.feed.googleCalUrl)}</a>`), 'a link in the HTML');
+  env.clock.now = REMINDER_AT;
+  env.api.sendDueReminders();
+  assert.ok(lastMail(env, 'ann@example.com').body.includes(google));
+  const old = makeEnv((f) => {
+    delete f.googleCalUrl;
+  });
+  rsvp(old, { name: 'Bea', email: 'bea@example.com' });
+  assert.ok(!old.mails[0].body.includes('Google') && old.mails[0].body.includes(fill(T.calendarLine, { icsUrl: old.feed.icsUrl })));
+  const page = env.postHtml(params({ name: 'Cy', email: 'cy@example.com' }));
+  assert.ok(page.includes(`href="${esc(env.feed.googleCalUrl)}"`) && page.includes(T.calendarGoogle), 'the no-JS done page has the Google button');
+});
+
+test('E14-8. the confirm page locks its button on the first press and says Confirming…; a second submit does nothing', () => {
+  const env = makeEnv();
+  rsvp(env, { name: 'Ann', email: 'ann@example.com' });
+  env.post(params({ name: 'Ann', email: 'ann@example.com', status: 'maybe' }));
+  const page = env.getPage({ change: env.token('ann@example.com') });
+  assert.ok(page.includes('<script>') && page.includes('addEventListener("submit"') && page.includes('b.disabled=true'), 'the lock script');
+  assert.ok(page.includes(JSON.stringify(T.changeConfirming)), 'the button words while it works');
+  assert.ok(page.includes('data-sent') && page.includes('e.preventDefault()'), 'a second submit is stopped');
+  assert.equal((page.match(/<script/g) ?? []).length, 1, 'one script, nothing from the guest');
+});
+
+test('E14-7. a confirmed change then a second press: one email, the finished page both times, and a different request is still single-use', () => {
+  const env = makeEnv();
+  rsvp(env, { name: 'Ann', email: 'ann@example.com' });
+  env.post(params({ name: 'Ann', email: 'ann@example.com', status: 'maybe', guests: [['Bea', 'no']] }));
+  const token = env.token('ann@example.com');
+  const mailsBefore = env.mails.length;
+  const first = env.applyChange(token);
+  assert.ok(first.includes(T.changeDoneTitle));
+  assert.equal(env.mails.length, mailsBefore + 1, 'the new status gets its email, once');
+  const sent = env.mails[env.mails.length - 1];
+  assert.equal(sent.to, 'ann@example.com');
+  assert.equal(sent.subject, fill(T.confirmSubject, { title: env.feed.title }));
+  assert.ok(sent.body.includes('Your RSVP: Maybe') && !sent.body.includes('Yoga:'));
+  const second = env.applyChange(token);
+  assert.ok(second.includes(T.changeDoneTitle) && !second.includes(T.changeExpired));
+  assert.equal(env.mails.length, mailsBefore + 1, 'no second email');
+  assert.equal(env.data().length, 2, 'the sheet changed once');
+  // a token that was never confirmed (or whose request was replaced) is still expired
+  assert.ok(env.applyChange('00000000-0000-0000-0000-000000000000').includes(T.changeExpired));
+  // changing to Can't go sends the short note
+  env.clock.now += MIN;
+  env.post(params({ name: 'Ann', email: 'ann@example.com', status: 'cant' }));
+  env.applyChange(env.token('ann@example.com'));
+  assert.equal(env.mails[env.mails.length - 1].subject, fill(T.cantSubject, { title: env.feed.title }));
 });

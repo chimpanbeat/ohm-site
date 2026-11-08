@@ -5,7 +5,7 @@
 // rows past NOJS_GUEST_ROWS are `hidden`, and no text names a limit.
 import { rsvpText as t, type SiteEvent } from '../../data/events.ts';
 import { site } from '../../data/site.ts';
-import { timeLabel } from '../../lib/events.ts';
+import { timeLabel, googleCalUrl } from '../../lib/events.ts';
 import { configOf, fill, words, NOJS_GUEST_ROWS } from '../../lib/rsvp.ts';
 import { href } from '../../lib/url.ts';
 
@@ -20,6 +20,7 @@ const w = session ? words(session.label) : {};
 const item = session ? event.timeline[session.item] : undefined;
 const question = session && item ? fill(t.sessionQuestion, { ...w, time: timeLabel(item.start, item.end, event.timeZone, 'auto') }) : '';
 const guestsHelp = fill(session ? t.guestsHelp : t.guestsHelpPlain, w);
+const googleUrl = googleCalUrl(event, new URL(href('/'), Astro.site).href); // E14
 const rows = Array.from({ length: cfg.maxGuests }, (_, i) => i + 1);
 const statuses = ['going', 'maybe', 'cant'] as const;
 const answers = ['yes', 'no'] as const;
@@ -80,7 +81,7 @@ const notices = event.notices.filter((n): n is typeof n & { link: NonNullable<ty
 
     {
       session && (
-        <fieldset class="group" data-attending>
+        <fieldset class="group" data-attending data-going-only>
           <legend>{question}</legend>
           <span class="choices">
             {answers.map((v) => (
@@ -97,7 +98,7 @@ const notices = event.notices.filter((n): n is typeof n & { link: NonNullable<ty
 
     <fieldset class="group rsvp-guests" data-attending>
       <legend>{t.guestsHeading}</legend>
-      <span class="help">{guestsHelp}</span>
+      <span class="help" data-help={fill(t.guestsHelpPlain, w)}>{guestsHelp}</span>
       {
         rows.map((n) => (
           <div class="guest" data-guest={n} hidden={n > NOJS_GUEST_ROWS}>
@@ -109,7 +110,7 @@ const notices = event.notices.filter((n): n is typeof n & { link: NonNullable<ty
                 <span class="rsvp-error" id={`err-g${n}name`} data-error-for={`g${n}name`} hidden />
               </span>
               {session && (
-                <fieldset class="group">
+                <fieldset class="group" data-going-only>
                   <legend>{question}</legend>
                   <span class="choices">
                     {answers.map((v) => (
@@ -149,6 +150,7 @@ const notices = event.notices.filter((n): n is typeof n & { link: NonNullable<ty
     <p class="rsvp-result__note" hidden></p>
     {/* E9 (I-096): the calendar, then each inResult notice's own link (the waiver), for Going and Maybe */}
     <div class="rsvp-result__actions" hidden>
+      <a class="btn rsvp-result__calendar" href={googleUrl} target="_blank" rel="noopener" hidden>{t.calendarGoogle}</a>
       <a class="btn rsvp-result__calendar" href={href(`/events/${event.slug}.ics`)} download hidden>{t.calendar}</a>
       {
         notices.map((n) => (

@@ -268,7 +268,8 @@ export const rsvpText = {
   outcomeMaybe: '{Session}: no spot held while Maybe',
   maybeNote: "A Maybe doesn't hold a {session} spot. If you decide to come, RSVP again on the event page with this email and choose Going.",
   outcomeLine: '{name} · {outcome}',
-  calendar: 'Add to calendar',
+  calendar: 'Add to another calendar', // E14 (Brian, Nov 8): the .ics, for Apple, Outlook and the rest; the Google button sits before it
+  calendarGoogle: 'Add to Google Calendar', // E14 (Brian, Nov 8)
   errInvalid: 'Check the fields marked below.',
   errName: 'Enter your name.',
   errEmail: 'Enter a valid email address.',
@@ -285,14 +286,15 @@ export const rsvpText = {
   hi: 'Hi {name},',
   confirmSubject: "You're on the list: {title}",
   confirmLead: 'Thanks for your RSVP to {eventName}. {thanks}', // E13, Marea (approved by Brian)
-  detailsHead: "Here's all the details:", // E13, Marea
+  detailsHead: "Here's all of the details:", // E13, Marea; E14 (Brian, Nov 8): "all of the"
   yourRsvp: 'Your RSVP: {status}', // E13, Marea
-  guestRsvp: '{name}: {status}', // E13, Marea
-  sessionAnswer: '{Session}? {answer}', // E13, Marea ("Yoga? Yes")
+  sessionAnswer: '{Session}: {answer}', // E14 (Brian, Nov 8): "Yoga: Yes", Yes green and No terracotta in the HTML; none for a Maybe
+  guestsHead: 'Guests:', // E14 (Brian, Nov 8): a heading above the bulleted guest list
+  guestLine: '{name} — {Session}: {answer}', // E14 (Brian, Nov 8): a guest's bullet; just the name for a Maybe or an event without a session
   sessionWaitlist: 'Waitlist', // E13, Brian (the answer word for a waitlisted person)
   bookHead: 'Need to book a massage?', // E13, Marea
-  bookLine: "Brian's site is now live! {link}.", // E13, Marea; {link} = bookLink, linked to the site's /book
-  bookLink: 'Click here to book', // E13, Marea
+  bookLine: "Brian's site is now live!", // E13, Marea; E14 (Brian, Nov 8): the link moved to its own line, as a button
+  bookLink: 'Click here to book', // E13, Marea; E14: the button's label, linked to the site's /book
   questions: 'If you have any questions, reply to this email.', // E13, Brian (HOST_PHONE unset)
   questionsHost: 'If you have any questions, reply to this email or text {host}: {hostPhone}.', // E13, Marea
   seeYou: 'See you there!', // E13, Marea
@@ -303,7 +305,8 @@ export const rsvpText = {
   when: 'When: {dateLabel}, {timeLabel}',
   where: 'Where: {venue}, {address}',
   waitlistNote: "The waitlist goes in sign-up order. I'll email you if a spot opens.",
-  calendarLine: 'Add it to your calendar: {icsUrl}',
+  calendarGoogleLine: 'Add to Google Calendar: {googleUrl}', // E14 (Brian, Nov 8)
+  calendarLine: 'Add to another calendar: {icsUrl}', // E14: "Add it to your calendar" before
   detailsLine: 'Event details: {pageUrl}',
   changeLine: 'To change your RSVP, register again on the event page with the same email address.', // E13, Marea
   changeSubject: 'Confirm your RSVP change: {title}',
@@ -314,6 +317,7 @@ export const rsvpText = {
   changeIgnore: "If you didn't ask for this, ignore this email. Your RSVP stays as it is.",
   changeConfirmLead: 'Confirm this change to your RSVP:',
   changeConfirm: 'Confirm change',
+  changeConfirming: 'Confirming…', // E14: the confirm button while the change is saved (it can take several seconds)
   changeExpired: 'This link has expired or was already used. To change your RSVP, send it again on the event page.',
   changeDoneTitle: 'Your RSVP is updated.',
   spotFreedSubject: 'A {session} spot opened: {title}',

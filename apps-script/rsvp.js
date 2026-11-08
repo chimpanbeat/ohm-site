@@ -221,9 +221,11 @@ function validate_(input, ev) {
   var status = st === 'going' || st === 'maybe' || st === 'cant' ? st : null;
   if (!status) fields.push('status');
   var cant = status === 'cant';
+  // E14: only Going answers the session question; a Maybe holds no spot, so any answers sent with it are ignored.
+  var asks = hasSession && (status === 'going' || !status); // no status yet: still report the missing answers
 
   var session;
-  if (hasSession && !cant) {
+  if (asks) {
     session = answer_(get('session'));
     if (!session) fields.push('session');
   }
@@ -232,7 +234,7 @@ function validate_(input, ev) {
   if (!cant) {
     for (var n = 1; n <= maxGuests; n++) {
       var gname = get('g' + n + 'name').trim();
-      var raw = hasSession ? get('g' + n + 'session') : '';
+      var raw = asks ? get('g' + n + 'session') : '';
       if (!gname && !raw) continue;
       var gsession = answer_(raw);
       var bad = false;
@@ -240,11 +242,11 @@ function validate_(input, ev) {
         fields.push('g' + n + 'name');
         bad = true;
       }
-      if (hasSession && gname && !gsession) {
+      if (asks && gname && !gsession) {
         fields.push('g' + n + 'session');
         bad = true;
       }
-      if (!bad) guests.push(hasSession ? { name: gname, session: gsession } : { name: gname });
+      if (!bad) guests.push(asks ? { name: gname, session: gsession } : { name: gname });
     }
   }
 
@@ -346,12 +348,12 @@ function assign_(ev, people, status, c) {
   people.forEach(function (p) {
     if (!s || status === 'cant') {
       result.push({ cell: '', wait: 0 });
+    } else if (status === 'maybe') {
+      result.push({ cell: 'maybe', wait: 0 }); // E14: a Maybe has no session answers and holds no spot, for anyone
     } else if (p.keep) {
       result.push(p.keep);
     } else if (p.answer !== 'yes') {
       result.push({ cell: 'no', wait: 0 });
-    } else if (status === 'maybe') {
-      result.push({ cell: 'maybe', wait: 0 });
     } else if (c.confirmed < s.limit && c.waitlisted === 0) {
       c.confirmed++;
       result.push({ cell: 'confirmed', wait: 0 });
@@ -412,6 +414,7 @@ function vars_(ev) {
     venue: ev.venue.name,
     address: ev.venue.address,
     icsUrl: ev.icsUrl,
+    googleUrl: ev.googleCalUrl || '',
     pageUrl: ev.pageUrl,
   };
 }
@@ -424,12 +427,16 @@ function outcomeText_(ev, name, cell) {
 
 // E13: every mail to a guest is HTML with a plain-text twin, built from one list of blocks. A block is a string (its
 // lines split on "\n") or an array of lines. A line is a string, { head } (a heading: bold and green in HTML, plain in
-// the text) or { runs } (strings and { text, href } links; in the text, a link whose words aren't its URL puts the URL
-// on the next line). Only feed URLs become links; a guest's name is always escaped text.
+// the text) or { runs } (strings, { text, href } links and { text, tone } coloured words; in the text, a link whose words
+// aren't its URL puts the URL on the next line). Only feed URLs become links; a guest's name is always escaped text.
+// E14 adds { li: line } (a bullet: consecutive ones become one list) and { button: { text, href } } (a call-to-action
+// button on its own line; in the text, its words and its URL on the next line).
 // The colours are Brian's signature colours, copied from src/styles/tokens.css (the script can't read it; a test
 // keeps them equal).
 var MAIL_GREEN = '#125245'; // tokens.css --green-700
 var MAIL_TERRA = '#C37A5B'; // tokens.css --terra-500
+var MAIL_CTA = '#9C5739'; // tokens.css --cta-bg (--terra-700): the site's button fill; also the "No" word
+var MAIL_CTA_TEXT = '#F3F2F0'; // tokens.css --cta-text (--cream)
 var SIG_SEP = ' • '; // the bullet between the phone and the site (plain text)
 var SIG_SEP_HTML = '&nbsp;&bull;&nbsp;';
 
@@ -469,6 +476,8 @@ function urlLine_(template, vars, key, url) {
 function lineText_(l) {
   if (typeof l === 'string') return l;
   if ('head' in l) return str_(l.head);
+  if ('li' in l) return '- ' + lineText_(l.li);
+  if ('button' in l) return [l.button.text, l.button.href].join('\n');
   var text = '';
   var after = [];
   l.runs.forEach(function (r) {
@@ -476,20 +485,68 @@ function lineText_(l) {
       text += r;
     } else {
       text += r.text;
-      if (r.text !== r.href) after.push(r.href);
+      if (r.href && r.text !== r.href) after.push(r.href);
     }
   });
   return [text].concat(after).join('\n');
 }
 
+// A coloured word: Yes in green, No in the terracotta of the site's buttons; any other tone is plain.
+var TONE_COLOR = { yes: MAIL_GREEN, no: MAIL_CTA };
+
 function lineHtml_(l) {
   if (typeof l === 'string') return esc_(l);
   if ('head' in l) return '<strong style="color:' + MAIL_GREEN + '">' + esc_(l.head) + '</strong>';
+  if ('li' in l) return lineHtml_(l.li);
   return l.runs
     .map(function (r) {
-      return typeof r === 'string' ? esc_(r) : '<a href="' + esc_(r.href) + '">' + esc_(r.text) + '</a>';
+      if (typeof r === 'string') return esc_(r);
+      if (r.href) return '<a href="' + esc_(r.href) + '">' + esc_(r.text) + '</a>';
+      return TONE_COLOR[r.tone] ? '<strong style="color:' + TONE_COLOR[r.tone] + '">' + esc_(r.text) + '</strong>' : esc_(r.text);
     })
     .join('');
+}
+
+// E14: a bulletproof button (a table cell carries the fill, so Outlook keeps it; no image). The site's .btn colours.
+function buttonHtml_(b) {
+  return (
+    '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 16px"><tr>' +
+    '<td bgcolor="' + MAIL_CTA + '" style="background:' + MAIL_CTA + ';border-radius:4px">' +
+    '<a href="' + esc_(b.href) + '" style="display:inline-block;padding:12px 24px;font-family:Arial,sans-serif;font-size:16px;' +
+    'font-weight:bold;line-height:20px;color:' + MAIL_CTA_TEXT + ';text-decoration:none">' + esc_(b.text) + '</a>' +
+    '</td></tr></table>'
+  );
+}
+
+// One block as HTML: its lines as one paragraph, but bullets as a list and a button on its own.
+function blockHtml_(ls) {
+  var out = '';
+  var para = [];
+  var items = [];
+  var flushPara = function () {
+    if (para.length) out += '<p style="margin:0 0 16px">' + para.join('<br>') + '</p>';
+    para = [];
+  };
+  var flushList = function () {
+    if (items.length) out += '<ul style="margin:0 0 16px;padding-left:20px">' + items.join('') + '</ul>';
+    items = [];
+  };
+  ls.forEach(function (l) {
+    if (typeof l !== 'string' && 'li' in l) {
+      flushPara();
+      items.push('<li>' + lineHtml_(l) + '</li>');
+    } else if (typeof l !== 'string' && 'button' in l) {
+      flushPara();
+      flushList();
+      out += buttonHtml_(l.button);
+    } else {
+      flushList();
+      para.push(lineHtml_(l));
+    }
+  });
+  flushPara();
+  flushList();
+  return out;
 }
 
 function linesOf_(b) {
@@ -548,11 +605,7 @@ function mail_(ev, blocks) {
     .join('\n\n');
   var html =
     '<div>' +
-    list
-      .map(function (ls) {
-        return '<p style="margin:0 0 16px">' + ls.map(lineHtml_).join('<br>') + '</p>';
-      })
-      .join('') +
+    list.map(blockHtml_).join('') +
     sig.html +
     '</div>';
   return { text: text, html: html };
@@ -565,11 +618,20 @@ function noticeBlocks_(ev, head) {
   });
 }
 
-// E13: bookHead and bookLine, its link to the feed's bookUrl; nothing on a feed without bookUrl.
+// E13: bookHead and bookLine; E14: then bookLink as a button on its own line, linked to the feed's bookUrl. Nothing on a
+// feed without bookUrl.
 function bookBlock_(ev) {
   var t = ev.text;
   if (!ev.bookUrl) return [];
-  return [{ head: t.bookHead }, tpl_(t.bookLine, {}, { link: { text: t.bookLink, href: ev.bookUrl } })];
+  return [{ head: t.bookHead }, t.bookLine, { button: { text: t.bookLink, href: ev.bookUrl } }];
+}
+
+// E14: the calendar links as one block: Google first when the feed has it, then the .ics. Older feeds: the .ics alone.
+function calendarLines_(ev, v) {
+  var lines = [];
+  if (ev.googleCalUrl) lines.push(urlLine_(ev.text.calendarGoogleLine, v, 'googleUrl', ev.googleCalUrl));
+  lines.push(urlLine_(ev.text.calendarLine, v, 'icsUrl', ev.icsUrl));
+  return lines;
 }
 
 // I-087: the one send point. MailApp is rejected for outside addresses, so mail goes through GmailApp, from the
@@ -622,8 +684,11 @@ function sessionLines_(ev, people) {
   var maybe = false;
   people.forEach(function (p) {
     if (!CELL_KEY[p.cell]) return; // blank, or a note Brian typed: no line
+    if (p.cell === 'maybe') {
+      maybe = true; // E14: a Maybe has no session answer to list, only the note that it holds no spot
+      return;
+    }
     lines.push('- ' + outcomeText_(ev, p.name, p.cell));
-    if (p.cell === 'maybe') maybe = true;
   });
   return { lines: lines, maybe: maybe, maybeNote: fill_(t.maybeNote, words_(ev.session ? ev.session.label : '')) };
 }
@@ -631,19 +696,31 @@ function sessionLines_(ev, people) {
 // E13: the session answer a person's cell gives in the confirmation (the text key). A Maybe holds no spot: No.
 var SESSION_ANSWER = { confirmed: 'yes', waitlist: 'sessionWaitlist', full: 'no', no: 'no', maybe: 'no' };
 
-// "Here's all the details:", then for each person their answer (yourRsvp, then guestRsvp) and, for a session event,
-// their session answer; the waitlist note after the list when anyone waits.
-function detailsBlock_(ev, status, people, assigned) {
+// E14: a session answer as a coloured word (Yes green, No terracotta, Waitlist plain), for a person's cell.
+function answerRun_(t, cell) {
+  var key = SESSION_ANSWER[cell];
+  return { text: t[key], tone: key === 'yes' || key === 'no' ? key : '' };
+}
+
+// E14: the details as blocks. First "Here's all of the details:", your RSVP and, for a Going on a session event, your
+// session answer. Then, when there are guests, the Guests heading and a bullet each: their name and, for a Going on a
+// session event, their session answer. A Maybe has no session lines (it holds no spot). The waitlist note comes last.
+function detailsBlocks_(ev, status, people, assigned) {
   var t = ev.text;
   var w = words_(ev.session ? ev.session.label : '');
-  var lines = [{ head: t.detailsHead }];
-  people.forEach(function (p, i) {
-    lines.push(i === 0 ? fill_(t.yourRsvp, { status: t[status] }) : fill_(t.guestRsvp, { name: p.name, status: t[status] }));
-    var key = ev.session ? SESSION_ANSWER[assigned[i].cell] : '';
-    if (key) lines.push(fill_(t.sessionAnswer, { Session: w.Session, answer: t[key] }));
-  });
-  if (ev.session && assigned.some(function (a) { return a.cell === 'waitlist'; })) lines.push(t.waitlistNote);
-  return lines;
+  var asks = !!ev.session && status === 'going';
+  var main = [{ head: t.detailsHead }, fill_(t.yourRsvp, { status: t[status] })];
+  if (asks) main.push(tpl_(t.sessionAnswer, { Session: w.Session }, { answer: answerRun_(t, assigned[0].cell) }));
+  var blocks = [main];
+  if (people.length > 1) {
+    var guests = [{ head: t.guestsHead }];
+    people.slice(1).forEach(function (p, i) {
+      guests.push({ li: asks ? tpl_(t.guestLine, { name: p.name, Session: w.Session }, { answer: answerRun_(t, assigned[i + 1].cell) }) : p.name });
+    });
+    blocks.push(guests);
+  }
+  if (ev.session && assigned.some(function (a) { return a.cell === 'waitlist'; })) blocks.push(t.waitlistNote);
+  return blocks;
 }
 
 // The questions line: with the host's number (Script Property HOST_PHONE, read at send time) when it and the event's
@@ -658,14 +735,9 @@ function questionsLine_(ev) {
 function mailConfirmation_(ev, to, name, status, people, assigned) {
   var t = ev.text;
   var v = vars_(ev);
-  var blocks = [
-    fill_(t.hi, { name: name }),
-    fill_(t.confirmLead, v).trim(),
-    detailsBlock_(ev, status, people, assigned),
-    [t.changeLine, url_(ev.pageUrl)],
-    [fill_(t.when, v), fill_(t.where, v)],
-    [urlLine_(t.calendarLine, v, 'icsUrl', ev.icsUrl)],
-  ]
+  var blocks = [fill_(t.hi, { name: name }), fill_(t.confirmLead, v).trim()]
+    .concat(detailsBlocks_(ev, status, people, assigned))
+    .concat([[t.changeLine, url_(ev.pageUrl)], [fill_(t.when, v), fill_(t.where, v)], calendarLines_(ev, v)])
     .concat(noticeBlocks_(ev, true))
     .concat([bookBlock_(ev), questionsLine_(ev), t.seeYou]);
   send_(ev, to, fill_(t.confirmSubject, v), mail_(ev, blocks));
@@ -704,7 +776,7 @@ function merge_(a, b) {
 
 function answerLines_(ev, n) {
   var t = ev.text;
-  if (!ev.session || n.status === 'cant') return [];
+  if (!ev.session || n.status !== 'going') return []; // E14: only Going answers the session question
   var w = words_(ev.session.label);
   return peopleOf_(n).map(function (p) {
     return fill_(t.answerLine, { name: p.name, Session: w.Session, answer: p.answer === 'yes' ? t.yes : t.no });
@@ -790,7 +862,11 @@ function resultPage_(ev, titleKey, n, people, assigned, pending) {
     );
     if (s.maybe) inner += para_(s.maybeNote);
   }
-  if (titleKey === 'doneTitle') inner += '<p><a class="button" href="' + esc_(ev.icsUrl) + '" target="_top">' + esc_(t.calendar) + '</a></p>';
+  if (titleKey === 'doneTitle') {
+    inner += '<p>';
+    if (ev.googleCalUrl) inner += '<a class="button" href="' + esc_(ev.googleCalUrl) + '" target="_top">' + esc_(t.calendarGoogle) + '</a> ';
+    inner += '<a class="button" href="' + esc_(ev.icsUrl) + '" target="_top">' + esc_(t.calendar) + '</a></p>';
+  }
   return page_(ev, t[titleKey], inner);
 }
 
@@ -840,9 +916,22 @@ function doGet(e) {
   }
 }
 
+// E14: a confirmed change leaves a marker for as long as the link would have lived (CHANGE_TTL): the event slug, the
+// confirmed answer and each person's cell. A second press of Confirm (the page can take several seconds to answer), a
+// second tab, or the link opened again after confirming shows the finished page instead of "expired", and sends no
+// second email. Holds no guest data beyond what the first reply already showed.
+function donePage_(token) {
+  var raw = CacheService.getScriptCache().get('chgdone:' + token);
+  if (!raw) return null;
+  var done = JSON.parse(raw);
+  var ev = loadEvent_(done.slug);
+  if (!ev) return null;
+  return resultPage_(ev, 'changeDoneTitle', done.submission, peopleOf_(done.submission), done.assigned, false);
+}
+
 function confirmPage_(token) {
   var raw = CacheService.getScriptCache().get('chg:' + token);
-  if (!raw) return expiredPage_();
+  if (!raw) return donePage_(token) || expiredPage_();
   var payload = JSON.parse(raw);
   var ev = loadEvent_(payload.slug);
   if (!ev) return json_({ ok: false, error: 'unknown' });
@@ -855,8 +944,19 @@ function confirmPage_(token) {
     '<form method="post" action="' + esc_(ScriptApp.getService().getUrl()) + '" target="_top">' +
     '<input type="hidden" name="change" value="' + esc_(token) + '">' +
     '<input type="hidden" name="mode" value="html">' +
-    '<button type="submit">' + esc_(t.changeConfirm) + '</button></form>';
+    '<button type="submit">' + esc_(t.changeConfirm) + '</button></form>' + confirmScript_(t.changeConfirming || t.changeConfirm);
   return page_(ev, t.changeConfirmLead, inner);
+}
+
+// E14: the first press locks the button and says Confirming…; a second press while the answer is on its way does
+// nothing. The form still submits (the lock is set in the submit event, after the browser has built the request).
+function confirmScript_(label) {
+  var safe = JSON.stringify(str_(label)).replace(/</g, '\\u003c');
+  return (
+    '<script>(function(){var f=document.querySelector("form");if(!f)return;f.addEventListener("submit",function(e){' +
+    'if(f.getAttribute("data-sent")){e.preventDefault();return;}f.setAttribute("data-sent","1");' +
+    'var b=f.querySelector("button");if(b){b.disabled=true;b.textContent=' + safe + ';}});})();</script>'
+  );
 }
 
 // ---- doPost ------------------------------------------------------------------------------------------------------
@@ -991,7 +1091,7 @@ function requestChange_(ev, n, stored) {
 function applyChange_(token) {
   var cache = CacheService.getScriptCache();
   var raw = cache.get('chg:' + token);
-  if (!raw) return expiredPage_();
+  if (!raw) return donePage_(token) || expiredPage_();
   var payload = JSON.parse(raw);
   var ev = loadEvent_(payload.slug);
   if (!ev) return json_({ ok: false, error: 'unknown' });
@@ -1072,6 +1172,8 @@ function applyChange_(token) {
         .forEach(function (rowNumber) {
           sheet.deleteRow(rowNumber);
         });
+      // E14: the done marker goes in before the lock opens, so a second press waiting on the lock finds it
+      cache.put('chgdone:' + token, JSON.stringify({ slug: ev.slug, submission: n, assigned: assigned }), CHANGE_TTL);
       cache.remove('chg:' + token);
     }
   } finally {
@@ -1083,7 +1185,7 @@ function applyChange_(token) {
     lock.releaseLock();
   }
 
-  if (stale) return expiredPage_();
+  if (stale) return donePage_(token) || expiredPage_();
   mailOutcome_(ev, payload.email, n, people, assigned);
   if (freed > 0) mailSpotFreed_(ev, freed);
   return resultPage_(ev, 'changeDoneTitle', n, people, assigned, false);
@@ -1169,7 +1271,7 @@ function mailReminder_(ev, d) {
   noticeBlocks_(ev, false).forEach(function (b) {
     blocks.push(b);
   });
-  blocks.push([urlLine_(t.detailsLine, v, 'pageUrl', ev.pageUrl), urlLine_(t.calendarLine, v, 'icsUrl', ev.icsUrl)]);
+  blocks.push([urlLine_(t.detailsLine, v, 'pageUrl', ev.pageUrl)].concat(calendarLines_(ev, v)));
   if (d.tip && t.reminderTip) blocks.push(fill_(t.reminderTip, { tip: d.tip })); // escaped in the HTML part like every line
   var mail;
   try {

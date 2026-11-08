@@ -72,9 +72,11 @@ export function validateRsvp(input: RawFields, rules: RsvpRules): Validation {
   const status = STATUSES.includes(st) ? (st as Status) : null;
   if (!status) fields.push('status');
   const cant = status === 'cant';
+  // E14: only Going answers the session question; a Maybe holds no spot, so its answers (the form hides them) are ignored
+  const asks = rules.session && (status === 'going' || !status); // no status yet: still report the missing answers
 
   let session: Answer | undefined;
-  if (rules.session && !cant) {
+  if (asks) {
     session = answerOf(get('session'));
     if (!session) fields.push('session');
   }
@@ -83,7 +85,7 @@ export function validateRsvp(input: RawFields, rules: RsvpRules): Validation {
   if (!cant) {
     for (let n = 1; n <= rules.maxGuests; n++) {
       const gname = get(`g${n}name`).trim();
-      const rawAnswer = rules.session ? get(`g${n}session`) : '';
+      const rawAnswer = asks ? get(`g${n}session`) : '';
       if (!gname && !rawAnswer) continue; // a blank row is dropped
       const gsession = answerOf(rawAnswer);
       let bad = false;
@@ -91,11 +93,11 @@ export function validateRsvp(input: RawFields, rules: RsvpRules): Validation {
         fields.push(`g${n}name`);
         bad = true;
       }
-      if (rules.session && gname && !gsession) {
+      if (asks && gname && !gsession) {
         fields.push(`g${n}session`);
         bad = true;
       }
-      if (!bad) guests.push(rules.session ? { name: gname, session: gsession } : { name: gname });
+      if (!bad) guests.push(asks ? { name: gname, session: gsession } : { name: gname });
     }
   }
 
@@ -305,7 +307,8 @@ export function resultView(text: RsvpText, label: string, reply: Extract<PostRep
   const [cheerKey, emojiKey] = CHEER[answer];
   const said = { answer, statusLine: fill(text.resultStatus, { status: text[answer] }), cheer: text[cheerKey], cheerEmoji: emojiKey ? text[emojiKey] : '' };
   if (answer === 'cant') return { title: text.cantTitle, text: text.cantText, lines: [], calendar: false, ...said };
-  const lines = names.slice(0, reply.outcomes.length).map((n, i) => outcomeLine(text, label, n, reply.outcomes[i]));
+  // E14: a Maybe has no session answers, so no per-person lines; the note below still says it holds no spot
+  const lines = answer === 'maybe' ? [] : names.slice(0, reply.outcomes.length).map((n, i) => outcomeLine(text, label, n, reply.outcomes[i]));
   const view: ResultView = { title: text.doneTitle, text: text.doneText, lines, calendar: true, ...said };
   if (reply.outcomes.includes('maybe')) view.note = fill(text.maybeNote, words(label));
   return view;

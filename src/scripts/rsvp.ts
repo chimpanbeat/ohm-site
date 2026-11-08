@@ -60,7 +60,7 @@ function start(form: HTMLFormElement): void {
   const cheerText = cheer.querySelector<HTMLElement>('.rsvp-result__cheer-text')!;
   const emoji = cheer.querySelector<HTMLElement>('.rsvp-result__emoji')!;
   const actions = result.querySelector<HTMLElement>('.rsvp-result__actions')!;
-  const calendar = actions.querySelector<HTMLElement>('.rsvp-result__calendar')!;
+  const calendars = Array.from(actions.querySelectorAll<HTMLElement>('.rsvp-result__calendar')); // E14: Google, then the .ics
   const noticeLinks = Array.from(actions.querySelectorAll<HTMLElement>('.rsvp-result__notice'));
   const tipCard = q<HTMLElement>('.rsvp-tip')!;
   const tipWindow = tipCard.querySelector<HTMLElement>('.rsvp-tip__window')!;
@@ -150,10 +150,19 @@ function start(form: HTMLFormElement): void {
   });
 
   // ---- Can't go: no session question and no guests.
+  // E14 (Brian, Nov 8): a Maybe holds no session spot, so the session question (yours and each guest's) goes too, and the
+  // guests help line stops mentioning it. Answers already given are kept, not sent: validation ignores them unless Going.
   const attending = Array.from(form.querySelectorAll<HTMLElement>('[data-attending]'));
+  const goingOnly = Array.from(form.querySelectorAll<HTMLElement>('[data-going-only]'));
+  const guestsHelp = form.querySelector<HTMLElement>('.rsvp-guests > .help');
+  const helpFull = guestsHelp?.textContent ?? '';
   const syncStatus = () => {
-    const cant = form.querySelector<HTMLInputElement>('input[name="status"]:checked')?.value === 'cant';
+    const chosen = form.querySelector<HTMLInputElement>('input[name="status"]:checked')?.value;
+    const cant = chosen === 'cant';
+    const notGoing = chosen === 'maybe' || cant;
     for (const el of attending) el.hidden = cant;
+    for (const el of goingOnly) el.hidden = notGoing;
+    if (guestsHelp) guestsHelp.textContent = chosen === 'maybe' ? (guestsHelp.dataset.help ?? helpFull) : helpFull;
   };
   form.addEventListener('change', (e) => {
     if ((e.target as HTMLInputElement).name === 'status') syncStatus();
@@ -258,7 +267,7 @@ function start(form: HTMLFormElement): void {
       note.hidden = !s.result.note;
       note.textContent = s.result.note ?? '';
       actions.hidden = !s.result.calendar;
-      calendar.hidden = !s.result.calendar;
+      for (const a of calendars) a.hidden = !s.result.calendar;
       for (const a of noticeLinks) a.hidden = !s.result.calendar;
       result.hidden = false;
       if (!resultShown) {

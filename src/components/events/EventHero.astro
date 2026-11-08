@@ -1,7 +1,7 @@
 ---
 import { getImage } from 'astro:assets';
 import { rsvpText, type SiteEvent } from '../../data/events.ts';
-import { dateLabel, timeLabel, mapsUrl } from '../../lib/events.ts';
+import { dateLabel, timeLabel, mapsUrl, googleCalUrl } from '../../lib/events.ts';
 import { eventAsset, eventMark } from '../../lib/event-assets.ts';
 import { href } from '../../lib/url.ts';
 
@@ -11,6 +11,7 @@ interface Props {
 
 const { event } = Astro.props;
 const tz = event.timeZone;
+const googleUrl = googleCalUrl(event, new URL(href('/'), Astro.site).href); // E14
 // E10 (I-101): the countdown line exists only in a build made before the event ends; client script 6 fills it.
 const showCountdown = Date.now() < Date.parse(event.end);
 const wide = eventAsset(event.graphics.wide);
@@ -83,6 +84,7 @@ const narrowSizes = `(min-width: 30rem) ${narrow.width}px, 100vw`;
 </p>
 <p class="event-actions">
   {event.rsvp && <a class="btn" href="#rsvp">{rsvpText.heading}</a>}
+  <a class="btn btn--quiet" href={googleUrl} target="_blank" rel="noopener">{rsvpText.calendarGoogle}</a>
   <a class="btn btn--quiet" href={href(`/events/${event.slug}.ics`)} download>{rsvpText.calendar}</a>
 </p>
 

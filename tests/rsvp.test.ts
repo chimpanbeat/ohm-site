@@ -283,12 +283,12 @@ test('5. load reads the spots; submit posts form-urlencoded, pairs outcomes with
   assert.equal(c.state.spots, 'Yoga is full. Answer yes to join the waitlist.');
 });
 
-test('5. a maybe shows the maybe note and the no-spot line', async () => {
+test('5. a maybe shows the maybe note and no per-person session lines (E14)', async () => {
   const f = fakeFetch(reply({ ok: true, status: 'maybe', outcomes: ['maybe'] }), reply(status(5)));
   const c = make(f);
   await c.submit({ ...alex, status: 'maybe' });
   const r = c.state.result!;
-  assert.deepEqual(r.lines, ['Alex · Yoga: no spot held while Maybe']);
+  assert.deepEqual(r.lines, []);
   assert.equal(r.note, "A Maybe doesn't hold a yoga spot. If you decide to come, RSVP again on the event page with this email and choose Going.");
   assert.equal(r.calendar, true);
 });
@@ -798,11 +798,13 @@ test('E9-5. dist: the result card children in order, the emoji hidden, the actio
 
   const actions = divBlock(result, /<div\b[^>]*\brsvp-result__actions\b[^>]*>/)!;
   const links = [...actions.matchAll(/<a\b[^>]*>[\s\S]*?<\/a>/g)].map((m) => m[0]);
-  assert.equal(links.length, 2, 'the calendar link and one notice');
-  assert.ok(links[0].includes('rsvp-result__calendar'));
+  assert.equal(links.length, 3, 'the two calendar links (E14: Google, then the .ics) and one notice');
+  assert.ok(links[0].includes('rsvp-result__calendar') && links[1].includes('rsvp-result__calendar'));
+  assert.equal(text(links[0]), rsvpText.calendarGoogle);
+  assert.ok(decode(/href="([^"]+)"/.exec(links[0])![1]).startsWith('https://calendar.google.com/calendar/render?action=TEMPLATE'));
   const waiver = party.notices.find((n) => n.id === 'waiver')!;
   assert.equal(waiver.inResult, true);
-  const notice = links[1];
+  const notice = links[2];
   const open = notice.match(/^<a\b[^>]*>/)![0];
   assert.ok(/\brsvp-result__notice\b/.test(cls(open)) && /\bbtn\b/.test(cls(open)), cls(open));
   assert.equal(decode(attr(open, 'href')!), waiver.link!.url);
@@ -894,4 +896,28 @@ test('E10-5. source: the floating bar uses an IntersectionObserver, a bubbling c
   assert.match(s, /new IntersectionObserver\(/);
   assert.match(s, /new Event\('change',\s*\{\s*bubbles:\s*true\s*\}\)/);
   assert.match(s, /#rsvp-name[\s\S]{0,300}focus\(\{\s*preventScroll:\s*true\s*\}\)/);
+});
+
+// ---- E14: a Maybe asks no session question --------------------------------------------------------------------------
+
+test('E14-6. validateRsvp: only Going answers the session question; a Maybe ignores any answers sent', () => {
+  const rules = { maxGuests: 10, session: true };
+  const base = { name: 'Alex', email: 'alex@example.com', g1name: 'Sam' };
+  const maybe = validateRsvp({ ...base, status: 'maybe' }, rules);
+  assert.equal(maybe.ok, true);
+  assert.deepEqual(maybe.normalized, { name: 'Alex', email: 'alex@example.com', status: 'maybe', guests: [{ name: 'Sam' }], optin: false });
+  const sent = validateRsvp({ ...base, status: 'maybe', session: 'yes', g1session: 'yes' }, rules);
+  assert.deepEqual(sent.normalized, maybe.normalized, 'answers sent with a Maybe are dropped');
+  const going = validateRsvp({ ...base, status: 'going' }, rules);
+  assert.deepEqual(going.fields, ['session', 'g1session'], 'Going still needs both answers');
+  assert.deepEqual(validateRsvp({ ...base, status: 'going', session: 'yes', g1session: 'no' }, rules).normalized?.guests, [{ name: 'Sam', session: 'no' }]);
+});
+
+test("E14-7. dist: the session question (yours and each guest's) is going-only; the guests help has its plain twin; the page has the Google button", { skip: skipBuilt }, () => {
+  const sec = section();
+  const goingOnly = [...sec.matchAll(/<fieldset\b[^>]*\bdata-going-only\b[^>]*>/g)].length;
+  assert.equal(goingOnly, 1 + party.rsvp!.maxGuests, 'your question plus one per guest row');
+  assert.ok(sec.includes(`data-help="${rsvpText.guestsHelpPlain}"`), 'the help line the script swaps in for a Maybe');
+  const page = readFileSync(join(root, 'dist/events/launch-party.html'), 'utf8');
+  assert.ok(/href="https:\/\/calendar\.google\.com\/calendar\/render\?action=TEMPLATE[^"]*"[^>]*target="_blank"/.test(page), 'Add to Google Calendar on the page');
 });

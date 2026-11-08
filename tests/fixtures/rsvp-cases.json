@@ -20,7 +20,7 @@
     }
   },
   {
-    "label": "maybe, no",
+    "label": "maybe, answer sent is ignored (no)",
     "event": "session",
     "input": {
       "name": "Alex Rivera",
@@ -35,12 +35,11 @@
       "email": "alex@example.com",
       "status": "maybe",
       "guests": [],
-      "optin": false,
-      "session": "no"
+      "optin": false
     }
   },
   {
-    "label": "maybe, yes (valid)",
+    "label": "maybe, answer sent is ignored (yes)",
     "event": "session",
     "input": {
       "name": "Alex Rivera",
@@ -55,8 +54,30 @@
       "email": "alex@example.com",
       "status": "maybe",
       "guests": [],
-      "optin": false,
-      "session": "yes"
+      "optin": false
+    }
+  },
+  {
+    "label": "maybe, no session answers at all (what the form sends)",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "maybe",
+      "g1name": "Sam"
+    },
+    "ok": true,
+    "fields": [],
+    "normalized": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "maybe",
+      "guests": [
+        {
+          "name": "Sam"
+        }
+      ],
+      "optin": false
     }
   },
   {
@@ -460,7 +481,7 @@
     }
   },
   {
-    "label": "guests with Maybe are kept",
+    "label": "guests with Maybe are kept by name, their answers ignored",
     "event": "session",
     "input": {
       "name": "Alex Rivera",
@@ -478,12 +499,10 @@
       "status": "maybe",
       "guests": [
         {
-          "name": "Sam",
-          "session": "yes"
+          "name": "Sam"
         }
       ],
-      "optin": false,
-      "session": "no"
+      "optin": false
     }
   },
   {

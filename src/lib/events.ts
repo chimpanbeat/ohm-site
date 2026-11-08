@@ -97,7 +97,20 @@ export function mapsUrl(venue: SiteEvent['venue']): string {
 const root = (siteUrl: string) => siteUrl.replace(/\/+$/, '');
 export const pageUrl = (event: SiteEvent, siteUrl: string) => `${root(siteUrl)}/events/${event.slug}`; // E8, I-092
 export const icsUrl = (event: SiteEvent, siteUrl: string) => `${root(siteUrl)}/events/${event.slug}.ics`;
-export const bookUrl = (siteUrl: string) => `${root(siteUrl)}/book`; // E13: the site's booking page (src/pages/book/index.astro)
+// E14 (Brian, Nov 8): "Add to Google Calendar" opens Google's own event form pre-filled (no file to download). It needs
+// a Google account; the .ics above stays for Apple, Outlook and the rest. Same title, time, place and page as the .ics.
+export function googleCalUrl(event: SiteEvent, siteUrl: string): string {
+  const stamp = (iso: string) => new Date(iso).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  const q = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: event.title,
+    dates: `${stamp(event.start)}/${stamp(event.end)}`,
+    details: pageUrl(event, siteUrl),
+    location: `${event.venue.name}, ${event.venue.address}`,
+  });
+  return `https://calendar.google.com/calendar/render?${q}`;
+}
+export const bookUrl =(siteUrl: string) => `${root(siteUrl)}/book`; // E13: the site's booking page (src/pages/book/index.astro)
 
 // RFC 5545 §3.3.11: escape backslash, semicolon, comma and newlines in TEXT values.
 const escapeText = (s: string) => s.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
@@ -162,6 +175,8 @@ export interface EventFeed {
   venue: { name: string; address: string };
   pageUrl: string;
   icsUrl: string;
+  /** E14: the "Add to Google Calendar" link (googleCalUrl). */
+  googleCalUrl: string;
   session: { key: string; label: string; limit: number; waitlist: boolean; time: string } | null;
   reminderInfo: { title: string; text?: string; items?: string[] }[];
   notices: { title: string; text: string; url?: string }[];
@@ -201,6 +216,7 @@ export function feedFor(event: SiteEvent, siteUrl: string): EventFeed {
     venue: { name: event.venue.name, address: event.venue.address },
     pageUrl: pageUrl(event, siteUrl),
     icsUrl: icsUrl(event, siteUrl),
+    googleCalUrl: googleCalUrl(event, siteUrl),
     session:
       s && item
         ? { key: s.key, label: s.label, limit: s.limit, waitlist: s.waitlist, time: timeLabel(item.start, item.end, event.timeZone, 'auto') }

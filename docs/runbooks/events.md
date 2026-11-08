@@ -73,6 +73,13 @@ Step E13 gives the guest emails Maréa's copy, sends them as HTML (with a plain-
 5. **Deploy.** Deploy → Manage deployments → pencil (Edit) → Version: **New version** → Deploy. Never "New deployment".
 6. **Test.** In a private window, RSVP on `/events/launch-party` as Going with one guest, from an address you own outside the domain. Check: the greeting and lines match Maréa's copy; `Here's all the details:` and the waiver title are bold and green; `Click here to book` opens `/book`; the signature has the green text, the terracotta left bar and bullet, your phone as a tap-to-call link. Then RSVP again from the same address as Can't go and confirm the change link: the can't-go note arrives with the signature. Delete the test rows (rows only).
 
+## Calendar buttons, Maybe, email details, confirm fix (after step E14)
+Step E14 is a site deploy **and** a script paste. Order: push to `main` and wait for the deploy; check `https://ohmprecisionbodywork.com/events/launch-party.json` contains `"googleCalUrl":`; wait 10 minutes (feed cache); paste `apps-script/rsvp.js` over `Code.gs`; Deploy → Manage deployments → pencil → **New version**. No new permission, no `setup()` needed. An old script with the new feed (or the reverse) still works: it just shows the old layout.
+
+Test (private window, an address you own): (1) RSVP Maybe with a guest: no Yoga question appears, the email has `Your RSVP: Maybe`, `Guests:` and the name, no Yoga line. (2) RSVP Going with a guest answering No: `Yoga: Yes` green, `- Name — Yoga: No` terracotta, the orange `Click here to book` button on its own line, both calendar links. (3) RSVP again from the same address, open the link, press Confirm once: the button reads `Confirming…`, the result shows, and the new status's email arrives once. Opening the link again shows the same result. Delete the test rows (rows only).
+
+**Add to Google Calendar** needs a Google account; the other button downloads the `.ics` file that Apple Calendar, Outlook and the rest open.
+
 ## Event-day swap (Nov 22) (I-091; after step E8)
 Brian's joke: at about 4:00 pm on Sun Nov 22, 2026 the launch-party page changes Tai Chi to chai tea. A static page changes only with a deploy, so a scheduled deploy does it.
 
