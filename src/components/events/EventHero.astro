@@ -15,8 +15,8 @@ const wide = eventAsset(event.graphics.wide);
 const narrow = eventAsset(event.graphics.narrow);
 
 // Art direction as on About: the wide banner from 48rem, the narrow mark below. Never upscaled by the
-// pipeline. The wide banner is cropped and scaled up 1.5x by CSS (E4, I-080), so it ships one width: its
-// 500w file would be upscaled 3x.
+// pipeline. The wide banner is cropped and scaled up 1.6x by CSS (E4, I-080; E5, I-085), so it ships one width: its
+// 500w file would be upscaled 3.6x.
 const widthsOf = (src: ImageMetadata) => [Math.round(src.width * 0.5), src.width];
 const make = (src: ImageMetadata, format: 'avif' | 'webp', widths = widthsOf(src)) => getImage({ src, format, widths });
 const [wideAvif, wideWebp, narrowAvif, narrowWebp, fallback] = await Promise.all([
@@ -28,7 +28,7 @@ const [wideAvif, wideWebp, narrowAvif, narrowWebp, fallback] = await Promise.all
 ]);
 
 const wideMedia = '(min-width: 48rem)';
-const wideSizes = `(min-width: 72rem) ${wide.width}px, (min-width: 48rem) 100vw, 100vw`;
+const wideSizes = '(min-width: 72rem) 70rem, calc(100vw - 2rem)'; // the container's content width (E5)
 const narrowSizes = `(min-width: 30rem) ${narrow.width}px, 100vw`;
 ---
 
@@ -79,24 +79,25 @@ const narrowSizes = `(min-width: 30rem) ${narrow.width}px, 100vw`;
     gap: var(--s-3);
     margin-top: var(--s-6);
   }
-  /* Wide banner crop (E4, I-080): header-green.png's art spans x 214-784, y 143-307 of 1000x450. An 11:4 box with
-     object-fit: cover keeps its full width; scale 1.5152 about the centre shows source x 170-830, y 105-345, so the
-     words draw about 1.45x larger. The file itself is JohnMark's design and is not edited. */
+  /* Wide banner, full column (E5, I-085; E4's crop widened): header-green.png's art spans x 214-784, y 143-307 of
+     1000x450. A 31:10 box the width of the container (so its left edge is the H1's) with object-fit: cover keeps its
+     full width; scale 1.6129 about the centre shows source x 190-810, y 125-325, so the art has 24/26 px of margin
+     left/right and 18 top and bottom, and the words draw about 1.8x (1120 px box) larger than the file. The file itself
+     is JohnMark's design and is not edited. */
   @media (min-width: 48rem) {
     picture {
       overflow: hidden;
-      aspect-ratio: 11 / 4;
+      aspect-ratio: 31 / 10;
       width: 100%;
-      max-width: 60rem;
-      margin-inline: auto;
     }
     picture img {
       width: 100%;
       height: 100%;
       max-width: none;
+      margin-inline: 0;
       object-fit: cover;
       object-position: 50% 50%;
-      scale: 1.5152;
+      scale: 1.6129;
     }
   }
 </style>

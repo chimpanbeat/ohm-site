@@ -89,14 +89,15 @@ export function launchParty(limit: number): SiteEvent {
         start: '2026-11-22T15:00:00-07:00',
         end: '2026-11-22T18:00:00-07:00',
         title: 'Self Care Launch Party',
-        notes: ['Open house style, come and go as you please', 'Refreshments provided', 'Activities and merch'], // I-078
+        notes: ['Open house style, come and go as you please', 'Refreshments provided', 'Activities and merch', 'Optional Tai Chi by John Marshall'], // I-078; I-086 (Marea)
       },
       {
         start: '2026-11-22T18:00:00-07:00',
         end: '2026-11-22T20:00:00-07:00',
         title: 'Optional: climb at the gym until close',
         // I-078: "Own day pass required" becomes the linked "Day pass purchase required" (URL confirmed by Brian)
-        notes: [[{ text: 'Day pass purchase required', href: 'https://climbcityrock.com/day-passes' }], 'Harness and shoes provided'],
+        // I-086 (Marea): rentals cost extra, so "provided" became "available"
+        notes: [[{ text: 'Day pass purchase required', href: 'https://climbcityrock.com/day-passes' }], 'Harness and shoe rentals available'],
         optional: true,
       },
     ],
@@ -132,17 +133,17 @@ export function launchParty(limit: number): SiteEvent {
     credits: {
       heading: 'This event made possible by…',
       items: [
-        { name: 'Maréa', role: 'host', url: 'https://dreamcatcherwed.com', image: 'launch-party/marea-thumb.jpg', alt: '' },
-        { name: 'CityROCK', role: 'venue space donated', url: 'https://climbcityrock.com', image: 'launch-party/cityrock-logo.png', alt: '' },
+        { name: 'Maréa', role: 'Host', url: 'https://dreamcatcherwed.com', image: 'launch-party/marea-thumb.jpg', alt: '' },
+        { name: 'CityROCK', role: 'Venue', url: 'https://climbcityrock.com', image: 'launch-party/cityrock-logo.png', alt: '', logo: true },
         {
           name: 'Britt Maddy',
-          role: 'yoga class generously provided',
+          role: 'Yoga instruction',
           url: 'https://www.instagram.com/brittandspirit/',
           image: 'launch-party/britt-thumb.jpg',
           alt: '',
         },
         // Marea typed "JohnMark.co"; the logo is his Rantala Creative mark, so its alt gives the words on it
-        { name: 'JohnMark', role: 'graphic design', url: 'https://johnmark.co', image: 'launch-party/johnmark-logo.png', alt: 'Rantala Creative' },
+        { name: 'JohnMark', role: 'Graphic design', url: 'https://johnmark.co', image: 'launch-party/johnmark-logo.png', alt: 'Rantala Creative', logo: true },
       ],
     },
     graphics: {

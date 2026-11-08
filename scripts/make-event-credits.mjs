@@ -1,8 +1,11 @@
 // Makes the small credit images for "This event made possible by…" (E4, I-079; ARCHITECTURE §B6, §B10).
 // Run by hand: npm run event-images. Not part of `check` or CI: the inputs under brief/ are gitignored
 // (the permissions are Brian's), so only the outputs under src/assets/events/launch-party/ are committed.
-// Every output is 112 px tall (shown at 56 px, so 2x), has no metadata (sharp strips it unless asked),
-// and keeps its own background: no keying, no transparency (a black or white tile, read as a logo on the page).
+// Every output is 112 px tall (shown at 56 px, so 2x) and has no metadata (sharp strips it unless asked).
+// Photos keep their frame (the page draws it). The two logos are transparent RGBA PNGs (E5, I-085) that sit on the
+// cream band with no box: CityROCK's source is a transparent avif (Brian, Nov 7), so it is only cropped and
+// resized; JohnMark's source has a white background, which `key: 'white'` turns into alpha at full resolution
+// (after the crop, before the resize, so the edges are anti-aliased against nothing).
 import sharp from 'sharp';
 import { existsSync, statSync } from 'node:fs';
 
@@ -27,12 +30,14 @@ const JOBS = [
   },
   {
     out: 'cityrock-logo.png',
-    input: 'brief/launch_party_graphics/cityrock_logo.png', // wordmark plus 60 px of its black
-    extract: { left: 12, top: 277, width: 2034, height: 677 },
+    input: 'brief/launch_party_graphics/cityrock_logo.avif', // 7559x4571 RGBA, already transparent
+    extract: { left: 19, top: 1320, width: 7478, height: 2174 }, // the ink's bounding box (alpha > 8)
   },
   {
     out: 'johnmark-logo.png',
-    input: 'brief/launch_party_graphics/johnmark_logo.png', // already padded
+    input: 'brief/launch_party_graphics/johnmark_logo.png', // white background
+    extract: { left: 17, top: 0, width: 570, height: 140 }, // its ink starts at x 0, lined up with the text below
+    key: 'white',
   },
 ];
 
@@ -43,11 +48,27 @@ for (const job of JOBS) {
   }
 }
 
+// White to alpha: n = min(r, g, b); a = min(1, (255 - n) / 215); colour = (c - 255 (1 - a)) / a, clamped.
+async function keyWhite(img) {
+  const { data, info } = await img.removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  const out = Buffer.alloc(info.width * info.height * 4);
+  for (let i = 0, o = 0; i < data.length; i += 3, o += 4) {
+    const n = Math.min(data[i], data[i + 1], data[i + 2]);
+    const a = Math.min(1, (255 - n) / 215);
+    if (a > 0) {
+      for (let c = 0; c < 3; c++) out[o + c] = Math.max(0, Math.min(255, Math.round((data[i + c] - 255 * (1 - a)) / a)));
+    }
+    out[o + 3] = Math.round(a * 255);
+  }
+  return sharp(out, { raw: { width: info.width, height: info.height, channels: 4 } });
+}
+
 for (const job of JOBS) {
   let img = sharp(job.input);
   if (job.extract) img = img.extract(job.extract);
+  if (job.key === 'white') img = await keyWhite(img);
   img = job.square ? img.resize(HEIGHT, HEIGHT) : img.resize({ height: HEIGHT });
-  img = job.jpeg ? img.jpeg({ quality: 80 }) : img.png();
+  img = job.jpeg ? img.jpeg({ quality: 80 }) : img.png({ compressionLevel: 9 });
   const info = await img.toFile(`${OUT}/${job.out}`);
   console.log(`${job.out}: ${info.width}x${info.height}, ${(statSync(`${OUT}/${job.out}`).size / 1024).toFixed(1)} KB`);
 }

@@ -1,6 +1,8 @@
 ---
 // "This event made possible by…" (E4, I-079): one linked card per credit, image first (ARCHITECTURE §B10).
 // The link's name is alt + name + role; an empty alt means the name beside the image already says it.
+// E5 (I-085): the name is bold with the role on its own line below, smaller, no comma; a logo is drawn unframed on the
+// cream band, a photo keeps its frame.
 import { Image } from 'astro:assets';
 import type { SiteEvent } from '../../data/events.ts';
 import { eventAsset } from '../../lib/event-assets.ts';
@@ -21,6 +23,7 @@ const { credits } = Astro.props.event;
           <li>
             <a class="credit" href={credit.url} target="_blank" rel="noopener">
               <Image
+                class:list={['credit__img', { 'credit__img--photo': !credit.logo }]}
                 src={eventAsset(credit.image)}
                 height={56}
                 densities={[1, 2]}
@@ -28,7 +31,8 @@ const { credits } = Astro.props.event;
                 alt={credit.alt}
               />
               <span class="credit__text">
-                <strong>{credit.name}</strong>, {credit.role}
+                <strong class="credit__name">{credit.name}</strong>{' '}
+                <span class="credit__role">{credit.role}</span>
               </span>
             </a>
           </li>
@@ -57,11 +61,20 @@ const { credits } = Astro.props.event;
     max-width: 100%;
     object-fit: contain;
     object-position: left center;
+  }
+  .credit :global(.credit__img--photo) {
     border: 1px solid var(--line-light);
     border-radius: var(--radius);
   }
   .credit__text {
     display: block;
     margin-top: var(--s-2);
+  }
+  .credit__name {
+    display: block;
+  }
+  .credit__role {
+    display: block;
+    font-size: var(--fs-small);
   }
 </style>

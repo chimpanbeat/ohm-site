@@ -1,5 +1,5 @@
 ---
-import type { SiteEvent } from '../../data/events.ts';
+import { eventHeadings, type SiteEvent } from '../../data/events.ts';
 import { timeLabel } from '../../lib/events.ts';
 import EventRich from './EventRich.astro';
 
@@ -10,7 +10,7 @@ interface Props {
 const { event } = Astro.props;
 ---
 
-<h2>Schedule</h2>
+<h2>{eventHeadings.schedule}</h2>
 <ol class="timeline">
   {
     event.timeline.map((item) => (

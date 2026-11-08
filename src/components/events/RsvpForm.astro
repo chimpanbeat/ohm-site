@@ -253,8 +253,9 @@ const answers = ['yes', 'no'] as const;
   .guest + .guest {
     margin-top: var(--s-3);
   }
-  .guest .group + .group {
-    margin-top: var(--s-3);
+  /* E5, I-086: the name is a span.field and the yoga question the next fieldset, so the old `.group + .group` never matched */
+  .guest .field + .group {
+    margin-top: var(--s-4);
   }
   .link-button {
     min-height: 44px;

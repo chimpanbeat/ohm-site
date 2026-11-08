@@ -4,7 +4,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { site } from '../src/data/site.ts';
-import { events, rsvpText, launchParty, eventBySlug } from '../src/data/events.ts';
+import { events, rsvpText, launchParty, eventBySlug, eventHeadings } from '../src/data/events.ts';
 import type { SiteEvent } from '../src/data/events.ts';
 import {
   RESERVED_SLUGS,
@@ -98,8 +98,12 @@ test('1a. launch party data equals the copy deck', () => {
         ['No supplies or experience needed', 'Mats provided, or bring your own', 'Water bottle and stretchy clothes recommended', 'Limited to first 20 sign-ups'],
         false,
       ],
-      ['Self Care Launch Party', ['Open house style, come and go as you please', 'Refreshments provided', 'Activities and merch'], false],
-      ['Optional: climb at the gym until close', ['Day pass purchase required', 'Harness and shoes provided'], true],
+      [
+        'Self Care Launch Party',
+        ['Open house style, come and go as you please', 'Refreshments provided', 'Activities and merch', 'Optional Tai Chi by John Marshall'], // E5, I-086
+        false,
+      ],
+      ['Optional: climb at the gym until close', ['Day pass purchase required', 'Harness and shoe rentals available'], true], // E5, I-086
     ],
   );
   assert.deepEqual(party.timeline[3].notes![0], [{ text: 'Day pass purchase required', href: 'https://climbcityrock.com/day-passes' }]);
@@ -108,12 +112,13 @@ test('1a. launch party data equals the copy deck', () => {
   assert.deepEqual(party.credits, {
     heading: 'This event made possible by…',
     items: [
-      { name: 'Maréa', role: 'host', url: 'https://dreamcatcherwed.com', image: 'launch-party/marea-thumb.jpg', alt: '' },
-      { name: 'CityROCK', role: 'venue space donated', url: 'https://climbcityrock.com', image: 'launch-party/cityrock-logo.png', alt: '' },
-      { name: 'Britt Maddy', role: 'yoga class generously provided', url: 'https://www.instagram.com/brittandspirit/', image: 'launch-party/britt-thumb.jpg', alt: '' },
-      { name: 'JohnMark', role: 'graphic design', url: 'https://johnmark.co', image: 'launch-party/johnmark-logo.png', alt: 'Rantala Creative' },
+      { name: 'Maréa', role: 'Host', url: 'https://dreamcatcherwed.com', image: 'launch-party/marea-thumb.jpg', alt: '' },
+      { name: 'CityROCK', role: 'Venue', url: 'https://climbcityrock.com', image: 'launch-party/cityrock-logo.png', alt: '', logo: true },
+      { name: 'Britt Maddy', role: 'Yoga instruction', url: 'https://www.instagram.com/brittandspirit/', image: 'launch-party/britt-thumb.jpg', alt: '' },
+      { name: 'JohnMark', role: 'Graphic design', url: 'https://johnmark.co', image: 'launch-party/johnmark-logo.png', alt: 'Rantala Creative', logo: true },
     ],
-  });
+  }); // E5, I-085: roles on their own line, capitalised; the two logos are transparent (logo: true)
+  assert.deepEqual(eventHeadings, { description: 'Description', schedule: 'Schedule', details: 'Details' }); // E5, I-085
   const name = party.credits!.items[0].name;
   assert.equal(name, 'Maréa');
   assert.equal(name, name.normalize('NFC'), 'the é is one character');
@@ -164,6 +169,12 @@ test('1b. RSVP settings; the sign-up note follows the limit', () => {
   assert.equal(notesOf(twelve)[1], 'Mats provided, or bring your own'); // E4: the mats note stays second
   assert.equal(notesOf(launchParty(20))[1], 'Mats provided, or bring your own');
   assert.ok(notesOf(launchParty(20)).includes('Limited to first 20 sign-ups'));
+  // E5, I-086: the Tai Chi note stays last in the party item whatever the limit
+  for (const n of [12, 20]) {
+    const notes = launchParty(n).timeline[2].notes!.map((x) => plainText(x, 1));
+    assert.equal(notes[notes.length - 1], 'Optional Tai Chi by John Marshall');
+    assert.equal(notes[notes.length - 2], 'Activities and merch');
+  }
   assert.equal(eventBySlug('launch-party'), party);
   assert.equal(eventBySlug('nope'), undefined);
 });
@@ -193,6 +204,16 @@ test('1d. every image path in the data exists under src/assets/events/', () => {
   for (const p of paths) assert.ok(existsSync(join(root, 'src/assets/events', p)), `missing ${p}`);
   // the source of marea-thumb.jpg stays committed (E4 re-runs `npm run event-images` from it)
   assert.ok(existsSync(join(root, 'src/assets/events/launch-party/marea-host.jpg')));
+});
+
+test('1f. credit logos are transparent RGBA PNGs of the sizes the page expects (E5, I-085)', () => {
+  const header = (name: string) => {
+    const b = readFileSync(join(root, 'src/assets/events/launch-party', name));
+    return { width: b.readUInt32BE(16), height: b.readUInt32BE(20), colourType: b[25] };
+  };
+  assert.deepEqual(header('cityrock-logo.png'), { width: 385, height: 112, colourType: 6 });
+  assert.deepEqual(header('johnmark-logo.png'), { width: 456, height: 112, colourType: 6 });
+  for (const c of party.credits!.items) assert.ok(existsSync(join(root, 'src/assets/events', c.image)), c.image);
 });
 
 test('1e. licensure clause: the unlicensed description claims nothing (§A6, E4)', () => {
@@ -394,11 +415,22 @@ test('8b. source: E4 components and styles', () => {
   const hero = comp('EventHero.astro');
   const wide = hero.slice(hero.indexOf('@media (min-width: 48rem)'));
   assert.ok(wide.length > 0 && hero.includes('@media (min-width: 48rem)'), 'a 48rem media block');
-  for (const decl of ['aspect-ratio: 11 / 4', 'object-fit: cover', 'object-position: 50% 50%', 'scale: 1.5152', 'max-width: 60rem']) {
+  for (const decl of ['aspect-ratio: 31 / 10', 'object-fit: cover', 'object-position: 50% 50%', 'scale: 1.6129']) {
     assert.ok(wide.includes(decl), `wide block has ${decl}`);
   }
+  for (const gone of ['11 / 4', '1.5152', 'max-width: 60rem']) assert.ok(!hero.includes(gone), `E5 removed ${gone} from the hero`); // I-085: fills the column
   assert.ok(hero.includes('alt={event.graphics.alt}'), 'the header graphic has its alt');
   assert.ok(hero.includes('event.heading ?? event.title'), 'the H1 is heading ?? title');
+
+  // E5 (I-085): credits show the role on its own line; logos are unframed; headings come from the data
+  const credits = comp('EventCredits.astro');
+  for (const token of ['credit__role', 'var(--fs-small)', 'credit__img--photo']) assert.ok(credits.includes(token), `credits has ${token}`);
+  assert.ok(!credits.includes('</strong>,'), 'no comma between name and role');
+  for (const [file, src] of [['EventTimeline.astro', comp('EventTimeline.astro')], ['EventDescription.astro', comp('EventDescription.astro')], ['[event].astro', readFileSync(join(root, 'src/pages/[event].astro'), 'utf8')]] as const) {
+    for (const word of ['Schedule', 'Description', 'Details']) assert.ok(!src.includes(`>${word}<`), `${file} types ${word}`);
+  }
+  const info = comp('EventInfo.astro');
+  assert.ok(info.includes('<h3>') && !info.includes('<h2>'), 'EventInfo uses an H3');
 
   // check:contrast knows the notice's link pair
   assert.match(readFileSync(join(root, 'scripts/check-contrast.mjs'), 'utf8'), /green-700 \(link on light\)/);
@@ -480,17 +512,43 @@ test('9c. built page: header alt, description, section order (E4)', { skip: skip
 
   const at = (re: RegExp) => html.search(re);
   const order = [
+    at(/<h2\b[^>]*>Description<\/h2>/),
     at(/A year and a half ago/),
     at(/<h2\b[^>]*>Schedule<\/h2>/),
-    at(/<h2\b[^>]*>What to wear<\/h2>/),
+    at(/<h2\b[^>]*>Details<\/h2>/),
+    at(/<h3\b[^>]*>What to wear<\/h3>/),
     at(/id="rsvp"/),
     at(/Important: Waiver Required/),
     at(/This event made possible by…/),
   ];
   assert.ok(order.every((n) => n > 0), `a section is missing: ${order}`);
-  assert.deepEqual([...order].sort((a, b) => a - b), order, 'description, schedule, info, RSVP, notice, credits in that order');
+  assert.deepEqual([...order].sort((a, b) => a - b), order, 'description, schedule, details, RSVP, notice, credits in that order');
   assert.ok(!html.includes('Your host'));
-  assert.ok(!/Own day pass required|Mats provided, own mats welcome/.test(html));
+  assert.ok(!/Own day pass required|Mats provided, own mats welcome|Harness and shoes provided/.test(html));
+});
+
+test('9c2. built page: heading outline and schedule notes (E5)', { skip: skipBuilt }, () => {
+  const html = page();
+  const main = html.match(/<main\b[\s\S]*?<\/main>/)![0];
+  const heads = [...main.matchAll(/<h([1-3])\b[^>]*>([\s\S]*?)<\/h\1>/g)].map((m) => ({ level: Number(m[1]), text: text(m[2]) }));
+  const h2s = heads.filter((h) => h.level === 2).map((h) => h.text);
+  assert.deepEqual(h2s, ['Description', 'Schedule', 'Details', 'RSVP', 'Important: Waiver Required', 'This event made possible by…']);
+  const between = (a: string, b: string) => {
+    const i = heads.findIndex((h) => h.level === 2 && h.text === a);
+    const j = heads.findIndex((h) => h.level === 2 && h.text === b);
+    return heads.slice(i + 1, j).filter((h) => h.level === 3).map((h) => h.text);
+  };
+  assert.deepEqual(between('Schedule', 'Details'), party.timeline.map((i) => i.title));
+  assert.deepEqual(between('Details', 'RSVP'), ['What to wear', 'Parking', 'Raffle']);
+  heads.forEach((h, i) => {
+    if (i > 0) assert.ok(h.level <= heads[i - 1].level + 1, `heading "${h.text}" skips a level`);
+  });
+
+  const ol = html.match(/<ol\b[^>]*class="[^"]*\btimeline\b[^"]*"[\s\S]*?<\/ol>/)![0];
+  const lists = [...ol.matchAll(/<ul\b[^>]*>([\s\S]*?)<\/ul>/g)].map((m) => [...m[1].matchAll(/<li\b[^>]*>([\s\S]*?)<\/li>/g)].map((x) => text(x[1])));
+  const partyList = lists.find((l) => l.includes('Activities and merch'))!;
+  assert.equal(partyList[partyList.indexOf('Activities and merch') + 1], 'Optional Tai Chi by John Marshall');
+  assert.ok(lists.some((l) => l.includes('Harness and shoe rentals available')));
 });
 
 test('9d. built page: links open in a new tab; four credits in order with images', { skip: skipBuilt }, () => {
@@ -505,15 +563,19 @@ test('9d. built page: links open in a new tab; four credits in order with images
 
   const credits = [...html.matchAll(/<a\b[^>]*class="[^"]*\bcredit\b[^"]*"[^>]*>([\s\S]*?)<\/a>/g)];
   assert.equal(credits.length, 4);
-  const want = ['Maréa, host', 'CityROCK, venue space donated', 'Britt Maddy, yoga class generously provided', 'JohnMark, graphic design'];
+  const want = ['Maréa Host', 'CityROCK Venue', 'Britt Maddy Yoga instruction', 'JohnMark Graphic design'];
   credits.forEach((m, i) => {
     const item = party.credits!.items[i];
     assert.equal(attr(m[0], 'href'), item.url);
     assert.equal(attr(m[0], 'target'), '_blank');
     assert.match(attr(m[0], 'rel')!, /noopener/);
-    assert.equal(text(m[1]).replace(/ ,/g, ','), want[i], `credit ${i} text`);
+    assert.equal(text(m[1]), want[i], `credit ${i} text`);
+    assert.ok(!text(m[1]).includes(','), `credit ${i} has no comma`);
+    assert.match(m[1], new RegExp(`<strong\\b[^>]*class="[^"]*credit__name[^"]*"[^>]*>${item.name}</strong>`), `credit ${i} name`);
+    assert.match(m[1], new RegExp(`class="[^"]*credit__role[^"]*"[^>]*>${item.role}<`), `credit ${i} role`);
     const img = m[1].match(/<img\b[^>]*>/)?.[0];
     assert.ok(img, `credit ${i} image`);
+    assert.equal(/credit__img--photo/.test(img!), !item.logo, `credit ${i} photo frame only on photos`);
     assert.ok(attr(img!, 'width') && attr(img!, 'height'), `credit ${i} width and height`);
     // the build minifies alt="" to a bare `alt`
     const alt = attr(img!, 'alt') ?? (/\salt(\s|>|\/)/.test(img!) ? '' : undefined);

@@ -7,7 +7,7 @@ import EventInfo from '../components/events/EventInfo.astro';
 import EventNotice from '../components/events/EventNotice.astro';
 import EventCredits from '../components/events/EventCredits.astro';
 import RsvpForm from '../components/events/RsvpForm.astro';
-import { events } from '../data/events.ts';
+import { events, eventHeadings } from '../data/events.ts';
 import { site } from '../data/site.ts';
 import { dateLabel, eventPaths, timeLabel } from '../lib/events.ts';
 import { eventAsset } from '../lib/event-assets.ts';
@@ -41,11 +41,18 @@ const description = `${dateLabel(event.start, event.timeZone)}, ${timeLabel(even
     </div>
   </section>
 
-  <section class="section">
-    <div class="container">
-      {event.info.map((block) => <EventInfo block={block} />)}
-    </div>
-  </section>
+  {
+    event.info.length > 0 && (
+      <section class="section">
+        <div class="container">
+          <h2>{eventHeadings.details}</h2>
+          {event.info.map((block) => (
+            <EventInfo block={block} />
+          ))}
+        </div>
+      </section>
+    )
+  }
 
   {
     event.rsvp && (

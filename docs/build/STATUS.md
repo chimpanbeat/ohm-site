@@ -24,7 +24,7 @@ States: `todo` · `doing` · `blocked` · `done` · `dropped`
 | E3 | I-049, I-050: Apps Script source (lock, cap, waitlist queue, honeypot, one RSVP per email, emails, reminders), its tests and `docs/runbooks/events.md`; Brian pastes it in I-058 (`steps/E3-rsvp-script.md`) | high | /next-high | done | 1765b1d |
 | E4 | I-077–I-080: launch-party edits after Marea's review (description, H1, Maréa, schedule links, credits section replacing the host, guest yoga label, privacy line, notice and banner styling; `steps/E4-launch-party-edits.md`) | high | /next-high | done | 4b6f992 |
 | E6 | I-082, I-084: self-care tips (Apps Script reads the tips sheet, `tips` in the status reply, tip card under the RSVP result, one tip per reminder email; `steps/E6-self-care-tips.md`). First: Brian must paste it before the Sat Nov 21, 10:00 am reminder; live test needs I-083 | high | /next-high | done | d76fec2 |
-| E5 | I-085, I-086: launch-party edits, round 2 (transparent logos, two-line credits, banner fills the column, Description and Details headings, guest card gap, Tai Chi and rentals notes; `steps/E5-launch-party-edits-2.md`). After E6 | high | /next-high | todo | |
+| E5 | I-085, I-086: launch-party edits, round 2 (transparent logos, two-line credits, banner fills the column, Description and Details headings, guest card gap, Tai Chi and rentals notes; `steps/E5-launch-party-edits-2.md`). After E6 | high | /next-high | doing | |
 | F1 | I-038: /faq page | — | — | blocked: I-038 (Brian opens it after launch) | |
 | F2 | I-039: /hello breathing text (the line only, 5% over 6 s; Brian OK'd Oct 29) | medium | /next | done | (this commit) |
 

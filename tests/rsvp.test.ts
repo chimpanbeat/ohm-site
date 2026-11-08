@@ -624,6 +624,22 @@ test('6. dist: the session question carries the timeline time', { skip: skipBuil
   assert.ok(dateLabel(party.start, party.timeZone));
 });
 
+// ---- E5 (I-086): space between a guest's name and the yoga question ------------------------------------------------
+test('6. dist: in every guest card the name field is followed directly by the yoga fieldset (E5, I-086)', { skip: skipBuilt }, () => {
+  const rows = [...form().matchAll(/<div\b[^>]*\bclass="[^"]*\bguest\b[^"]*"[^>]*>[\s\S]*?<button\b[^>]*guest-remove/g)].map((m) => m[0]);
+  assert.equal(rows.length, 10);
+  rows.forEach((row, i) => {
+    assert.match(row, /<span class="field"[^>]*>[\s\S]*?<\/span><\/span>\s*<fieldset class="group"[^>]*><legend/, `guest ${i + 1}: span.field then the session fieldset`);
+    assert.ok(!/<\/fieldset>\s*<span class="field"/.test(row), `guest ${i + 1}: the name is not after the yoga fieldset`);
+  });
+});
+
+test('source: the guest card spacing rule matches the markup (E5, I-086)', () => {
+  const src = readFileSync(join(root, 'src/components/events/RsvpForm.astro'), 'utf8');
+  assert.ok(!src.includes('.guest .group + .group'), 'the rule that never matched is gone');
+  assert.match(src, /\.guest \.field \+ \.group\s*\{\s*margin-top: var\(--s-4\);\s*\}/);
+});
+
 test('C5. dist: the tip card is a hidden sibling after the result, with a live text and a hidden button', { skip: skipBuilt }, () => {
   const sec = section();
   const result = sec.match(/<div\b[^>]*\brsvp-result\b[^>]*>[\s\S]*?<\/div>/)!;

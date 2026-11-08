@@ -1,6 +1,6 @@
 ---
-// The event description under the hero (E4, I-077): one paragraph per entry, no heading (ARCHITECTURE §B10).
-import type { SiteEvent } from '../../data/events.ts';
+// The event description under the hero (E4, I-077): one paragraph per entry, under an H2 from the data (E5, I-085).
+import { eventHeadings, type SiteEvent } from '../../data/events.ts';
 import EventRich from './EventRich.astro';
 
 interface Props {
@@ -13,6 +13,7 @@ const { description } = Astro.props.event;
 {
   description && description.length > 0 && (
     <div class="event-description">
+      <h2>{eventHeadings.description}</h2>
       {description.map((paragraph) => (
         <p>
           <EventRich text={paragraph} />
@@ -25,6 +26,9 @@ const { description } = Astro.props.event;
 <style>
   .event-description {
     margin-bottom: var(--s-12);
+  }
+  .event-description h2 + p {
+    margin-top: var(--s-6);
   }
   .event-description p {
     max-width: var(--measure);
