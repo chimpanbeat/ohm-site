@@ -54,6 +54,12 @@ export const site = {
 
   // No phone number on the site (Brian, Oct 6 2026). Contact is PocketSuite lead form, chat, or email.
   email: 'brian@ohmprecisionbodywork.com', // secrets-scan: allow
+  /**
+   * From and Reply-To of every event email the RSVP script sends (I-087, Brian, Nov 8 2026): an alias of `email`,
+   * created in Admin and verified in Gmail "Send mail as". Public: it is in each event email's From line and in the
+   * event feed. It reaches the script only through the feed (`sender.from`, `sender.replyTo`); never on a page.
+   */
+  eventsEmail: 'events@ohmprecisionbodywork.com', // secrets-scan: allow
   city: 'Colorado Springs',
   region: 'CO',
 
