@@ -15,10 +15,14 @@ export interface InfoBlock { id: string; title: string; text?: string; items?: s
 export interface Notice { id: string; title: string; text: string; link?: { label: string; url: string }; inEmails?: boolean }
 // label 'Yoga'; item = index into timeline (its time goes in the question); limit and waitlist per I-050
 export interface CappedSession { key: string; label: string; item: number; limit: number; waitlist: boolean }
-export interface EventRsvp { closesAt: Iso; maxGuests: number; reminderAt: Iso; showGoing: boolean; session?: CappedSession }
-// One "made possible by" entry (E4, I-079): `name`, then `, role`, as one link (new tab) with the image before it.
+// tips (E6, I-082/I-084): true = the in-page "Self-care tip of the day" card after an RSVP and one tip in each reminder
+// email, read by the Apps Script from Brian's tips sheet (ARCHITECTURE §B10 Tips). Absent or false: no tips.
+export interface EventRsvp { closesAt: Iso; maxGuests: number; reminderAt: Iso; showGoing: boolean; session?: CappedSession; tips?: boolean }
+// One "made possible by" entry (E4, I-079; E5, I-085): the image, then `name` (bold) and under it `role` (smaller, its
+// own line, first letter capitalised), all one link (new tab). No comma between them since E5.
 // image: a path under src/assets/events/; alt '' when the name beside it already says what the image shows.
-export interface Credit { name: string; role: string; url: string; image: string; alt: string }
+// logo (E5, I-085): true = a transparent logo, drawn with no border or radius; absent = a photo, framed.
+export interface Credit { name: string; role: string; url: string; image: string; alt: string; logo?: boolean }
 export interface SiteEvent {
   slug: string;
   title: string; // the full name: meta title, link preview, calendar file, feed and emails
@@ -154,11 +158,20 @@ export function launchParty(limit: number): SiteEvent {
       reminderAt: '2026-11-21T10:00:00-07:00', // I-061 (Brian, Nov 6): Sat Nov 21, 10:00 am
       showGoing: false,
       session: { key: 'yoga', label: 'Yoga', item: 1, limit, waitlist: true },
+      tips: true, // I-082, I-084 (Brian): self-care tips after an RSVP and in the reminder email
     },
   };
 }
 
 export const events: SiteEvent[] = [launchParty(SESSION_LIMIT)];
+
+// The section headings every event page uses (copy deck → Events; E5, I-085). The credits heading is per event
+// (`credits.heading`) and the RSVP heading is `rsvpText.heading`.
+export const eventHeadings = {
+  description: 'Description', // E5, I-085 (Brian)
+  schedule: 'Schedule',
+  details: 'Details', // E5, I-085 (Brian): over the info blocks, which become H3s
+} as const;
 
 export function eventBySlug(slug: string): SiteEvent | undefined {
   return events.find((e) => e.slug === slug);
@@ -246,6 +259,9 @@ export const rsvpText = {
   changeDoneTitle: 'Your RSVP is updated.',
   spotFreedSubject: 'A {session} spot opened: {title}',
   spotFreedText: "A guest's RSVP change freed {session} spots (freed: {n}) while people are on the waitlist. In the sheet, set the lowest Waitlist # to confirmed and email that guest, once for each freed spot.",
+  tipTitle: 'Self-care tip of the day', // E6, I-082 (Brian)
+  tipNext: 'Another tip', // E6, I-082 (Brian)
+  reminderTip: 'Self-care tip of the day: {tip}', // E6, I-084 (architect; email wording still open in I-081)
 } as const;
 
 export type RsvpTextKey = keyof typeof rsvpText;
