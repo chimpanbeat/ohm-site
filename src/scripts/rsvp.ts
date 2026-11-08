@@ -35,6 +35,9 @@ function start(form: HTMLFormElement): void {
   const spots = q<HTMLElement>('.rsvp-spots')!;
   const closed = q<HTMLElement>('.rsvp-closed')!;
   const result = q<HTMLElement>('.rsvp-result')!;
+  const tipCard = q<HTMLElement>('.rsvp-tip')!;
+  const tipText = tipCard.querySelector<HTMLElement>('.rsvp-tip__text')!;
+  const tipNext = tipCard.querySelector<HTMLButtonElement>('.rsvp-tip__next')!;
   const errorSpans = Array.from(form.querySelectorAll<HTMLElement>('[data-error-for]'));
 
   // ---- Guest rows: none until asked, one at a time, up to the rows the page rendered. The ceiling is never said.
@@ -135,8 +138,15 @@ function start(form: HTMLFormElement): void {
       if (!resultShown) result.focus();
     }
     resultShown = s.result !== null;
+    // The self-care tip (E6): plain text only, shown under any successful reply. The live region speaks only when its
+    // text changes, so the first tip is read by moving on to it and "Another tip" announces the new one.
+    const tip = s.result ? (s.tip ?? '') : '';
+    if (tipText.textContent !== tip) tipText.textContent = tip;
+    tipCard.hidden = !tip;
+    tipNext.hidden = !tip || !s.moreTips;
   };
   rsvp.subscribe(render);
+  tipNext.addEventListener('click', () => rsvp.nextTip());
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();

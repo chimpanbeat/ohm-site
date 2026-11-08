@@ -19,6 +19,11 @@ import {
   outcomeLine,
   errServer,
   createRsvp,
+  TIP_MAX,
+  TIPS_MAX,
+  cleanTips,
+  shuffle,
+  tipDeck,
 } from '../src/lib/rsvp.ts';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
@@ -128,11 +133,77 @@ test('3. parseStatus: the GET shapes', () => {
     ok: true,
     open: true,
     session: { spotsLeft: 2, full: false, waitlist: true },
+    tips: [],
   });
-  assert.deepEqual(parseStatus(json({ ok: true, open: false, session: null })), { ok: true, open: false, session: null });
+  assert.deepEqual(parseStatus(json({ ok: true, open: false, session: null })), { ok: true, open: false, session: null, tips: [] });
   for (const bad of ['', '<html>', '{}', json({ ok: false, error: 'unknown' }), json({ ok: true, open: 'yes', session: null }), json({ ok: true, open: true, session: { spotsLeft: -1, full: false, waitlist: true } })])
     assert.deepEqual(parseStatus(bad), { ok: false }, bad);
   assert.deepEqual(parseStatus(json({ ok: true, open: true, session: null }), 500), { ok: false });
+});
+
+// ---- C1–C3 Tips: cleanTips, parseStatus, tipDeck (E6, I-082) -----------------------------------------------------
+const X = (n: number) => 'x'.repeat(n);
+const lcg = (seed: number) => {
+  let s = seed >>> 0;
+  return () => {
+    s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
+    return s / 4294967296;
+  };
+};
+
+test('C1. cleanTips: strings only, whitespace collapsed, case-insensitive duplicates, 280 characters, 100 tips', () => {
+  assert.equal(TIP_MAX, 280);
+  assert.equal(TIPS_MAX, 100);
+  assert.deepEqual(cleanTips([' a ', 'A', '', 5, null, 'b\nc', X(281), X(280)]), ['a', 'b c', X(280)]);
+  assert.deepEqual(cleanTips('a'), []);
+  assert.deepEqual(cleanTips(undefined), []);
+  assert.deepEqual(cleanTips({ 0: 'a' }), []);
+  assert.deepEqual(cleanTips(['x\u0007y', '  z   w ']), ['x y', 'z w']);
+  const many = Array.from({ length: 150 }, (_, i) => `tip ${i}`);
+  const kept = cleanTips(many);
+  assert.equal(kept.length, 100);
+  assert.deepEqual(kept, many.slice(0, 100));
+});
+
+test('C2. parseStatus: tips are kept when they are strings, [] otherwise, and never fail the status', () => {
+  const sess = { spotsLeft: 2, full: false, waitlist: true };
+  const base = { ok: true, open: true, session: sess };
+  assert.deepEqual(parseStatus(json(base)), { ok: true, open: true, session: sess, tips: [] });
+  assert.deepEqual(parseStatus(json({ ...base, tips: ['A', 'B'] })), { ok: true, open: true, session: sess, tips: ['A', 'B'] });
+  assert.deepEqual(parseStatus(json({ ok: true, open: false, session: null, tips: ['A'] })), { ok: true, open: false, session: null, tips: ['A'] });
+  assert.deepEqual(parseStatus(json({ ...base, tips: 'A' })), { ok: true, open: true, session: sess, tips: [] });
+  assert.deepEqual(parseStatus(json({ ...base, tips: [1, {}] })), { ok: true, open: true, session: sess, tips: [] });
+  assert.deepEqual(parseStatus(json({ ...base, session: { spotsLeft: -1, full: false, waitlist: true }, tips: ['A'] })), { ok: false });
+  assert.deepEqual(parseStatus(json({ ...base, open: 'yes', tips: ['A'] })), { ok: false });
+});
+
+test("C3. tipDeck: every block is a permutation, no repeat in a row, the first is the shuffle's first", () => {
+  const tips = ['A', 'B', 'C'];
+  const deck = tipDeck(tips, lcg(42));
+  assert.equal(deck.size, 3);
+  const got = Array.from({ length: 9 }, () => deck.next());
+  assert.equal(got[0], shuffle(tips, lcg(42))[0]);
+  for (let b = 0; b < 9; b += 3) assert.deepEqual([...got.slice(b, b + 3)].sort(), tips, `block ${b / 3}`);
+  for (let i = 1; i < got.length; i++) assert.notEqual(got[i], got[i - 1], `repeat at ${i}: ${got.join('')}`);
+
+  const two = tipDeck(['A', 'B'], lcg(5));
+  const alt = Array.from({ length: 6 }, () => two.next());
+  for (let i = 1; i < alt.length; i++) assert.notEqual(alt[i], alt[i - 1], alt.join(''));
+
+  const one = tipDeck(['only'], lcg(1));
+  assert.equal(one.size, 1);
+  assert.deepEqual([one.next(), one.next()], ['only', 'only']);
+
+  for (let seed = 1; seed <= 50; seed++) {
+    const d = tipDeck(['a', 'b', 'c', 'd'], lcg(seed));
+    const seq = Array.from({ length: 30 }, () => d.next());
+    for (let i = 1; i < seq.length; i++) assert.notEqual(seq[i], seq[i - 1], `seed ${seed}: ${seq.join('')}`);
+  }
+
+  const src = ['a', 'b', 'c'];
+  const sh = shuffle(src, lcg(3));
+  assert.deepEqual(src, ['a', 'b', 'c'], 'shuffle returns a new array');
+  assert.deepEqual([...sh].sort(), src);
 });
 
 // ---- 4. Text -----------------------------------------------------------------------------------------------------
@@ -334,6 +405,104 @@ test('5. subscribers hear every state change', async () => {
   assert.ok(seen.includes(true) && seen.at(-1) === false, JSON.stringify(seen));
 });
 
+// ---- C4. The tip in the controller -------------------------------------------------------------------------------
+const going = { ok: true, status: 'going', outcomes: ['confirmed'] };
+const withTips = (tips?: unknown) => ({ ...status(5), ...(tips === undefined ? {} : { tips }) });
+
+test('C4. a tip follows any ok reply; the button steps through a shuffled deck with no repeats in a row', async () => {
+  const tips = ['A', 'B', 'C'];
+  const f = fakeFetch(reply(withTips(tips)), reply(going), reply(withTips(tips)));
+  const c = make(f, { random: lcg(9) });
+  await c.load();
+  assert.equal(c.state.tip, null, 'no result yet, no tip');
+  assert.equal(c.state.moreTips, false);
+  await c.submit(alex);
+  assert.ok(tips.includes(c.state.tip!), String(c.state.tip));
+  assert.equal(c.state.moreTips, true);
+  const seen = [c.state.tip!];
+  for (let i = 0; i < 6; i++) {
+    c.nextTip();
+    seen.push(c.state.tip!);
+  }
+  for (let i = 1; i < seen.length; i++) assert.notEqual(seen[i], seen[i - 1], seen.join(''));
+  assert.deepEqual([...seen.slice(0, 3)].sort(), tips, 'the first three are all different');
+  assert.deepEqual([...seen.slice(3, 6)].sort(), tips);
+});
+
+test("C4. can't go and a repeat RSVP also get a tip; invalid and server errors get none", async () => {
+  for (const r of [{ ok: true, status: 'cant', outcomes: [] }, { ok: true, status: 'going', outcomes: [], pending: true }]) {
+    const c = make(fakeFetch(reply(withTips(['A', 'B'])), reply(r), reply(withTips(['A', 'B']))), { random: lcg(1) });
+    await c.load();
+    await c.submit(r.status === 'cant' ? { ...alex, status: 'cant' } : alex);
+    assert.ok(c.state.result, 'a result');
+    assert.ok(['A', 'B'].includes(c.state.tip!), JSON.stringify(r));
+  }
+  for (const r of [{ ok: false, error: 'invalid', fields: ['name'] }, { ok: false, error: 'server' }]) {
+    const c = make(fakeFetch(reply(withTips(['A', 'B'])), reply(r)));
+    await c.load();
+    await c.submit(alex);
+    assert.equal(c.state.result, null, 'no result');
+    assert.equal(c.state.tip, null, JSON.stringify(r));
+    assert.equal(c.state.moreTips, false);
+  }
+});
+
+test('C4. the honeypot success also gets a tip once a deck exists', async () => {
+  const c = make(fakeFetch(reply(withTips(['A', 'B']))), { random: lcg(8) });
+  await c.load();
+  await c.submit({ ...alex, website: 'spam' });
+  assert.ok(c.state.result);
+  assert.ok(['A', 'B'].includes(c.state.tip!));
+});
+
+test('C4. no tips in the reply (the E3 script), one tip, a failed first read, and a later read with other tips', async () => {
+  const e3 = make(fakeFetch(reply(withTips()), reply(going), reply(withTips())));
+  await e3.load();
+  await e3.submit(alex);
+  assert.ok(e3.state.result);
+  assert.equal(e3.state.tip, null, 'an E3-shape GET has no tips');
+  assert.equal(e3.state.moreTips, false);
+
+  const one = make(fakeFetch(reply(withTips(['Only'])), reply(going), reply(withTips(['Only']))));
+  await one.load();
+  await one.submit(alex);
+  assert.equal(one.state.tip, 'Only');
+  assert.equal(one.state.moreTips, false, 'one tip: no button');
+  one.nextTip();
+  assert.equal(one.state.tip, 'Only');
+
+  // the first read fails; the re-read after the send has tips and the card appears then
+  const late = make(fakeFetch(reply('<html>', 500), reply(going), reply(withTips(['A', 'B']))), { random: lcg(2) });
+  await late.load();
+  await late.submit(alex);
+  assert.ok(['A', 'B'].includes(late.state.tip!));
+  assert.equal(late.state.moreTips, true);
+
+  // a later read with other tips does not reset the deck
+  const first = make(fakeFetch(reply(withTips(['A', 'B', 'C'])), reply(going), reply(withTips(['X', 'Y'])), reply(withTips(['X', 'Y']))), { random: lcg(4) });
+  await first.load();
+  await first.submit(alex);
+  const kept = first.state.tip;
+  assert.ok(['A', 'B', 'C'].includes(kept!));
+  await first.load();
+  assert.equal(first.state.tip, kept, 'the tip stays');
+  for (let i = 0; i < 6; i++) {
+    first.nextTip();
+    assert.ok(['A', 'B', 'C'].includes(first.state.tip!), 'still the first deck');
+  }
+});
+
+test('C4. nextTip does nothing before a result; subscribers hear the tip', async () => {
+  const c = make(fakeFetch(reply(withTips(['A', 'B'])), reply(going), reply(withTips(['A', 'B']))), { random: lcg(6) });
+  await c.load();
+  c.nextTip();
+  assert.equal(c.state.tip, null);
+  const tipsSeen: (string | null)[] = [];
+  c.subscribe((s) => tipsSeen.push(s.tip));
+  await c.submit(alex);
+  assert.ok(tipsSeen.some((t) => t !== null));
+});
+
 // ---- 6. The built form -------------------------------------------------------------------------------------------
 const built = existsSync(join(dist, 'launch-party.html'));
 const skipBuilt = built ? false : 'dist/launch-party.html is missing; run `npm run build` first';
@@ -455,6 +624,27 @@ test('6. dist: the session question carries the timeline time', { skip: skipBuil
   assert.ok(dateLabel(party.start, party.timeZone));
 });
 
+test('C5. dist: the tip card is a hidden sibling after the result, with a live text and a hidden button', { skip: skipBuilt }, () => {
+  const sec = section();
+  const result = sec.match(/<div\b[^>]*\brsvp-result\b[^>]*>[\s\S]*?<\/div>/)!;
+  const tip = sec.match(/<div\b[^>]*\brsvp-tip\b[^>]*>[\s\S]*?<\/div>/);
+  assert.ok(tip, 'the .rsvp-tip card');
+  assert.ok(sec.indexOf(tip![0]) >= sec.indexOf(result[0]) + result[0].length, 'after .rsvp-result ends, not inside it');
+  assert.ok(!result[0].includes('rsvp-tip'), 'not inside the result');
+  assert.ok(has(tip![0].match(/^<div\b[^>]*>/)![0], 'hidden'), 'hidden without JS');
+  const h3 = tip![0].match(/<h3\b[^>]*>[\s\S]*?<\/h3>/)![0];
+  assert.equal(text(h3), rsvpText.tipTitle);
+  const p = tip![0].match(/<p\b[^>]*\brsvp-tip__text\b[^>]*>/)![0];
+  assert.equal(attr(p, 'aria-live'), 'polite');
+  const btn = tip![0].match(/<button\b[^>]*>[\s\S]*?<\/button>/)![0];
+  assert.equal(attr(btn, 'type'), 'button');
+  assert.ok(has(btn.match(/^<button\b[^>]*>/)![0], 'hidden'), 'the button starts hidden');
+  assert.equal(text(btn), rsvpText.tipNext);
+  const data = JSON.parse(decode(attr(form().match(/^<form\b[^>]*>/)![0], 'data-text')!));
+  assert.equal(data.tipTitle, rsvpText.tipTitle);
+  assert.equal(data.tipNext, rsvpText.tipNext);
+});
+
 // ---- 7. Source ---------------------------------------------------------------------------------------------------
 test('7. rsvp.ts keeps the visitor private; the URL lives only in site.ts', () => {
   const read = (p: string) => readFileSync(join(root, p), 'utf8');
@@ -468,4 +658,15 @@ test('7. rsvp.ts keeps the visitor private; the URL lives only in site.ts', () =
   assert.ok(read('src/data/site.ts').includes(site.rsvpUrl));
   const others = ['src/components/events/RsvpForm.astro', 'src/components/events/EventHero.astro', 'src/pages/[event].astro', 'src/scripts/rsvp.ts', 'src/lib/rsvp.ts'];
   for (const p of others) assert.ok(!read(p).includes('script.google.com'), `${p} holds the URL`);
+});
+
+test('C6. source: the tip is shown as text; the tip card has no transition or animation', () => {
+  const read = (p: string) => readFileSync(join(root, p), 'utf8');
+  const script = read('src/scripts/rsvp.ts');
+  assert.ok(!script.includes('innerHTML') && !script.includes('insertAdjacentHTML'), 'textContent only');
+  assert.ok(script.includes('.rsvp-tip'), 'the script drives the card');
+  const css = read('src/components/events/RsvpForm.astro');
+  const rules = [...css.matchAll(/[^{}]*\.rsvp-tip[^{}]*\{[^}]*\}/g)].map((m) => m[0]);
+  assert.ok(rules.length >= 2, 'the card has CSS');
+  for (const r of rules) assert.ok(!/transition|animation/.test(r), r);
 });

@@ -2,9 +2,9 @@
 // CONTRACT FILE. Plain V8 script: no export, no import. Helpers end in "_" so Apps Script hides them from the Run menu.
 //
 // How it fits: the site publishes each event's public facts and every string of copy as /events/<slug>.json (the
-// feed). This script reads the feed, so a new event or a copy change needs no change here. The only setting is the
-// Script Property SHEET_ID (the private sheet that holds the RSVPs). Nothing else is configured and no guest data,
-// sheet ID, script ID or email address lives in the repository.
+// feed). This script reads the feed, so a new event or a copy change needs no change here. The settings are the
+// Script Properties SHEET_ID (the private sheet that holds the RSVPs) and, from E6, TIPS_SHEET_ID (Brian's self-care
+// tips sheet). Nothing else is configured and no guest data, sheet ID, script ID or email address lives in the repository.
 //
 // Entry points: doGet (spots left, or the change-confirm page), doPost (an RSVP, a change request, or a confirmed
 // change), sendDueReminders (a 15-minute trigger), setup (run once by hand).
@@ -18,6 +18,10 @@ var FEED_TTL = 600; // seconds the feed is cached
 var CHANGE_TTL = 21600; // seconds a change link lives (6 hours)
 var CHANGE_MAX = 3; // change mails per RSVP per CHANGE_TTL
 var LOCK_MS = 20000;
+var TIPS_TAB = 'Sheet1'; // the tab of Brian's "Self Care tip of the day" sheet (column A, header "Tip"); a renamed tab falls back to the first
+var TIPS_TTL = 300; // seconds the tips are cached
+var TIP_MAX = 280; // longer tips are skipped
+var TIPS_MAX = 100; // at most this many tips are used
 var COLS = 11; // Submitted, Changed, RSVP, Who, Name, Email, Opt-in, Status, <session>, Waitlist #, Reminder sent
 var C = { submitted: 0, changed: 1, id: 2, who: 3, name: 4, email: 5, optin: 6, status: 7, cell: 8, wait: 9, reminder: 10 };
 var CELL_KEY = { confirmed: 'outcomeConfirmed', waitlist: 'outcomeWaitlist', full: 'outcomeFull', no: 'outcomeNo', maybe: 'outcomeMaybe' };
@@ -102,6 +106,92 @@ function loadEvent_(slug) {
 
 function isClosed_(ev) {
   return now_() >= Date.parse(ev.closesAt);
+}
+
+// ---- Self-care tips (E6, I-082 and I-084; ARCHITECTURE section B10 Tips) -----------------------------------------
+// The tips are Brian's rows in a private sheet, read through the Script Property TIPS_SHEET_ID. They are public the
+// moment they are in the sheet (the status reply is open to anyone with the URL). Nothing here can throw.
+
+// Column A of the sheet's values: control characters to a space, whitespace collapsed, trimmed; the header, empty rows,
+// tips over TIP_MAX characters and case-insensitive duplicates are skipped; at most TIPS_MAX tips.
+function cleanTips_(values) {
+  var tips = [];
+  var seen = Object.create(null);
+  var rows = Array.isArray(values) ? values : [];
+  for (var i = 0; i < rows.length && tips.length < TIPS_MAX; i++) {
+    var cellValue = Array.isArray(rows[i]) ? rows[i][0] : rows[i];
+    var tip = str_(cellValue).replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim();
+    var key = tip.toLowerCase();
+    if (!tip || key === 'tip' || tip.length > TIP_MAX || seen[key]) continue;
+    seen[key] = true;
+    tips.push(tip);
+  }
+  return tips;
+}
+
+// The cleaned tips: [] when TIPS_SHEET_ID is unset or the sheet can't be read. The result, even [], is cached for
+// TIPS_TTL seconds, so Brian's edits arrive within about five minutes and a broken share costs one slow read per five.
+function readTips_() {
+  var cache = null;
+  var id = null;
+  try {
+    id = PropertiesService.getScriptProperties().getProperty('TIPS_SHEET_ID');
+    if (!id) return [];
+    cache = CacheService.getScriptCache();
+    var hit = cache.get('tips');
+    if (hit) {
+      var cached = JSON.parse(hit);
+      if (Array.isArray(cached)) return cached;
+    }
+  } catch (err) {
+    // a bad cache entry: read the sheet again
+  }
+  if (!id) return [];
+  var tips = [];
+  try {
+    var ss = SpreadsheetApp.openById(id);
+    var sheet = ss.getSheetByName(TIPS_TAB) || ss.getSheets()[0];
+    if (sheet) tips = cleanTips_(sheet.getDataRange().getValues());
+  } catch (err) {
+    tips = [];
+  }
+  try {
+    if (cache) cache.put('tips', JSON.stringify(tips), TIPS_TTL);
+  } catch (err) {
+    // an uncached read is only slower
+  }
+  return tips;
+}
+
+// A shuffled walk through the tips: next() gives each once, reshuffles when they run out, and never gives the same tip
+// twice in a row (the same rules as tipDeck in src/lib/rsvp.ts).
+function tipDeck_(tips) {
+  var order = [];
+  var at = 0;
+  var last = null;
+  return {
+    size: tips.length,
+    next: function () {
+      if (!tips.length) return '';
+      if (at >= order.length) {
+        order = tips.slice();
+        for (var i = order.length - 1; i > 0; i--) {
+          var j = Math.floor(Math.random() * (i + 1));
+          var swap = order[i];
+          order[i] = order[j];
+          order[j] = swap;
+        }
+        if (order.length > 1 && order[0] === last) {
+          var first = order[0];
+          order[0] = order[order.length - 1];
+          order[order.length - 1] = first;
+        }
+        at = 0;
+      }
+      last = order[at++];
+      return last;
+    },
+  };
 }
 
 // ---- Validation (the same rules and cases as validateRsvp in src/lib/rsvp.ts) ------------------------------------
@@ -541,7 +631,7 @@ function doGet(e) {
       var spotsLeft = c.waitlisted > 0 ? 0 : Math.max(0, ev.session.limit - c.confirmed);
       session = { spotsLeft: spotsLeft, full: spotsLeft === 0, waitlist: !!ev.session.waitlist };
     }
-    return json_({ ok: true, open: !isClosed_(ev), session: session });
+    return json_({ ok: true, open: !isClosed_(ev), session: session, tips: ev.tips === true ? readTips_() : [] });
   } catch (err) {
     return json_({ ok: false, error: 'server' });
   }
@@ -828,9 +918,12 @@ function remindEvent_(ss, ev) {
     lock.releaseLock();
   }
 
+  // One deck for the whole run (I-084): each reminder gets its own tip, none repeated until every tip has been used.
+  var deck = due.length && ev.tips === true ? tipDeck_(readTips_()) : null;
   var sent = [];
   due.forEach(function (d) {
     if (MailApp.getRemainingDailyQuota() <= 0) return;
+    d.tip = deck && deck.size ? deck.next() : '';
     if (mailReminder_(ev, d)) sent.push(d.id);
   });
   if (!sent.length) return;
@@ -870,14 +963,15 @@ function mailReminder_(ev, d) {
     blocks.push(b);
   });
   blocks.push([fill_(t.detailsLine, v), fill_(t.calendarLine, v)].join('\n'));
+  if (d.tip && t.reminderTip) blocks.push(fill_(t.reminderTip, { tip: d.tip })); // plain text mail: no escaping needed
   blocks.push(fill_(t.signoff, v));
   return send_(ev, d.to, fill_(t.reminderSubject, v), blocks);
 }
 
 // ---- setup (run once by hand) ------------------------------------------------------------------------------------
 
-// Checks SHEET_ID, replaces the reminder trigger with one every 15 minutes, and logs how much mail the account may
-// send today (a new Workspace account has lower limits for a while).
+// Checks SHEET_ID, replaces the reminder trigger with one every 15 minutes, logs how much mail the account may
+// send today (a new Workspace account has lower limits for a while) and how many tips it can read (never a tip or the ID).
 function setup() {
   var ss = openSheet_(); // throws a clear message when SHEET_ID is unset or wrong
   ScriptApp.getProjectTriggers().forEach(function (t) {
@@ -886,4 +980,8 @@ function setup() {
   ScriptApp.newTrigger('sendDueReminders').timeBased().everyMinutes(15).create();
   Logger.log('Sheet reachable: ' + (ss ? 'yes' : 'no'));
   Logger.log('Remaining daily mail quota: ' + MailApp.getRemainingDailyQuota());
+  var tipsId = PropertiesService.getScriptProperties().getProperty('TIPS_SHEET_ID');
+  if (!tipsId) Logger.log('TIPS_SHEET_ID not set (no tips)');
+  else CacheService.getScriptCache().remove('tips'); // read the sheet now, not a result cached in the last five minutes
+  Logger.log('Tips read: ' + readTips_().length);
 }

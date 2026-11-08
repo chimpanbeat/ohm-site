@@ -164,6 +164,8 @@ export interface EventFeed {
   session: { key: string; label: string; limit: number; waitlist: boolean; time: string } | null;
   reminderInfo: { title: string; text?: string; items?: string[] }[];
   notices: { title: string; text: string; url?: string }[];
+  /** E6: true = the Apps Script returns tips on the status reply and adds one to each reminder. */
+  tips: boolean;
   sender: { name: string; replyTo: string };
   text: typeof rsvpText;
 }
@@ -198,6 +200,7 @@ export function feedFor(event: SiteEvent, siteUrl: string): EventFeed {
     notices: event.notices
       .filter((n) => n.inEmails)
       .map((n) => ({ title: n.title, text: n.text, ...(n.link && { url: n.link.url }) })),
+    tips: rsvp.tips === true,
     sender: { name: site.name, replyTo: site.email },
     text: rsvpText,
   };

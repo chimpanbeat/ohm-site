@@ -10,6 +10,9 @@ export const NOJS_GUEST_ROWS = 3;
 export const NAME_MAX = 80;
 export const EMAIL_MAX = 254;
 export const TIMEOUT_MS = 15000;
+/** Self-care tips (E6): a longer tip is dropped, and only the first TIPS_MAX are used (the script uses the same numbers). */
+export const TIP_MAX = 280;
+export const TIPS_MAX = 100;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const FIELD_RE = /^(name|email|status|session|g\d+(name|session))$/; // the wire names a reply may flag
 
@@ -121,7 +124,9 @@ export type PostReply =
   | { ok: true; status: Status; outcomes: Outcome[]; pending: boolean }
   | { ok: false; error: 'invalid'; fields: string[] }
   | { ok: false; error: 'closed' | 'unknown' | 'busy' | 'server' };
-export type StatusReply = { ok: true; open: boolean; session: { spotsLeft: number; full: boolean; waitlist: boolean } | null } | { ok: false };
+export type StatusReply =
+  | { ok: true; open: boolean; session: { spotsLeft: number; full: boolean; waitlist: boolean } | null; tips: string[] }
+  | { ok: false };
 
 const SERVER: PostReply = { ok: false, error: 'server' };
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -154,10 +159,62 @@ export function parseReply(text: string, httpStatus = 200): PostReply {
 export function parseStatus(text: string, httpStatus = 200): StatusReply {
   const o = parseJson(text, httpStatus);
   if (!o || o.ok !== true || typeof o.open !== 'boolean') return { ok: false };
-  if (o.session === null) return { ok: true, open: o.open, session: null };
+  const tips = cleanTips(o.tips); // a missing or odd `tips` is [] and never fails the status
+  if (o.session === null) return { ok: true, open: o.open, session: null, tips };
   const s = o.session;
   if (!isObject(s) || !Number.isInteger(s.spotsLeft) || (s.spotsLeft as number) < 0 || typeof s.full !== 'boolean' || typeof s.waitlist !== 'boolean') return { ok: false };
-  return { ok: true, open: o.open, session: { spotsLeft: s.spotsLeft as number, full: s.full, waitlist: s.waitlist } };
+  return { ok: true, open: o.open, session: { spotsLeft: s.spotsLeft as number, full: s.full, waitlist: s.waitlist }, tips };
+}
+
+// ---- Self-care tips (E6, I-082) ----------------------------------------------------------------------------------
+
+/** Strings only; control characters become a space, whitespace is collapsed and trimmed; empties, tips over TIP_MAX and
+ * case-insensitive duplicates (first kept) are dropped; at most TIPS_MAX. Anything but an array is []. */
+export function cleanTips(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set<string>();
+  const tips: string[] = [];
+  for (const v of raw) {
+    if (tips.length >= TIPS_MAX) break;
+    if (typeof v !== 'string') continue;
+    const tip = v.replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim();
+    const key = tip.toLowerCase();
+    if (!tip || tip.length > TIP_MAX || seen.has(key)) continue;
+    seen.add(key);
+    tips.push(tip);
+  }
+  return tips;
+}
+
+/** Fisher–Yates; a new array. */
+export function shuffle<T>(list: readonly T[], random: () => number): T[] {
+  const a = list.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/** A shuffled walk: next() gives every tip once, reshuffles when they run out, and (with more than one tip) never gives the
+ * same tip twice in a row. The Apps Script's tipDeck_ follows the same rules. */
+export function tipDeck(tips: readonly string[], random: () => number): { size: number; next(): string } {
+  let order: string[] = [];
+  let at = 0;
+  let last: string | null = null;
+  return {
+    size: tips.length,
+    next() {
+      if (tips.length === 0) return '';
+      if (at >= order.length) {
+        order = shuffle(tips, random);
+        if (order.length > 1 && order[0] === last) [order[0], order[order.length - 1]] = [order[order.length - 1], order[0]];
+        at = 0;
+      }
+      last = order[at++];
+      return last;
+    },
+  };
 }
 
 // ---- Text --------------------------------------------------------------------------------------------------------
@@ -264,6 +321,10 @@ export interface RsvpState {
   /** The wire name of the first bad field, to focus. */
   focus: string | null;
   result: ResultView | null;
+  /** The self-care tip under the result (E6), or null: no result yet, no tips, or the read failed. */
+  tip: string | null;
+  /** More than one tip, so the "Another tip" button shows. */
+  moreTips: boolean;
 }
 export type FetchLike = (
   url: string,
@@ -279,18 +340,25 @@ export interface RsvpOptions {
   email: string;
   now?: () => number;
   timeoutMs?: number;
+  /** The random source for the tip deck (E6); tests pass a seeded one. */
+  random?: () => number;
 }
 
 export function createRsvp(opts: RsvpOptions) {
   const { event, text, url } = opts;
   const now = opts.now ?? Date.now;
   const timeoutMs = opts.timeoutMs ?? TIMEOUT_MS;
+  const random = opts.random ?? Math.random;
   const rules: RsvpRules = { maxGuests: event.maxGuests, session: event.session !== null };
   const label = event.session?.label ?? '';
   const listeners: ((s: RsvpState) => void)[] = [];
-  let state: RsvpState = { spots: null, closed: false, sending: false, banner: null, fieldErrors: {}, focus: null, result: null };
+  let state: RsvpState = { spots: null, closed: false, sending: false, banner: null, fieldErrors: {}, focus: null, result: null, tip: null, moreTips: false };
+  // The deck comes from the first status read that has tips and lasts for the page view (a later read never resets it).
+  let deck: ReturnType<typeof tipDeck> | null = null;
   const set = (patch: Partial<RsvpState>) => {
     state = { ...state, ...patch };
+    // Whenever a result is showing and a deck exists, the card gets its first tip.
+    if (state.result && deck && state.tip === null) state = { ...state, tip: deck.next(), moreTips: deck.size > 1 };
     for (const l of listeners) l(state);
   };
 
@@ -324,6 +392,7 @@ export function createRsvp(opts: RsvpOptions) {
       const res = await request(`${url}?slug=${encodeURIComponent(event.slug)}`, {});
       const p = parseStatus(res.text, res.status);
       if (!p.ok) return; // the timeline already says how many spots there are
+      if (!deck && p.tips.length > 0) deck = tipDeck(p.tips, random);
       set({ closed: !p.open, spots: p.session ? spotsText(text, event.session?.label ?? label, p.session.spotsLeft, p.session.waitlist) : null });
     } catch {
       // the spots line stays as it was
@@ -372,6 +441,10 @@ export function createRsvp(opts: RsvpOptions) {
     },
     load,
     submit,
+    /** The "Another tip" button: the next tip from the deck. Does nothing until a tip is showing. */
+    nextTip(): void {
+      if (deck && state.tip !== null) set({ tip: deck.next() });
+    },
     subscribe(fn: (s: RsvpState) => void) {
       listeners.push(fn);
     },

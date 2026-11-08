@@ -334,7 +334,7 @@ test('7. feed', () => {
   const feed = feedFor(party, siteUrl);
   assert.deepEqual(Object.keys(feed).sort(), [
     'closesAt', 'dateLabel', 'end', 'icsUrl', 'maxGuests', 'notices', 'pageUrl', 'reminderAt', 'reminderInfo',
-    'sender', 'session', 'slug', 'start', 'text', 'timeLabel', 'title', 'v', 'venue',
+    'sender', 'session', 'slug', 'start', 'text', 'timeLabel', 'tips', 'title', 'v', 'venue',
   ]);
   assert.equal(feed.v, 1);
   assert.equal(feed.slug, 'launch-party');
@@ -347,6 +347,9 @@ test('7. feed', () => {
   assert.deepEqual(feed.notices, [{ title: party.notices[0].title, text: party.notices[0].text, url: party.notices[0].link!.url }]);
   assert.deepEqual(feed.sender, { name: site.name, replyTo: site.email });
   assert.equal(feed.text, rsvpText);
+  assert.equal(feed.tips, true, 'E6: the launch party has tips');
+  assert.equal(feedFor({ ...party, rsvp: { ...party.rsvp!, tips: undefined } }, siteUrl).tips, false, 'no rsvp.tips: false');
+  assert.equal(feedFor({ ...party, rsvp: { ...party.rsvp!, tips: false } }, siteUrl).tips, false);
   const json = JSON.stringify(feed);
   assert.ok(!('showGoing' in feed) && !json.includes('showGoing'));
   assert.equal(json.split('@').length - 1, 1, 'the only @ is the reply-to address');

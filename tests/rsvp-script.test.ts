@@ -19,6 +19,7 @@ const src = readFileSync(scriptPath, 'utf8');
 const party = events.find((e) => e.slug === 'launch-party')!;
 const SLUG = party.slug;
 const SHEET_ID = 'fake-sheet-id-0123456789abcdef';
+const TIPS_ID = 'fake-tips-id-0123456789';
 const EXEC = 'https://exec.example.com/macros/exec';
 const HOUR = 3_600_000;
 const MIN = 60_000;
@@ -95,11 +96,12 @@ function makeEnv(tweak?: (feed: any) => void) {
   tweak?.(feed);
   const clock = { now: CLOCK0 };
   const log: string[] = [];
-  const state: any = { lockBusy: false, realSheets: false, failSetValues: false, failMail: false, quota: 1500, fetches: 0, feedStatus: 200 };
+  // tips: the cells of column A of the tips sheet, header first (E6); tipsFail: openById(TIPS_ID) throws; tipsTab: the tab's name.
+  const state: any = { lockBusy: false, realSheets: false, failSetValues: false, failMail: false, quota: 1500, fetches: 0, feedStatus: 200, tips: ['Tip'], tipsFail: false, tipsTab: 'Sheet1' };
   const mails: Record<string, string>[] = [];
   const sheets = new Map<string, FakeSheet>();
   const cacheStore = new Map<string, { v: string; exp: number }>();
-  const props: Record<string, string> = { SHEET_ID };
+  const props: Record<string, string> = { SHEET_ID, TIPS_SHEET_ID: TIPS_ID };
   const triggers: any[] = [];
   const logger: string[] = [];
   const jsonReplies: string[] = [];
@@ -145,6 +147,16 @@ function makeEnv(tweak?: (feed: any) => void) {
     Date: FakeDate,
     SpreadsheetApp: {
       openById: (id: string) => {
+        if (id === TIPS_ID) {
+          log.push('openTips');
+          if (state.tipsFail) throw new Error('no access to the tips sheet');
+          const tipSheet = new FakeSheet(state.tipsTab, { log, state });
+          tipSheet.rows = state.tips.map((v: unknown) => [v]);
+          return {
+            getSheetByName: (n: string) => (n === state.tipsTab ? tipSheet : null),
+            getSheets: () => [tipSheet],
+          };
+        }
         log.push('openById');
         if (id !== SHEET_ID) throw new Error('wrong sheet id');
         return ss;
@@ -393,7 +405,7 @@ test('2. cap sequence: limit 20 with a waitlist, the queue, maybe, Brian\'s hand
     assert.deepStrictEqual(r, { ok: true, status: 'going', outcomes: ['confirmed'] }, `RSVP ${i}`);
   }
   assert.deepStrictEqual(env.sheet().rows[0], HEADER);
-  assert.deepStrictEqual(env.status(), { ok: true, open: true, session: { spotsLeft: 1, full: false, waitlist: true } });
+  assert.deepStrictEqual(env.status(), { ok: true, open: true, session: { spotsLeft: 1, full: false, waitlist: true }, tips: [] });
 
   const r = rsvp(env, { name: 'You One', email: 'you@example.com', guests: [['Gee One', 'yes'], ['Gee Two', 'no']] });
   assert.deepStrictEqual(r.outcomes, ['confirmed', 'waitlist', 'no']);
@@ -714,10 +726,10 @@ test('9. no leaks: JSON replies carry no email, name, token or sheet id; GET key
   for (const r of env.jsonReplies) {
     assert.ok(!r.includes('@'), `no email in ${r}`);
     for (const n of names) assert.ok(!r.includes(n), `no name in ${r}`);
-    assert.ok(!r.includes(token) && !r.includes(SHEET_ID), `no token or sheet id in ${r}`);
+    assert.ok(!r.includes(token) && !r.includes(SHEET_ID) && !r.includes(TIPS_ID), `no token or sheet id in ${r}`);
   }
   const get = env.status();
-  assert.deepStrictEqual(Object.keys(get).sort(), ['ok', 'open', 'session']);
+  assert.deepStrictEqual(Object.keys(get).sort(), ['ok', 'open', 'session', 'tips']);
   assert.deepStrictEqual(Object.keys(get.session).sort(), ['full', 'spotsLeft', 'waitlist']);
 });
 
@@ -1012,5 +1024,167 @@ test('18. real Sheets values (Date objects, numbers): a change matches its base 
   const n = env.mails.length;
   env.api.sendDueReminders();
   assert.equal(env.mails.length, n, 'stamped reminders are not resent');
+});
+
+// ---- Self-care tips (E6, I-082, I-084) ---------------------------------------------------------------------------
+
+const setTips = (env: Env, ...cells: unknown[]) => {
+  env.state.tips = ['Tip', ...cells];
+};
+const tipOpens = (env: Env) => env.log.filter((x) => x === 'openTips').length;
+const TIP_LINE = /^Self-care tip of the day: (.*)$/m;
+const tipOf = (body: string): string | undefined => TIP_LINE.exec(body)?.[1];
+/** The reminder mail with one tip line just before the sign-off (what the copy deck says). */
+const withTipBlock = (f: Feed, body: string, tip: string): string => {
+  const sign = fill(T.signoff, vars(f));
+  assert.ok(body.endsWith(sign), 'the sign-off ends the mail');
+  return body.slice(0, body.length - sign.length) + fill(T.reminderTip, { tip }) + '\n\n' + sign;
+};
+
+test('S1. GET returns the cleaned tips after the session, and nothing else leaks', () => {
+  const env = makeEnv();
+  setTips(env, '  Drink water  ', '', 'drink WATER', 'Stretch\nslowly', 'x'.repeat(281), 42, 'Breathe\u0007out');
+  const got = env.status();
+  assert.deepStrictEqual(got.tips, ['Drink water', 'Stretch slowly', '42', 'Breathe out']);
+  assert.deepStrictEqual(Object.keys(got), ['ok', 'open', 'session', 'tips']);
+  env.api.setup();
+  for (const r of env.jsonReplies) assert.ok(!r.includes(TIPS_ID), `no tips sheet id in ${r}`);
+  for (const l of env.logger) assert.ok(!l.includes(TIPS_ID), `no tips sheet id in the log: ${l}`);
+});
+
+test('S2. the tips are cached for 300 seconds, then the sheet is read again; at most 100 tips', () => {
+  const env = makeEnv();
+  setTips(env, 'A');
+  assert.deepStrictEqual(env.status().tips, ['A']);
+  assert.equal(tipOpens(env), 1);
+  setTips(env, 'A', 'B');
+  env.clock.now = CLOCK0 + 299_000;
+  assert.deepStrictEqual(env.status().tips, ['A'], 'still cached at 299 s');
+  assert.equal(tipOpens(env), 1);
+  env.clock.now = CLOCK0 + 300_000;
+  assert.deepStrictEqual(env.status().tips, ['A', 'B'], 'read again at 300 s');
+  assert.equal(tipOpens(env), 2);
+
+  const big = makeEnv();
+  setTips(big, ...Array.from({ length: 150 }, (_, i) => `tip number ${i}`));
+  assert.equal(big.status().tips.length, 100);
+  assert.equal(big.status().tips[99], 'tip number 99');
+});
+
+test('S3. every failure gives [] and never touches ok, open or session', () => {
+  const base = makeEnv().status();
+  assert.equal(base.ok, true);
+
+  const unset = makeEnv();
+  delete unset.props.TIPS_SHEET_ID;
+  setTips(unset, 'A');
+  const u = unset.status();
+  assert.deepStrictEqual(u.tips, []);
+  assert.equal(tipOpens(unset), 0, 'no sheet call without the property');
+  assert.deepStrictEqual({ ok: u.ok, open: u.open, session: u.session }, { ok: base.ok, open: base.open, session: base.session });
+
+  const fail = makeEnv();
+  fail.state.tipsFail = true;
+  const f = fail.status();
+  assert.deepStrictEqual(f.tips, []);
+  assert.deepStrictEqual({ ok: f.ok, open: f.open, session: f.session }, { ok: base.ok, open: base.open, session: base.session });
+  assert.equal(tipOpens(fail), 1);
+  fail.status();
+  assert.equal(tipOpens(fail), 1, 'a failed read is cached too: no new openTips inside 300 s');
+
+  const header = makeEnv();
+  assert.deepStrictEqual(header.status().tips, [], 'header only');
+
+  const renamed = makeEnv();
+  renamed.state.tipsTab = 'Tips';
+  setTips(renamed, 'From the first tab');
+  assert.deepStrictEqual(renamed.status().tips, ['From the first tab']);
+
+  for (const tweak of [(x: any) => { x.tips = false; }, (x: any) => { delete x.tips; }]) {
+    const off = makeEnv(tweak);
+    setTips(off, 'A');
+    assert.deepStrictEqual(off.status().tips, []);
+    assert.equal(tipOpens(off), 0, 'the feed says no tips: the sheet is not opened');
+  }
+});
+
+function remindScenario(going: number, tips: string[], tweak?: (feed: any) => void, failTips = false) {
+  const env = makeEnv(tweak);
+  setTips(env, ...tips);
+  for (let i = 0; i < going; i++) rsvp(env, { name: `Guest ${i}`, email: `g${i}@example.com` });
+  const before = env.mails.length;
+  env.state.tipsFail = failTips;
+  env.clock.now = REMINDER_AT;
+  env.api.sendDueReminders();
+  return { env, reminders: env.mails.slice(before), confirmations: env.mails.slice(0, before) };
+}
+
+test('S4. reminders: one tip line each, just before the sign-off, no repeats until the tips run out', () => {
+  const three = remindScenario(5, ['Tip one', 'Tip two', 'Tip three']);
+  assert.equal(three.reminders.length, 5);
+  const used = three.reminders.map((m) => tipOf(m.body)!);
+  for (const m of three.reminders) {
+    assert.equal(m.body.split('\n').filter((l) => TIP_LINE.test(l)).length, 1, 'exactly one tip line');
+    const i = Number(/Guest (\d)/.exec(m.body)![1]);
+    const tip = tipOf(m.body)!;
+    assert.equal(m.body, withTipBlock(three.env.feed, expectReminder(three.env.feed, `Guest ${i}`, [[`Guest ${i}`, 'confirmed']]), tip));
+  }
+  assert.equal(new Set(used.slice(0, 3)).size, 3, `the first three are different: ${used.join(' | ')}`);
+  for (const tip of ['Tip one', 'Tip two', 'Tip three']) assert.ok(used.filter((u) => u === tip).length <= 2, `${tip} used more than twice`);
+  assert.ok(three.reminders.every((m) => three.env.data().every((x) => x[COL.reminder]) && m.to.endsWith('@example.com')));
+
+  const seven = remindScenario(5, ['a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'a7']);
+  assert.equal(new Set(seven.reminders.map((m) => tipOf(m.body))).size, 5, 'five different tips from seven');
+
+  const down = remindScenario(5, ['Tip one'], undefined, true);
+  assert.equal(down.reminders.length, 5, 'the reminders still go');
+  assert.ok(down.reminders.every((m) => tipOf(m.body) === undefined && !m.body.includes('Self-care')), 'no tip line when the sheet cannot be read');
+  assert.ok(down.env.data().every((x) => x[COL.reminder]), 'and every row is stamped');
+  assert.equal(down.reminders[0].body, expectReminder(down.env.feed, 'Guest 0', [['Guest 0', 'confirmed']]));
+
+  const old = remindScenario(2, ['Tip one'], (x) => { delete x.text.reminderTip; });
+  assert.equal(old.reminders.length, 2);
+  assert.ok(old.reminders.every((m) => !m.body.includes('Tip one')), 'a feed without reminderTip sends none');
+
+  const off = remindScenario(2, ['Tip one'], (x) => { x.tips = false; });
+  assert.equal(off.reminders.length, 2);
+  assert.ok(off.reminders.every((m) => !m.body.includes('Tip one')));
+  assert.equal(tipOpens(off.env), 0, 'feed tips false: the sheet is not opened');
+});
+
+test("S4. the confirmation, can't-go, change and spot-freed mails never carry a tip", () => {
+  const env = makeEnv((f) => {
+    f.session.limit = 1;
+  });
+  setTips(env, 'Zebra tip one', 'Zebra tip two');
+  rsvp(env, { name: 'Ann', email: 'ann@example.com' });
+  rsvp(env, { name: 'Bob', email: 'bob@example.com' });
+  rsvp(env, { name: 'Cal', email: 'cal@example.com', status: 'maybe' });
+  rsvp(env, { name: 'Dee', email: 'dee@example.com', status: 'cant' });
+  change(env, 'ann@example.com', { name: 'Ann', email: 'ann@example.com', status: 'cant' });
+  assert.ok(env.mails.some((m) => m.to === env.feed.sender.replyTo), 'the spot-freed note went to Brian');
+  assert.ok(env.mails.length >= 6, `mails: ${env.mails.length}`);
+  for (const m of env.mails) assert.ok(!/Self-care|Zebra/.test(m.subject + m.body), `a tip in "${m.subject}"`);
+  assert.equal(tipOpens(env), 0, 'none of these paths read the tips sheet');
+});
+
+test('S5. setup logs how many tips it read, never a tip or the sheet id', () => {
+  const env = makeEnv();
+  setTips(env, 'Secret tip one', 'Secret tip two', 'Secret tip three');
+  env.api.setup();
+  assert.ok(env.logger.includes('Tips read: 3'), env.logger.join(' | '));
+
+  const unset = makeEnv();
+  delete unset.props.TIPS_SHEET_ID;
+  setTips(unset, 'Secret tip one');
+  unset.api.setup();
+  assert.ok(unset.logger.includes('Tips read: 0') && unset.logger.includes('TIPS_SHEET_ID not set (no tips)'), unset.logger.join(' | '));
+
+  const down = makeEnv();
+  down.state.tipsFail = true;
+  down.api.setup();
+  assert.ok(down.logger.includes('Tips read: 0'));
+
+  for (const e of [env, unset, down]) for (const l of e.logger) assert.ok(!/Secret tip/.test(l) && !l.includes(TIPS_ID), `a tip or id in the log: ${l}`);
 });
 
