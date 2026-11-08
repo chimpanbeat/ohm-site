@@ -6,6 +6,7 @@ Static Astro site for Ohm Precision Bodywork, on GitHub Pages. It routes visitor
 - Method: Brian's build method v3.2 · Tier: M
 - Minimum Claude Code version: v2.1.295
 - Master list: https://claude.ai/artifact/XPbTteP3rZmMcVaUswE63N ("Ohm site: master list") · Brief tab: its "Brief" tab
+- Reviewer page: https://claude.ai/artifact/NKGLuNPVBXftpsfyFFZ6RB ("Launch Party Invite Review", Maréa). Answers live in its db collection `checks`, one doc per card id (`verdict` ok or change, `note`, `at`); `extra` is her free note; `photo-john` holds the asset id of John Marshall's photo (I-090). At each E8–E11 boundary, add that step's cards to `CARDS3` (one per visible change, ids `e8-…`, written like the round-two cards) and republish the page.
 - Check command: `npm run check` (build, test, check:wording, check:contrast, check:dist, check:secrets)
 - Repo: **public**. Never commit `.env`, the KML, client data, anything under `brief/` except `BRIEF.md`, the office street address, business-plan financials or PocketSuite admin details. The public business email carries `secrets-scan: allow`.
 - Planning chats live in the claude.ai Project "Ohm Site". They read this repo and never write to it; changes reach Code as master-list Items (I-###).

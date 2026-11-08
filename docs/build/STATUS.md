@@ -4,6 +4,8 @@ Tier: M · Method: v3.2 · Profile: static-site · Repo: public · Launch: Nov 6
 
 The first row that isn't `done` or `dropped` is the next step; Brian runs its Command after `/clear`. This file is the only source of progress; the master list's Build status is derived from it. Items (I-###) and Method feedback live in the master list, not here. A slip of more than a day gets a note to Brian on what it does to launch.
 
+Reviewer read: 2026-11-08T06:24Z (round two all answered; her notes are I-088, I-089, I-091)
+
 States: `todo` · `doing` · `blocked` · `done` · `dropped`
 
 | Step | Scope | Effort | Command | State | Commit |
