@@ -32,7 +32,7 @@ Rules live in .claude/ (settings, hooks, agents, skills); the spec's Guardrails 
 ## Commands
 - `npm run dev`: dev server on http://localhost:4321/ (port 4321 is required by the Google key referrer).
 - `npm run check`, `npm run build`, `npm test`, `npm run shots [-- <step>]`, `npm run metrics`.
-- Data: `npm run zones` (KML → geojson), `npm run osm`, `npm run terrain`, `npm run icons`, `npm run omega`.
+- Data: `npm run zones` (KML → geojson), `npm run osm`, `npm run terrain`, `npm run icons`, `npm run omega`, `npm run event-banner` (launch-party banner background and traced mark).
 
 ## Conventions (checked at review)
 - Single sources: facts in `src/data/site.ts`, wording in `src/data/wording.ts`, tokens in `src/styles/tokens.css`, copy in the copy deck. No rate, day, link or zone name outside `src/data/`; no raw hex outside `tokens.css`.
