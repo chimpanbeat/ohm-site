@@ -13,6 +13,7 @@ Notes:
 - **`src/scripts/event.ts`** (client script 6, imported only by `events/[event].astro`): fills `.event-countdown` from its data attributes and marks the current timeline item on load and every 60 s while `document.visibilityState === 'visible'`. Imports only `event-time.ts`.
 - **`RsvpBar.astro`** (new) and its logic in `src/scripts/rsvp.ts` per §B10; `events/[event].astro` places it after the hero section, adds `rise` to the later sections' containers and imports `event.ts`.
 - **`EventTimeline`:** circles, per-item segments, `data-start` / `data-end`, the `--now` style; the item's text layout unchanged. **`EventHero`:** the countdown line (only when the build time is before `event.end`). **`EventCredits`:** the lift. Tokens only.
+- **Reviewer page:** at the step boundary, add E10's review cards to `CARDS3` and republish (CLAUDE.md).
 
 ## AC covered (IDs)
 - AC-9: tests 1–5. AC-5: Done when 3.

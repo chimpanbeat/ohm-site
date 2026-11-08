@@ -12,6 +12,7 @@ Notes:
 - **`events.ts`: values only:** `graphics.wide: 'launch-party/banner-bg.png'`, `graphics.wideMark: 'launch-party/banner-mark.json'`.
 - **`event-assets.ts`:** `eventMark(path)` per §B10 (throws `missing event asset: <path>` like `eventAsset`).
 - **`EventHero`:** the `.event-banner` wrapper, wide sources from `banner-bg` (widths `[620, 1240]`), the inline SVG per §B10, no `scale`; keep E10's countdown and everything below the picture unchanged; update the component comment.
+- **Reviewer page:** at the step boundary, add E11's review cards to `CARDS3` and republish (CLAUDE.md).
 
 ## AC covered (IDs)
 - AC-9: tests 1–4. AC-5: Done when 3.

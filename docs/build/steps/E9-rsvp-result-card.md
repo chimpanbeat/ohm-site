@@ -14,6 +14,7 @@ Notes:
 - **`RsvpForm.astro`:** result markup order and the actions row per §B10 (notice buttons rendered from `event.notices`, `hidden`); `.rsvp-tip__window`; the tip card, confetti, emoji and reel CSS and keyframes per §B10 and §A3, every keyframe inside `@media (prefers-reduced-motion: no-preference)`; tokens only.
 - **`src/scripts/rsvp.ts`:** render the new fields with `textContent` only; heading `visually-hidden`, intro and spots hidden whenever `s.result`; the notice buttons follow `calendar`; confetti once when `answer === 'going'`; emoji class by answer; the reel each time `s.tip` changes. One `matchMedia('(prefers-reduced-motion: reduce)')` check gates confetti and reel. Remove every added node when its animation ends.
 - **Runbook:** the tip-card line says `Self-care tip`; the sheet keeps its name.
+- **Reviewer page:** at the step boundary, add E9's review cards to `CARDS3` and republish (CLAUDE.md).
 
 ## AC covered (IDs)
 - AC-9: tests 1–6 (the form still works with and without JS; no reply data beyond the wire contract).
