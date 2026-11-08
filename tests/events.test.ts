@@ -1,10 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
 import { join, extname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { site } from '../src/data/site.ts';
-import { events, rsvpText, launchParty, eventBySlug, eventHeadings } from '../src/data/events.ts';
+import { events, rsvpText, launchParty, eventBySlug, eventHeadings, eventsAt, CHAI_AT, CHAI_NOTE, SESSION_LIMIT } from '../src/data/events.ts';
 import type { SiteEvent } from '../src/data/events.ts';
 import {
   RESERVED_SLUGS,
@@ -27,7 +29,9 @@ const host = new URL(origin).host;
 const siteUrl = new URL(`${base}/`, origin).href;
 const TZ = 'America/Denver';
 
-const party = events.find((e) => e.slug === 'launch-party')!;
+// `live` is what this build serves (the chai version from 23:00 UTC on Nov 22, 2026); `party` is always the pre-swap data (E8, I-091)
+const live = events.find((e) => e.slug === 'launch-party')!;
+const party = launchParty(SESSION_LIMIT, null);
 const clone = (): SiteEvent => structuredClone(party);
 
 // Plain text of built HTML: tags gone, entities decoded.
@@ -94,13 +98,13 @@ test('1a. launch party data equals the copy deck', () => {
     [
       ['Arrive for yoga, get settled in', [], false],
       [
-        'Restorative Yoga with Britt',
+        'Restorative Yoga with Britt 🧘 🪷', // E8, I-088
         ['No supplies or experience needed', 'Mats provided, or bring your own', 'Water bottle and stretchy clothes recommended', 'Limited to first 20 sign-ups'],
         false,
       ],
       [
         'Self Care Launch Party',
-        ['Open house style, come and go as you please', 'Refreshments provided', 'Activities and merch', 'Optional Tai Chi by John Marshall'], // E5, I-086
+        ['Open house style, come and go as you please', 'Refreshments provided', 'Activities and merch', 'Tai Chi led by John Marshall ☯️ 🥋'], // E8, I-088
         false,
       ],
       ['Optional: climb at the gym until close', ['Day pass purchase required', 'Harness and shoe rentals available'], true], // E5, I-086
@@ -116,6 +120,7 @@ test('1a. launch party data equals the copy deck', () => {
       { name: 'CityROCK', role: 'Venue', url: 'https://climbcityrock.com', image: 'launch-party/cityrock-logo.png', alt: '', logo: true },
       { name: 'Britt Maddy', role: 'Yoga instruction', url: 'https://www.instagram.com/brittandspirit/', image: 'launch-party/britt-thumb.jpg', alt: '' },
       { name: 'JohnMark', role: 'Graphic design', url: 'https://johnmark.co', image: 'launch-party/johnmark-logo.png', alt: 'Rantala Creative', logo: true },
+      { name: 'John Marshall', role: 'Tai Chi instruction', url: 'https://ransfordengineering.com', image: 'launch-party/john-thumb.jpg', alt: '' }, // E8, I-089
     ],
   }); // E5, I-085: roles on their own line, capitalised; the two logos are transparent (logo: true)
   assert.deepEqual(eventHeadings, { description: 'Description', schedule: 'Schedule', details: 'Details' }); // E5, I-085
@@ -133,7 +138,7 @@ test('1a. launch party data equals the copy deck', () => {
   assert.deepEqual(wear.items, ['Comfy cozy: yoga clothes or sweat pants', 'Fuzzy socks encouraged', 'Shoes off in the yoga room']); // E4: mats moved to the yoga item
   assert.equal(wear.inReminder, true);
   assert.equal(parking.title, 'Parking');
-  assert.equal(parking.text, "Metered street parking, or free parking along Wahsatch if you don't mind walking 2 blocks.");
+  assert.equal(plainText(parking.text!, 1), "Metered street parking, or free parking along Wahsatch if you don't mind walking 2 blocks."); // E8, I-093: Rich now
   assert.equal(parking.inReminder, true);
   assert.equal(raffle.title, 'Raffle');
   assert.equal(
@@ -172,10 +177,10 @@ test('1b. RSVP settings; the sign-up note follows the limit', () => {
   // E5, I-086: the Tai Chi note stays last in the party item whatever the limit
   for (const n of [12, 20]) {
     const notes = launchParty(n).timeline[2].notes!.map((x) => plainText(x, 1));
-    assert.equal(notes[notes.length - 1], 'Optional Tai Chi by John Marshall');
+    assert.equal(notes[notes.length - 1], 'Tai Chi led by John Marshall ☯️ 🥋');
     assert.equal(notes[notes.length - 2], 'Activities and merch');
   }
-  assert.equal(eventBySlug('launch-party'), party);
+  assert.equal(eventBySlug('launch-party'), live);
   assert.equal(eventBySlug('nope'), undefined);
 });
 
@@ -322,7 +327,7 @@ test('4. ICS', () => {
   assert.ok(lines.includes(`UID:${party.slug}@${host}`));
   assert.ok(lines.includes('SUMMARY:Ohm Launch Party: A Celebration of Self-Care'));
   assert.ok(lines.includes('LOCATION:CityROCK\\, 21 N Nevada Ave\\, Colorado Springs\\, CO 80903'));
-  assert.ok(lines.includes(`URL:${origin}${base}/launch-party`));
+  assert.ok(lines.includes(`URL:${origin}${base}/events/launch-party`)); // E8, I-092
 
   // a 200-character title folds, and unfolding gives it back (with a multi-byte character in it)
   const long = clone();
@@ -344,7 +349,7 @@ test('5. mapsUrl', () => {
 test('6. eventPaths', () => {
   const real = eventPaths(events);
   assert.deepEqual(real.map((p) => p.params.event), ['launch-party']);
-  assert.equal(real[0].props.event, party);
+  assert.equal(real[0].props.event, live);
   const two = eventPaths([...events, synthetic]);
   assert.deepEqual(two.map((p) => p.params.event), ['launch-party', 'summer-yoga']);
   assert.throws(() => feedFor(synthetic, siteUrl), /rsvp/);
@@ -361,7 +366,7 @@ test('7. feed', () => {
   assert.equal(feed.slug, 'launch-party');
   assert.equal(feed.dateLabel, 'Sunday, Nov 22, 2026');
   assert.equal(feed.timeLabel, '2:00–6:00 pm');
-  assert.equal(feed.pageUrl, `${origin}${base}/launch-party`);
+  assert.equal(feed.pageUrl, `${origin}${base}/events/launch-party`); // E8, I-092
   assert.equal(feed.icsUrl, `${origin}${base}/events/launch-party.ics`);
   assert.deepEqual(feed.session, { key: 'yoga', label: 'Yoga', limit: 20, waitlist: true, time: '2–3 pm' });
   assert.deepEqual(feed.reminderInfo.map((b) => b.title), ['What to wear', 'Parking']);
@@ -427,7 +432,7 @@ test('8b. source: E4 components and styles', () => {
   const credits = comp('EventCredits.astro');
   for (const token of ['credit__role', 'var(--fs-small)', 'credit__img--photo']) assert.ok(credits.includes(token), `credits has ${token}`);
   assert.ok(!credits.includes('</strong>,'), 'no comma between name and role');
-  for (const [file, src] of [['EventTimeline.astro', comp('EventTimeline.astro')], ['EventDescription.astro', comp('EventDescription.astro')], ['[event].astro', readFileSync(join(root, 'src/pages/[event].astro'), 'utf8')]] as const) {
+  for (const [file, src] of [['EventTimeline.astro', comp('EventTimeline.astro')], ['EventDescription.astro', comp('EventDescription.astro')], ['[event].astro', readFileSync(join(root, 'src/pages/events/[event].astro'), 'utf8')]] as const) {
     for (const word of ['Schedule', 'Description', 'Details']) assert.ok(!src.includes(`>${word}<`), `${file} types ${word}`);
   }
   const info = comp('EventInfo.astro');
@@ -438,9 +443,9 @@ test('8b. source: E4 components and styles', () => {
 });
 
 // Built output. Skipped with a reason when the site hasn't been built.
-const built = existsSync(join(dist, 'launch-party.html'));
-const skipBuilt = built ? false : 'dist/launch-party.html is missing; run `npm run build` first';
-const page = () => readFileSync(join(dist, 'launch-party.html'), 'utf8');
+const built = existsSync(join(dist, 'events/launch-party.html'));
+const skipBuilt = built ? false : 'dist/events/launch-party.html is missing; run `npm run build` first';
+const page = () => readFileSync(join(dist, 'events/launch-party.html'), 'utf8');
 const attr = (tag: string, name: string) => tag.match(new RegExp(`\\b${name}="([^"]*)"`))?.[1];
 const meta = (html: string, key: string, name = 'property') =>
   attr(html.match(new RegExp(`<meta\\b[^>]*\\b${name}="${key}"[^>]*>`))?.[0] ?? '', 'content');
@@ -449,7 +454,7 @@ test('9a. built page: head', { skip: skipBuilt }, () => {
   const html = page();
   assert.equal(text(html.match(/<h1\b[\s\S]*?<\/h1>/)![0]), 'A Celebration of Self-Care'); // E4: the graphic says the rest
   assert.match(html, /<meta\b[^>]*\bname="robots"[^>]*\bcontent="noindex"/);
-  assert.match(html, new RegExp(`<link\\b[^>]*\\brel="canonical"[^>]*\\bhref="${origin}${base}/launch-party"`));
+  assert.match(html, new RegExp(`<link\\b[^>]*\\brel="canonical"[^>]*\\bhref="${origin}${base}/events/launch-party"`));
   const og = meta(html, 'og:image')!;
   assert.ok(og.startsWith(`${origin}/`) && /\.jpe?g$/.test(og), `og:image ${og}`);
   assert.equal(meta(html, 'og:image:width'), '857');
@@ -548,11 +553,13 @@ test('9c2. built page: heading outline and schedule notes (E5)', { skip: skipBui
   const ol = html.match(/<ol\b[^>]*class="[^"]*\btimeline\b[^"]*"[\s\S]*?<\/ol>/)![0];
   const lists = [...ol.matchAll(/<ul\b[^>]*>([\s\S]*?)<\/ul>/g)].map((m) => [...m[1].matchAll(/<li\b[^>]*>([\s\S]*?)<\/li>/g)].map((x) => text(x[1])));
   const partyList = lists.find((l) => l.includes('Activities and merch'))!;
-  assert.equal(partyList[partyList.indexOf('Activities and merch') + 1], 'Optional Tai Chi by John Marshall');
+  // E8, I-088/I-091: the Tai Chi note, or from 23:00 UTC on Nov 22 the chai note; one version, never both
+  const bullet = partyList[partyList.indexOf('Activities and merch') + 1];
+  assert.ok(bullet === 'Tai Chi led by John Marshall ☯️ 🥋' || bullet === CHAI_NOTE, bullet);
   assert.ok(lists.some((l) => l.includes('Harness and shoe rentals available')));
 });
 
-test('9d. built page: links open in a new tab; four credits in order with images', { skip: skipBuilt }, () => {
+test('9d. built page: links open in a new tab; five credits in order with images', { skip: skipBuilt }, () => {
   const html = page();
   const links = [...html.matchAll(/<a\b[^>]*>/g)].map((m) => m[0]);
   for (const href of ['https://www.instagram.com/brittandspirit/', 'https://climbcityrock.com/day-passes']) {
@@ -563,10 +570,10 @@ test('9d. built page: links open in a new tab; four credits in order with images
   }
 
   const credits = [...html.matchAll(/<a\b[^>]*class="[^"]*\bcredit\b[^"]*"[^>]*>([\s\S]*?)<\/a>/g)];
-  assert.equal(credits.length, 4);
-  const want = ['Maréa Host', 'CityROCK Venue', 'Britt Maddy Yoga instruction', 'JohnMark Graphic design'];
+  assert.equal(credits.length, 5); // E8, I-089
+  const want = ['Maréa Host', 'CityROCK Venue', 'Britt Maddy Yoga instruction', 'JohnMark Graphic design', `John Marshall ${live.credits!.items[4].role}`];
   credits.forEach((m, i) => {
-    const item = party.credits!.items[i];
+    const item = live.credits!.items[i];
     assert.equal(attr(m[0], 'href'), item.url);
     assert.equal(attr(m[0], 'target'), '_blank');
     assert.match(attr(m[0], 'rel')!, /noopener/);
@@ -592,8 +599,187 @@ test('9e. other pages keep the default preview; sitemap; feed; ics', { skip: ski
   assert.equal(meta(home, 'og:image:alt'), undefined);
   assert.ok(!readFileSync(join(dist, 'sitemap.xml'), 'utf8').includes('launch-party'));
   const feed = JSON.parse(readFileSync(join(dist, 'events/launch-party.json'), 'utf8'));
-  assert.deepEqual(feed, JSON.parse(JSON.stringify(feedFor(party, siteUrl))));
+  assert.deepEqual(feed, JSON.parse(JSON.stringify(feedFor(live, siteUrl))));
   const ics = readFileSync(join(dist, 'events/launch-party.ics'), 'utf8');
   assert.ok(ics.startsWith('BEGIN:VCALENDAR\r\n'));
   assert.ok(ics.includes('DTSTART:20261122T210000Z'));
+});
+
+// ---- E8 (I-088 to I-093) ------------------------------------------------------------------------------------------
+const codePoints = (s: string) => [...s].map((c) => c.codePointAt(0)!.toString(16).toUpperCase());
+
+test('E8-1. data: the yoga title, the Tai Chi note, John Marshall, the photo', () => {
+  const p = launchParty(20);
+  assert.equal(p.timeline[1].title, 'Restorative Yoga with Britt 🧘 🪷');
+  const notes = p.timeline[2].notes!.map((n) => plainText(n, 1));
+  assert.equal(notes[notes.length - 1], 'Tai Chi led by John Marshall ☯️ 🥋');
+  assert.equal(notes[notes.length - 2], 'Activities and merch');
+  assert.deepEqual(codePoints(notes[notes.length - 1]).slice(-4), ['262F', 'FE0F', '20', '1F94B']);
+  assert.deepEqual(p.credits!.items.slice(0, 4), party.credits!.items.slice(0, 4));
+  assert.equal(p.credits!.items.length, 5);
+  assert.deepEqual(p.credits!.items[4], { name: 'John Marshall', role: 'Tai Chi instruction', url: 'https://ransfordengineering.com', image: 'launch-party/john-thumb.jpg', alt: '' });
+  assert.ok(!('logo' in p.credits!.items[4]), 'a framed photo, not a logo');
+  // john-thumb.jpg: a 112x112 JPEG like the other photos
+  const b = readFileSync(join(root, 'src/assets/events/launch-party/john-thumb.jpg'));
+  assert.deepEqual([b[0], b[1]], [0xff, 0xd8]);
+  let i = 2;
+  let size: [number, number] | undefined;
+  while (i < b.length) {
+    assert.equal(b[i], 0xff);
+    const marker = b[i + 1];
+    if (marker >= 0xc0 && marker <= 0xc3) {
+      size = [b.readUInt16BE(i + 7), b.readUInt16BE(i + 5)]; // width, height
+      break;
+    }
+    i += 2 + b.readUInt16BE(i + 2);
+  }
+  assert.deepEqual(size, [112, 112]);
+});
+
+test('E8-2. the event-day swap: both versions, the clock, the switch', () => {
+  assert.equal(CHAI_NOTE, 'Chai tea led by John Marshall 🍵🫖');
+  assert.deepEqual(codePoints(CHAI_NOTE!).slice(-2), ['1F375', '1FAD6']);
+  assert.equal(new Date(CHAI_AT).toISOString(), '2026-11-22T23:00:00.000Z');
+  const tai = launchParty(20, null);
+  const chai = launchParty(20, CHAI_NOTE);
+  assert.doesNotThrow(() => assertEvent(tai));
+  assert.doesNotThrow(() => assertEvent(chai));
+  // only item 2's last note and John Marshall's role differ
+  const expected = structuredClone(tai);
+  expected.timeline[2].notes![expected.timeline[2].notes!.length - 1] = CHAI_NOTE!;
+  expected.credits!.items[4].role = 'Chai Tea ceremony';
+  assert.deepEqual(chai, expected);
+  assert.notDeepEqual(chai, tai);
+  assert.deepEqual(launchParty(20), tai, 'no second argument = the Tai Chi version');
+
+  // the clock: one millisecond either side, then back (no shared mutation)
+  const at = Date.parse(CHAI_AT);
+  const before = eventsAt(at - 1);
+  assert.deepEqual(before, [tai]);
+  assert.deepEqual(eventsAt(at), [chai]);
+  assert.deepEqual(eventsAt(at + 3_600_000), [chai]);
+  assert.deepEqual(eventsAt(at - 1), before);
+  assert.deepEqual(eventsAt(at - 86_400_000), [tai]);
+
+  // build time: OHM_EVENTS_NOW (an unparseable value stops the build)
+  const run = (now: string) =>
+    spawnSync(
+      process.execPath,
+      ['--input-type=module', '-e', `import { events } from ${JSON.stringify(pathToFileURL(join(root, 'src/data/events.ts')).href)}; console.log(JSON.stringify(events[0].timeline[2].notes.at(-1)))`],
+      { env: { ...process.env, OHM_EVENTS_NOW: now }, encoding: 'utf8' },
+    );
+  const bad = run('nonsense');
+  assert.notEqual(bad.status, 0, 'an unparseable OHM_EVENTS_NOW throws');
+  const swapped = run('2026-11-22T23:30:00Z');
+  assert.equal(swapped.status, 0, swapped.stderr);
+  assert.equal(JSON.parse(swapped.stdout), CHAI_NOTE);
+  const early = run('2026-11-22T22:59:59Z');
+  assert.equal(early.status, 0, early.stderr);
+  assert.equal(JSON.parse(early.stdout), 'Tai Chi led by John Marshall ☯️ 🥋');
+});
+
+test('E8-3. the parking text links four words; the feed and the email line stay plain', () => {
+  const plain = "Metered street parking, or free parking along Wahsatch if you don't mind walking 2 blocks.";
+  const info = party.info[1];
+  assert.equal(info.id, 'parking');
+  assert.equal(plainText(info.text!, 0), plain);
+  assert.equal(plainText(info.text!, 1), plain);
+  assert.deepEqual(info.text, ['Metered street parking, or ', { text: 'free parking along Wahsatch', href: 'https://maps.app.goo.gl/kdJ5A88ab9EMxUmQ8' }, " if you don't mind walking 2 blocks."]);
+  const feed = feedFor(party, siteUrl);
+  assert.deepEqual(feed.reminderInfo[1], { title: 'Parking', text: plain });
+  assert.equal(typeof feed.reminderInfo[1].text, 'string');
+  // the guards run over info text too
+  const http = clone();
+  http.info[1].text = ['see ', { text: 'here', href: 'http://example.com' }];
+  assert.throws(() => assertEvent(http), /must be https/);
+  const key = clone();
+  key.info[1].text = ['x', { w: 'nope' }];
+  assert.throws(() => assertEvent(key), /unknown wording key/);
+});
+
+test('E8-4. URLs: the page lives under /events', () => {
+  const now = new Date('2026-11-06T12:00:00Z');
+  assert.equal(feedFor(party, siteUrl).pageUrl, `${origin}${base}/events/launch-party`);
+  assert.ok(icsFor(party, siteUrl, now).split('\r\n').includes(`URL:${origin}${base}/events/launch-party`));
+  assert.deepEqual(eventPaths(events).map((x) => x.params.event), ['launch-party']);
+  assert.deepEqual(eventPaths([...events, synthetic]).map((x) => x.params.event), ['launch-party', 'summer-yoga']);
+  assert.ok(existsSync(join(root, 'src/pages/events/[event].astro')));
+  assert.ok(!existsSync(join(root, 'src/pages/[event].astro')), 'the old route is gone');
+  const config = readFileSync(join(root, 'astro.config.mjs'), 'utf8');
+  assert.match(config, /redirects/);
+  assert.match(config, /\/events\/\$\{e\.slug\}/);
+  assert.match(readFileSync(join(root, 'src/pages/sitemap.xml.ts'), 'utf8'), /`\/events\/\$\{e\.slug\}`/);
+});
+
+test('E8-5. built: the page under /events, the redirect page, one parking link, one version', { skip: skipBuilt }, () => {
+  const html = page();
+  assert.match(html, new RegExp(`<link\\b[^>]*\\brel="canonical"[^>]*\\bhref="${origin}${base}/events/launch-party"`));
+  assert.match(html, /<meta\b[^>]*\bname="robots"[^>]*\bcontent="noindex"/);
+  const parking = html.match(/<div\b[^>]*\bid="parking"[\s\S]*?<\/div>/)![0];
+  const links = [...parking.matchAll(/<a\b[^>]*>([\s\S]*?)<\/a>/g)];
+  assert.equal(links.length, 1);
+  assert.equal(attr(links[0][0], 'href'), 'https://maps.app.goo.gl/kdJ5A88ab9EMxUmQ8');
+  assert.equal(attr(links[0][0], 'target'), '_blank');
+  assert.match(attr(links[0][0], 'rel')!, /noopener/);
+  assert.equal(text(links[0][1]), 'free parking along Wahsatch');
+  const para = parking.match(/<p\b[\s\S]*?<\/p>/)![0];
+  assert.equal(text(para), "Metered street parking, or free parking along Wahsatch if you don't mind walking 2 blocks.");
+
+  // the redirect page
+  const redirect = readFileSync(join(dist, 'launch-party.html'), 'utf8');
+  assert.match(redirect, /<meta\b[^>]*\bhttp-equiv="refresh"[^>]*\bcontent="0;url=\/events\/launch-party"/);
+  assert.match(redirect, /<meta\b[^>]*\bname="robots"[^>]*\bcontent="noindex"/);
+  assert.match(redirect, new RegExp(`<link\\b[^>]*\\brel="canonical"[^>]*\\bhref="${origin}${base}/events/launch-party"`));
+  assert.ok(!/<script\b/.test(redirect), 'no script');
+  assert.ok(!/<main\b/.test(redirect), 'no page content');
+  assert.ok(!readFileSync(join(dist, 'sitemap.xml'), 'utf8').includes('launch-party'));
+
+  // either version, never mixed (the deploy job tests a build that may straddle 23:00 UTC)
+  const body = text(html);
+  const tai = body.includes('Tai Chi led by John Marshall ☯️ 🥋') && body.includes('John Marshall Tai Chi instruction');
+  const chai = body.includes('Chai tea led by John Marshall 🍵🫖') && body.includes('John Marshall Chai Tea ceremony');
+  assert.ok(tai !== chai, 'exactly one version');
+  if (tai) assert.ok(!body.includes('Chai') && !body.includes('chai'));
+  else assert.ok(!body.includes('Tai Chi'));
+  assert.ok(body.includes('Restorative Yoga with Britt 🧘 🪷'));
+});
+
+test('E8-6. deploy.yml: the three Nov 22 runs, the year guard, the usual triggers', () => {
+  const y = readFileSync(join(root, '.github/workflows/deploy.yml'), 'utf8');
+  assert.match(y, /I-091/);
+  const sched = y.match(/^ {2}schedule:\n((?: {4}.*\n)+)/m)?.[1] ?? '';
+  assert.deepEqual([...sched.matchAll(/cron:\s*'([^']+)'/g)].map((m) => m[1]), ['7 23 22 11 *', '22 23 22 11 *', '45 23 22 11 *']);
+  assert.match(y, /^ {2}push:\n {4}branches: \[main\]/m);
+  assert.match(y, /^ {2}workflow_dispatch:/m);
+  const job = (name: string) => y.match(new RegExp(`^ {2}${name}:\\n((?: {4}.*\\n|\\n)+)`, 'm'))?.[1] ?? '';
+  const gate = job('gate');
+  assert.ok(gate, 'a gate job');
+  assert.match(gate, /id:\s*y\b/);
+  assert.match(gate, /github\.event_name/i);
+  assert.match(gate, /date -u \+%Y/);
+  assert.match(gate, /2026/);
+  assert.match(gate, /go=(true|false)/);
+  assert.match(gate, /GITHUB_OUTPUT/);
+  assert.match(gate, /outputs:\n\s+go: \$\{\{ steps\.y\.outputs\.go \}\}/);
+  const build = job('build');
+  assert.match(build, /needs: gate/);
+  assert.match(build, /if: needs\.gate\.outputs\.go == 'true'/);
+  assert.match(job('deploy'), /needs: build/);
+  // the guard's shell logic, run for real: a schedule run outside 2026 says no; push, dispatch and 2026 say yes
+  const step = gate.match(/run: \|\n((?: {10}.*\n)+)/)?.[1].replace(/^ {10}/gm, '');
+  assert.ok(step, 'the gate step has a script');
+  const decide = (event: string, year: string) => {
+    const dir = mkdtempSync(join(tmpdir(), 'gate-'));
+    const out = join(dir, 'out');
+    writeFileSync(out, '');
+    // `$(date -u +%Y)` is replaced by a fixed year so the 2027 case can run today
+    const script = step!.replace(/\$\(date -u \+%Y\)/g, year).replace(/\$\{\{ github\.event_name \}\}/g, event);
+    const r = spawnSync('bash', ['-c', script], { env: { ...process.env, GITHUB_OUTPUT: out }, encoding: 'utf8' });
+    assert.equal(r.status, 0, r.stderr);
+    return readFileSync(out, 'utf8').trim();
+  };
+  assert.equal(decide('schedule', '2026'), 'go=true');
+  assert.equal(decide('schedule', '2027'), 'go=false');
+  assert.equal(decide('push', '2027'), 'go=true');
+  assert.equal(decide('workflow_dispatch', '2027'), 'go=true');
 });

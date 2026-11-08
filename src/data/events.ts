@@ -51,7 +51,18 @@ export interface SiteEvent {
 // The launch party. `limit` is the one place the yoga cap is typed; the timeline note is built from it.
 export const SESSION_LIMIT = 20;
 
-export function launchParty(limit: number): SiteEvent {
+// The event-day swap (E8, I-091; ARCHITECTURE §B10 E8–E11): from CHAI_AT the Tai Chi note and John Marshall's credit role
+// read as chai tea, in a build made then (.github/workflows/deploy.yml runs three scheduled builds on Nov 22, 2026).
+// All or nothing: set CHAI_NOTE to null to turn the whole swap off.
+export const CHAI_AT: Iso = '2026-11-22T16:00:00-07:00'; // 23:00 UTC // I-091
+export const CHAI_NOTE: string | null = 'Chai tea led by John Marshall 🍵🫖'; // I-091 (Brian, Nov 8, 2026, verbatim)
+const TAI_CHI_NOTE = 'Tai Chi led by John Marshall ☯️ 🥋'; // I-088
+const TAI_CHI_ROLE = 'Tai Chi instruction'; // I-089
+const CHAI_ROLE = 'Chai Tea ceremony'; // I-091 (Brian)
+
+// `chaiNote`: the event-day swap (I-091). With it, item 2's last note is the chai note and John Marshall's role is
+// `Chai Tea ceremony`; without it, the Tai Chi note and `Tai Chi instruction`.
+export function launchParty(limit: number, chaiNote: string | null = null): SiteEvent {
   return {
     slug: 'launch-party',
     title: 'Ohm Launch Party: A Celebration of Self-Care',
@@ -82,7 +93,7 @@ export function launchParty(limit: number): SiteEvent {
       {
         start: '2026-11-22T14:00:00-07:00',
         end: '2026-11-22T15:00:00-07:00',
-        title: 'Restorative Yoga with Britt', // I-078 (Marea)
+        title: 'Restorative Yoga with Britt 🧘 🪷', // I-078 (Marea); I-088 (Brian): the emoji
         notes: [
           'No supplies or experience needed',
           'Mats provided, or bring your own', // I-078: moved here from What to wear
@@ -94,7 +105,8 @@ export function launchParty(limit: number): SiteEvent {
         start: '2026-11-22T15:00:00-07:00',
         end: '2026-11-22T18:00:00-07:00',
         title: 'Self Care Launch Party',
-        notes: ['Open house style, come and go as you please', 'Refreshments provided', 'Activities and merch', 'Optional Tai Chi by John Marshall'], // I-078; I-086 (Marea)
+        // I-078; I-086 (Marea); I-088 (Brian): "Optional" dropped, Tai Chi led by John Marshall with emoji; I-091: the chai swap
+        notes: ['Open house style, come and go as you please', 'Refreshments provided', 'Activities and merch', chaiNote ?? TAI_CHI_NOTE],
       },
       {
         start: '2026-11-22T18:00:00-07:00',
@@ -116,7 +128,12 @@ export function launchParty(limit: number): SiteEvent {
       {
         id: 'parking',
         title: 'Parking',
-        text: "Metered street parking, or free parking along Wahsatch if you don't mind walking 2 blocks.",
+        // I-093 (Brian): only "free parking along Wahsatch" links, to his map pin; the feed and the email get plain text
+        text: [
+          'Metered street parking, or ',
+          { text: 'free parking along Wahsatch', href: 'https://maps.app.goo.gl/kdJ5A88ab9EMxUmQ8' },
+          " if you don't mind walking 2 blocks.",
+        ],
         inReminder: true,
       },
       {
@@ -149,6 +166,8 @@ export function launchParty(limit: number): SiteEvent {
         },
         // Marea typed "JohnMark.co"; the logo is his Rantala Creative mark, so its alt gives the words on it
         { name: 'JohnMark', role: 'Graphic design', url: 'https://johnmark.co', image: 'launch-party/johnmark-logo.png', alt: 'Rantala Creative', logo: true },
+        // I-089 (Marea's entry, Brian's role, Nov 8, 2026): a framed photo (I-090); I-091: the role swaps with the note
+        { name: 'John Marshall', role: chaiNote ? CHAI_ROLE : TAI_CHI_ROLE, url: 'https://ransfordengineering.com', image: 'launch-party/john-thumb.jpg', alt: '' },
       ],
     },
     graphics: {
@@ -169,7 +188,23 @@ export function launchParty(limit: number): SiteEvent {
   };
 }
 
-export const events: SiteEvent[] = [launchParty(SESSION_LIMIT)];
+// Every event as of `nowMs` (E8, I-091): the launch party swaps at CHAI_AT. A static page changes only with a build, so
+// the clock is the build's.
+export function eventsAt(nowMs: number): SiteEvent[] { // I-091
+  return [launchParty(SESSION_LIMIT, CHAI_NOTE !== null && nowMs >= Date.parse(CHAI_AT) ? CHAI_NOTE : null)];
+}
+
+// Build time: OHM_EVENTS_NOW (an ISO time) when set, so tests and previews can build either side of CHAI_AT; an
+// unparseable value stops the build. Read through globalThis so this file keeps no imports.
+function buildNow(): number { // I-091
+  const set = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env?.OHM_EVENTS_NOW; // I-091
+  if (set === undefined || set === '') return Date.now();
+  const t = Date.parse(set);
+  if (Number.isNaN(t)) throw new Error(`OHM_EVENTS_NOW "${set}" is not a date; use an ISO time like 2026-11-22T23:30:00Z`);
+  return t;
+}
+
+export const events: SiteEvent[] = eventsAt(buildNow()); // I-091
 
 // The section headings every event page uses (copy deck → Events; E5, I-085). The credits heading is per event
 // (`credits.heading`) and the RSVP heading is `rsvpText.heading`.

@@ -504,13 +504,13 @@ test('C4. nextTip does nothing before a result; subscribers hear the tip', async
 });
 
 // ---- 6. The built form -------------------------------------------------------------------------------------------
-const built = existsSync(join(dist, 'launch-party.html'));
-const skipBuilt = built ? false : 'dist/launch-party.html is missing; run `npm run build` first';
+const built = existsSync(join(dist, 'events/launch-party.html')); // E8, I-092: the page moved under /events
+const skipBuilt = built ? false : 'dist/events/launch-party.html is missing; run `npm run build` first';
 const attr = (tag: string, name: string) => tag.match(new RegExp(`\\s${name}="([^"]*)"`))?.[1];
 const has = (tag: string, name: string) => new RegExp(`\\s${name}(=|\\s|>|/)`).test(tag);
 const decode = (s: string) => s.replace(/&#39;|&#x27;/g, "'").replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 const text = (html: string) => decode(html.replace(/<[^>]*>/g, ' ')).replace(/\s+/g, ' ').trim();
-const html = () => readFileSync(join(dist, 'launch-party.html'), 'utf8');
+const html = () => readFileSync(join(dist, 'events/launch-party.html'), 'utf8');
 const section = () => html().match(/<section\b[^>]*\bid="rsvp"[^>]*>[\s\S]*?<\/section>/)![0];
 const form = () => section().match(/<form\b[\s\S]*?<\/form>/)![0];
 
@@ -672,7 +672,7 @@ test('7. rsvp.ts keeps the visitor private; the URL lives only in site.ts', () =
   }
   assert.match(site.rsvpUrl, /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/);
   assert.ok(read('src/data/site.ts').includes(site.rsvpUrl));
-  const others = ['src/components/events/RsvpForm.astro', 'src/components/events/EventHero.astro', 'src/pages/[event].astro', 'src/scripts/rsvp.ts', 'src/lib/rsvp.ts'];
+  const others = ['src/components/events/RsvpForm.astro', 'src/components/events/EventHero.astro', 'src/pages/events/[event].astro', 'src/scripts/rsvp.ts', 'src/lib/rsvp.ts'];
   for (const p of others) assert.ok(!read(p).includes('script.google.com'), `${p} holds the URL`);
 });
 

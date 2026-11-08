@@ -4,7 +4,7 @@ import { href } from '../lib/url.ts';
 
 // Clean URLs (build.format is 'file'). /book/[zone] result pages are deliberately left out, and so are events
 // that aren't `index: true` (the launch party is shared by URL only, I-063).
-const paths = ['/', '/services', '/pricing', '/about', '/book', '/client-policies', ...events.filter((e) => e.index).map((e) => `/${e.slug}`)];
+const paths = ['/', '/services', '/pricing', '/about', '/book', '/client-policies', ...events.filter((e) => e.index).map((e) => `/events/${e.slug}`)];
 
 export const GET: APIRoute = ({ site }) => {
   const urls = paths.map((p) => `  <url><loc>${new URL(href(p), site).href}</loc></url>`).join('\n');

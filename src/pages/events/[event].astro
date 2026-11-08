@@ -1,16 +1,16 @@
 ---
-import Base from '../layouts/Base.astro';
-import EventHero from '../components/events/EventHero.astro';
-import EventDescription from '../components/events/EventDescription.astro';
-import EventTimeline from '../components/events/EventTimeline.astro';
-import EventInfo from '../components/events/EventInfo.astro';
-import EventNotice from '../components/events/EventNotice.astro';
-import EventCredits from '../components/events/EventCredits.astro';
-import RsvpForm from '../components/events/RsvpForm.astro';
-import { events, eventHeadings } from '../data/events.ts';
-import { site } from '../data/site.ts';
-import { dateLabel, eventPaths, timeLabel } from '../lib/events.ts';
-import { eventAsset } from '../lib/event-assets.ts';
+import Base from '../../layouts/Base.astro';
+import EventHero from '../../components/events/EventHero.astro';
+import EventDescription from '../../components/events/EventDescription.astro';
+import EventTimeline from '../../components/events/EventTimeline.astro';
+import EventInfo from '../../components/events/EventInfo.astro';
+import EventNotice from '../../components/events/EventNotice.astro';
+import EventCredits from '../../components/events/EventCredits.astro';
+import RsvpForm from '../../components/events/RsvpForm.astro';
+import { events, eventHeadings } from '../../data/events.ts';
+import { site } from '../../data/site.ts';
+import { dateLabel, eventPaths, timeLabel } from '../../lib/events.ts';
+import { eventAsset } from '../../lib/event-assets.ts';
 
 // One page per entry in src/data/events.ts (ARCHITECTURE §B10); the guards run here, so a bad event fails the build.
 export function getStaticPaths() {

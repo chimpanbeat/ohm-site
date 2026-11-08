@@ -95,7 +95,7 @@ export function mapsUrl(venue: SiteEvent['venue']): string {
 }
 
 const root = (siteUrl: string) => siteUrl.replace(/\/+$/, '');
-export const pageUrl = (event: SiteEvent, siteUrl: string) => `${root(siteUrl)}/${event.slug}`;
+export const pageUrl = (event: SiteEvent, siteUrl: string) => `${root(siteUrl)}/events/${event.slug}`; // E8, I-092
 export const icsUrl = (event: SiteEvent, siteUrl: string) => `${root(siteUrl)}/events/${event.slug}.ics`;
 
 // RFC 5545 §3.3.11: escape backslash, semicolon, comma and newlines in TEXT values.
@@ -197,7 +197,8 @@ export function feedFor(event: SiteEvent, siteUrl: string): EventFeed {
         : null,
     reminderInfo: event.info
       .filter((b) => b.inReminder)
-      .map((b) => ({ title: b.title, ...(b.text !== undefined && { text: b.text }), ...(b.items && { items: b.items }) })),
+      // E8, I-093: text is Rich; the feed (and so the reminder email) gets the plain words, in the variant w() uses
+      .map((b) => ({ title: b.title, ...(b.text !== undefined && { text: plainText(b.text, site.licensed ? 1 : 0) }), ...(b.items && { items: b.items }) })),
     notices: event.notices
       .filter((n) => n.inEmails)
       .map((n) => ({ title: n.title, text: n.text, ...(n.link && { url: n.link.url }) })),
@@ -257,6 +258,7 @@ export function assertEvent(event: SiteEvent, seen: string[] = []): void {
   };
   event.description?.forEach(checkRich);
   event.timeline.forEach((item) => item.notes?.forEach(checkRich));
+  event.info.forEach((block) => block.text !== undefined && checkRich(block.text)); // E8, I-093
   event.credits?.items.forEach((c, i) => {
     if (!c.url.startsWith('https://')) throw new Error(`event "${slug}": link "${c.url}" must be https`);
     for (const field of ['name', 'role', 'image'] as const) {

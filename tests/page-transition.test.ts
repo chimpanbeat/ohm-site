@@ -57,7 +57,7 @@ test('dist: script inventory per page', { skip }, () => {
     'book.html': 3,
     'client-policies.html': 1,
     'hello.html': 1,
-    'launch-party.html': 1, // E2: the RSVP client (rsvp.ts)
+    'events/launch-party.html': 1, // E2: the RSVP client (rsvp.ts); E8: under /events; the /launch-party redirect page has none
     'book/central.html': 1,
     'book/midnorth.html': 1,
     'book/north.html': 1,

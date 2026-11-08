@@ -57,6 +57,9 @@ const context = (text, idx, len) => text.slice(Math.max(0, idx - 30), idx + len 
 
 const count = (text, needle) => text.split(needle).length - 1;
 const isHello = (rel) => /(?:^|\/)hello(?:\/index)?\.html$/.test(rel);
+// E8, I-092: a redirect page (Astro's meta-refresh page for /launch-party) has no content of its own, so it carries no
+// credential. Every content page has a <main>, so a refresh on a content page doesn't exempt it.
+const isRedirect = (raw) => /<meta\b[^>]*\bhttp-equiv="refresh"/i.test(raw) && !/<main\b/i.test(raw);
 
 let failed = false;
 const fail = (msg) => {
@@ -78,7 +81,7 @@ for (const file of walk(DIST)) {
   if (!LICENSED) {
     const g = new RegExp(FORBIDDEN.source, 'gi');
     for (const m of text.matchAll(g)) fail(`${rel}: "${m[0]}" ... ${context(text, m.index, m[0].length)}`);
-  } else if (!isHello(rel)) {
+  } else if (!isHello(rel) && !isRedirect(raw)) {
     if (!text.includes(CREDENTIAL)) fail(`${rel}: missing the credential "${CREDENTIAL}"`);
     if (!text.includes(LICENSED_IN)) fail(`${rel}: missing "${LICENSED_IN}"`);
     if (!raw.includes(verifyHref)) fail(`${rel}: missing the ${verifyHref} link`);

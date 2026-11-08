@@ -7,10 +7,13 @@
 // resized; JohnMark's source has a white background, which `key: 'white'` turns into alpha at full resolution
 // (after the crop, before the resize, so the edges are anti-aliased against nothing).
 import sharp from 'sharp';
-import { existsSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 
 const OUT = 'src/assets/events/launch-party';
 const HEIGHT = 112;
+// The placeholder tile's colour is --green-300, read from tokens.css so the hex stays in one place.
+const GREEN_300 = readFileSync('src/styles/tokens.css', 'utf8').match(/--green-300:\s*(#[0-9a-f]{6})/i)?.[1];
+if (!GREEN_300) throw new Error('--green-300 not found in src/styles/tokens.css');
 
 // extract = { left, top, width, height } in the input's pixels; absent: the whole image.
 const JOBS = [
@@ -28,6 +31,12 @@ const JOBS = [
     square: true,
     jpeg: true,
   },
+  // I-089/I-090 (E8): John Marshall's photo comes from Marea's reviewer page (db collection `checks`, doc `photo-john`, field
+  // `asset`). Until it is there this is a plain --green-300 tile. TODO(I-090): when the photo arrives, save it as
+  // brief/launch_party_graphics/john_photo.<ext> (gitignored), replace this job with
+  //   { out: 'john-thumb.jpg', input: <that path>, extract: <a square face crop>, square: true, jpeg: true }
+  // run `npm run event-images` and keep only the new john-thumb.jpg.
+  { out: 'john-thumb.jpg', placeholder: true, jpeg: true },
   {
     out: 'cityrock-logo.png',
     input: 'brief/launch_party_graphics/cityrock_logo.avif', // 7559x4571 RGBA, already transparent
@@ -42,7 +51,7 @@ const JOBS = [
 ];
 
 for (const job of JOBS) {
-  if (!existsSync(job.input)) {
+  if (!job.placeholder && !existsSync(job.input)) {
     console.error(`event-images: missing input ${job.input} (brief/ is gitignored; copy it from Brian's folder)`);
     process.exit(1);
   }
@@ -64,7 +73,9 @@ async function keyWhite(img) {
 }
 
 for (const job of JOBS) {
-  let img = sharp(job.input);
+  let img = job.placeholder
+    ? sharp({ create: { width: HEIGHT, height: HEIGHT, channels: 3, background: GREEN_300 } })
+    : sharp(job.input);
   if (job.extract) img = img.extract(job.extract);
   if (job.key === 'white') img = await keyWhite(img);
   img = job.square ? img.resize(HEIGHT, HEIGHT) : img.resize({ height: HEIGHT });

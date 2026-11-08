@@ -78,6 +78,18 @@ test('licensed: hello pages need no credential', () => {
   assert.equal(run(t, true).status, 0);
 });
 
+test('licensed: a redirect page (meta refresh, no main) needs no credential; a content page with a refresh still does (E8)', () => {
+  const t = good();
+  t['launch-party.html'] =
+    '<!doctype html><title>Redirecting to: /events/launch-party</title><meta http-equiv="refresh" content="0;url=/events/launch-party"><meta name="robots" content="noindex"><body><a href="/events/launch-party">Redirecting</a></body>';
+  assert.equal(run(t, true).status, 0);
+  const bad = good();
+  bad['services.html'] = page(0, '<meta http-equiv="refresh" content="300">');
+  const r = run(bad, true);
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /services\.html: missing the credential/);
+});
+
 test('either state: JSON-LD hasCredential or identifier fails', () => {
   for (const key of ['hasCredential', 'identifier']) {
     const t = good();

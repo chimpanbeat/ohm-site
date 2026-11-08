@@ -1,5 +1,6 @@
 ---
 import type { InfoBlock } from '../../data/events.ts';
+import EventRich from './EventRich.astro';
 
 interface Props {
   block: InfoBlock;
@@ -10,7 +11,13 @@ const { block } = Astro.props;
 
 <div class="event-info" id={block.id}>
   <h3>{block.title}</h3>
-  {block.text && <p>{block.text}</p>}
+  {
+    block.text && (
+      <p>
+        <EventRich text={block.text} />
+      </p>
+    )
+  }
   {
     block.items && (
       <ul>
