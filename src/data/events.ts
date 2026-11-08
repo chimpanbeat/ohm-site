@@ -310,6 +310,9 @@ export const rsvpText = {
   cheerCant: "Sorry you can't make it!", // E9, I-103 (Brian, verbatim)
   cheerMaybeEmoji: '🤞', // E9, I-105 (Brian; decorative)
   cheerCantEmoji: '🥲', // E9, I-105 (Brian; decorative)
+  countdownDays: 'In {n} days', // E10, I-101 (Brian, Nov 8; n >= 2)
+  countdownTomorrow: 'Tomorrow', // E10, I-101 (Brian)
+  countdownToday: 'Today!', // E10, I-101 (Brian; the event's day until it ends)
 } as const;
 
 export type RsvpTextKey = keyof typeof rsvpText;

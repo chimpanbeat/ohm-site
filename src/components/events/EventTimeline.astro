@@ -8,13 +8,16 @@ interface Props {
 }
 
 const { event } = Astro.props;
+// E10 (I-100): each item's end is its own `end`, else the next item's start, else the event's end. Client script 6
+// marks the item with start <= now < end.
+const endOf = (i: number) => event.timeline[i].end ?? event.timeline[i + 1]?.start ?? event.end;
 ---
 
 <h2>{eventHeadings.schedule}</h2>
 <ol class="timeline">
   {
-    event.timeline.map((item) => (
-      <li class:list={['timeline__item', { 'timeline__item--optional': item.optional }]}>
+    event.timeline.map((item, i) => (
+      <li class:list={['timeline__item', { 'timeline__item--optional': item.optional }]} data-start={item.start} data-end={endOf(i)}>
         <time class="timeline__time" datetime={item.start}>
           {timeLabel(item.start, item.end, event.timeZone, 'auto')}
         </time>
@@ -36,14 +39,16 @@ const { event } = Astro.props;
 </ol>
 
 <style>
-  /* A 2px rule with a 10px square marker per item; an optional item's marker is hollow. */
+  /* A round 10px dot per item (E10, I-100; round dots are the one exception to the 2px radius, §A3) and a 2px segment
+     from each dot to the next, so the line is dashed only into the optional item; an optional item's dot is hollow.
+     The current item (set by client script 6) has a larger dot with a soft ring. No motion. */
   .timeline {
     list-style: none;
     margin: var(--s-6) 0 0 5px;
     padding: 0 0 0 var(--s-6);
-    border-left: 2px solid var(--line-light);
   }
   .timeline__item {
+    --dot-top: 0.45rem;
     position: relative;
   }
   .timeline__item + .timeline__item {
@@ -52,16 +57,39 @@ const { event } = Astro.props;
   .timeline__item::before {
     content: '';
     position: absolute;
-    top: 0.45rem;
-    left: calc(-1 * var(--s-6) - 6px);
+    z-index: 1;
+    top: var(--dot-top);
+    left: calc(-1 * var(--s-6) - 5px);
     width: 10px;
     height: 10px;
     background: var(--accent);
     border: 2px solid var(--accent);
+    border-radius: 50%;
     box-sizing: border-box;
   }
   .timeline__item--optional::before {
     background: var(--bg-light);
+  }
+  .timeline__item::after {
+    content: '';
+    position: absolute;
+    top: calc(var(--dot-top) + 5px);
+    bottom: calc(-1 * var(--s-6) - var(--dot-top) - 5px);
+    left: calc(-1 * var(--s-6) - 1px);
+    border-left: 2px solid var(--line-light);
+  }
+  .timeline__item:last-child::after {
+    display: none;
+  }
+  .timeline__item:has(+ .timeline__item--optional)::after {
+    border-left-style: dashed;
+  }
+  .timeline__item--now::before {
+    top: calc(var(--dot-top) - 2px);
+    left: calc(-1 * var(--s-6) - 7px);
+    width: 14px;
+    height: 14px;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 30%, transparent);
   }
   .timeline__time {
     display: block;
@@ -81,8 +109,8 @@ const { event } = Astro.props;
       grid-template-columns: 9rem 1fr;
       column-gap: var(--s-4);
     }
-    .timeline__item::before {
-      top: 0.5rem;
+    .timeline__item {
+      --dot-top: 0.5rem;
     }
   }
 </style>

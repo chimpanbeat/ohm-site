@@ -435,7 +435,7 @@ Each event's strings live in its entry in `src/data/events.ts`; the RSVP strings
 **Hero** (green)
 - **H1** (`heading`, E4, Marea): `A Celebration of Self-Care` (visible; was `Ohm Launch Party: A Celebration of Self-Care`)
 - **When:** `{dateLabel} · {timeLabel}` → `Sunday, Nov 22, 2026 · 2:00–6:00 pm`
-- **Countdown** (E10, I-101; under When, JS only, computed in the browser in the event's time zone; wording approved by Brian, Nov 8, 2026): `countdownDays` `In {n} days` (n ≥ 2) · `countdownTomorrow` `Tomorrow` · `countdownToday` `Today!` (the event's day, until it ends) · nothing once the event has ended (→ RSVP text changes in E10)
+- **Countdown** (E10, I-101; under When, JS only, computed in the browser in the event's time zone; wording approved by Brian, Nov 8, 2026): `countdownDays` `In {n} days` (n ≥ 2) · `countdownTomorrow` `Tomorrow` · `countdownToday` `Today!` (the event's day, until it ends) · nothing once the event has ended (→ RSVP text table)
 - **Where** (`venue.name`, `venue.address`; one link to Google Maps): `CityROCK, 21 N Nevada Ave, Colorado Springs, CO 80903`
 - **Buttons:** `RSVP` · `Add to calendar`
 - Header graphic: `alt` = `graphics.alt` (E4; the H1 no longer carries the words).
@@ -577,13 +577,6 @@ Brian's Partiful description with Marea's edits on P1 (`650 hours`, Brian confir
 | `cheerCant` | `Sorry you can't make it!` (E9, I-103, Brian, verbatim; Can't go) |
 | `cheerMaybeEmoji` | `🤞` (E9, I-105, Brian; U+1F91E, after `cheerMaybe`, decorative: `aria-hidden`) |
 | `cheerCantEmoji` | `🥲` (E9, I-105, Brian; U+1F972, after `cheerCant`, decorative: `aria-hidden`). Going has no emoji (it gets the confetti, I-099) |
-
-### RSVP text changes in E10 (Nov 8, 2026; I-101)
-
-`tests/events.test.ts` 1c compares the table above with `rsvpText`, so these rows wait here: E10 moves the three countdown rows into that table in the same change that edits `rsvpText` (E9 moved its rows on Nov 8). Same format, words verbatim.
-
-| Key | Text |
-|---|---|
 | `countdownDays` | `In {n} days` (E10, I-101, Brian, Nov 8; n ≥ 2; under the hero date) |
 | `countdownTomorrow` | `Tomorrow` (E10, I-101, Brian) |
 | `countdownToday` | `Today!` (E10, I-101, Brian; the event's day until it ends; after that the line is empty) |

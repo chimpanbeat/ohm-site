@@ -183,9 +183,45 @@ function start(form: HTMLFormElement): void {
   form.addEventListener('input', clearOnEdit);
   form.addEventListener('change', clearOnEdit);
 
+  // ---- The floating RSVP bar (E10, I-097): visible only while RSVPs are open, there is no result, and the #rsvp section
+  // is entirely below the viewport. It hides while the section is on screen and after it, so it never covers the notice,
+  // the credits or the footer. Without JS it stays `hidden`. Nothing is stored and the URL does not change.
+  const bar = document.querySelector<HTMLElement>('.rsvp-bar');
+  const section = document.getElementById('rsvp');
+  let sectionBelow = false;
+  let barOff = false; // closed, or a result is showing
+  const syncBar = () => {
+    const hide = barOff || !sectionBelow;
+    if (bar && bar.hidden !== hide) bar.hidden = hide;
+  };
+  if (bar && section && 'IntersectionObserver' in window) {
+    // The observer fires when the section enters or leaves the viewport; a jump from above to below it (an anchor, a
+    // fast scroll, End) crosses nothing, so a passive scroll check measures it too (one rect read; `hidden` is only
+    // written when it changes).
+    const measure = () => {
+      sectionBelow = section.getBoundingClientRect().top >= window.innerHeight;
+      syncBar();
+    };
+    new IntersectionObserver(measure).observe(section);
+    window.addEventListener('scroll', measure, { passive: true });
+    measure();
+    bar.addEventListener('click', (e) => {
+      const button = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-status]');
+      if (!button) return;
+      const radio = form.querySelector<HTMLInputElement>(`input[name="status"][value="${button.dataset.status ?? ''}"]`);
+      if (!radio) return;
+      radio.checked = true;
+      radio.dispatchEvent(new Event('change', { bubbles: true })); // so Can't go hides the session question and guests
+      section.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'start' });
+      form.querySelector<HTMLInputElement>('#rsvp-name')?.focus({ preventScroll: true });
+    });
+  }
+
   // ---- Show the state.
   let resultShown = false;
   const render = (s: RsvpState) => {
+    barOff = s.closed || s.result !== null;
+    syncBar();
     spots.hidden = !s.spots;
     spots.textContent = s.spots ?? '';
     closed.hidden = !s.closed;

@@ -500,9 +500,9 @@ test('9b. built page: hero, timeline, links, notice', { skip: skipBuilt }, () =>
   assert.ok(!body.includes('Your host'), 'the host section is gone (E4)');
   assert.ok(body.includes(party.notices[0].text));
   assert.equal([...html.matchAll(/<form\b/g)].length, 1, 'the RSVP form (E2)');
-  // E2: JSON-LD plus the one RSVP client script (rsvp.test.ts counts it).
+  // E2: JSON-LD plus the RSVP client script; E10 adds client script 6 (event.ts).
   const scripts = [...html.matchAll(/<script\b([^>]*)>/g)].filter((m) => !/application\/ld\+json/.test(m[1]));
-  assert.equal(scripts.length, 1, 'one non-JSON-LD script');
+  assert.equal(scripts.length, 2, 'two non-JSON-LD scripts');
 });
 
 test('9c. built page: header alt, description, section order (E4)', { skip: skipBuilt }, () => {
@@ -782,4 +782,93 @@ test('E8-6. deploy.yml: the three Nov 22 runs, the year guard, the usual trigger
   assert.equal(decide('schedule', '2027'), 'go=false');
   assert.equal(decide('push', '2027'), 'go=true');
   assert.equal(decide('workflow_dispatch', '2027'), 'go=true');
+});
+
+// ---- E10 (I-097, I-098, I-100, I-101, I-102): the floating RSVP bar, entrance, timeline, countdown, credit lift.
+const src = (p: string) => readFileSync(join(root, p), 'utf8');
+
+test('E10-3a. dist: the RSVP bar sits hidden after the hero and before #rsvp, three buttons with the existing labels', { skip: skipBuilt }, () => {
+  const html = page();
+  const bars = html.match(/<div\b[^>]*class="[^"]*\brsvp-bar\b[^"]*"[^>]*>/g) ?? [];
+  assert.equal(bars.length, 1, 'one bar');
+  const open = bars[0];
+  assert.match(open, /\bhidden\b/);
+  assert.equal(attr(open, 'role'), 'group');
+  assert.equal(attr(open, 'aria-label'), rsvpText.status);
+  const iBar = html.indexOf(open);
+  const bar = html.slice(iBar, html.indexOf('</div>', iBar));
+  const buttons = [...bar.matchAll(/<button\b([^>]*)>([\s\S]*?)<\/button>/g)];
+  assert.deepEqual(
+    buttons.map((m) => [attr(m[1], 'type'), attr(m[1], 'data-status'), text(m[2])]),
+    [
+      ['button', 'going', rsvpText.going],
+      ['button', 'maybe', rsvpText.maybe],
+      ['button', 'cant', rsvpText.cant],
+    ],
+  );
+  const heroEnd = html.indexOf('</section>');
+  assert.ok(iBar > heroEnd, 'after the hero section');
+  assert.ok(iBar < html.indexOf('id="rsvp"'), 'before the RSVP section');
+});
+
+test('E10-3b. dist: every timeline item has data-start and data-end', { skip: skipBuilt }, () => {
+  const ol = page().match(/<ol\b[^>]*class="[^"]*\btimeline\b[^"]*"[\s\S]*?<\/ol>/)![0];
+  const lis = [...ol.matchAll(/<li\b([^>]*\btimeline__item\b[^>]*)>/g)].map((m) => m[1]);
+  assert.equal(lis.length, 4);
+  const starts = lis.map((l) => attr(l, 'data-start'));
+  const ends = lis.map((l) => attr(l, 'data-end'));
+  assert.ok(starts.every(Boolean) && ends.every(Boolean), 'all four carry both');
+  assert.equal(ends[0], starts[1], 'item 0 ends where item 1 starts');
+  assert.equal(ends[3], '2026-11-22T20:00:00-07:00');
+});
+
+test('E10-3c. dist: the countdown line carries the zone and the three strings (when the build is before the event ends)', { skip: skipBuilt }, () => {
+  const html = page();
+  const tag = html.match(/<p\b[^>]*class="[^"]*\bevent-countdown\b[^"]*"[^>]*>/)?.[0];
+  if (Date.now() >= Date.parse(live.end)) {
+    assert.equal(tag, undefined, 'no countdown in a build made after the event');
+    return;
+  }
+  assert.ok(tag, 'the countdown paragraph');
+  assert.equal(attr(tag, 'data-tz'), 'America/Denver');
+  const data = JSON.parse((attr(tag, 'data-text') ?? '').replace(/&quot;/g, '"').replace(/&#39;|&#x27;/g, "'").replace(/&amp;/g, '&'));
+  assert.deepEqual(data, { days: rsvpText.countdownDays, tomorrow: rsvpText.countdownTomorrow, today: rsvpText.countdownToday });
+  const p = html.slice(html.indexOf(tag), html.indexOf('</p>', html.indexOf(tag)));
+  assert.equal(text(p), '', 'the static build never shows a number');
+});
+
+test('E10-3d. dist: exactly five .rise elements, each a section container, none in the first section', { skip: skipBuilt }, () => {
+  const html = page();
+  const sections = [...html.matchAll(/<section\b[^>]*>[\s\S]*?<\/section>/g)].map((m) => m[0]);
+  const riseIn = (s: string) => [...s.matchAll(/<div\b[^>]*class="([^"]*)"/g)].filter((m) => /(^|\s)rise(\s|$)/.test(m[1]));
+  assert.equal(riseIn(html).length, 5);
+  assert.equal(riseIn(sections[0]).length, 0, 'not the hero section');
+  for (const s of sections.slice(1)) {
+    const hits = riseIn(s);
+    assert.equal(hits.length, 1, 'one per later section');
+    assert.match(hits[0][1], /\bcontainer\b/);
+  }
+});
+
+test('E10-4. source: credit lift, timeline dots and segments, bar position, client script 6 imports and requests', () => {
+  const credits = src('src/components/events/EventCredits.astro');
+  assert.match(credits, /\.credit:hover,\s*\.credit:focus-visible\s*\{[^}]*box-shadow:\s*var\(--shadow-lift\)/);
+  const motion = credits.match(/@media \(prefers-reduced-motion: no-preference\) \{([\s\S]*?)\n  \}/);
+  assert.ok(motion, 'a no-preference block');
+  assert.match(motion[1], /translate:\s*0 -2px/);
+  assert.equal((credits.match(/translate:\s*0 -2px/g) ?? []).length, 1, 'the translate is only inside the block');
+
+  const timeline = src('src/components/events/EventTimeline.astro');
+  assert.match(timeline, /border-radius:\s*50%/);
+  assert.match(timeline, /:has\(\+ \.timeline__item--optional\)[^{]*\{[^}]*dashed/);
+  assert.doesNotMatch(timeline, /\.timeline\s*\{[^}]*border-left/);
+
+  const bar = src('src/components/events/RsvpBar.astro');
+  assert.match(bar, /position:\s*fixed/);
+  assert.match(bar, /scroll-padding-bottom/);
+
+  const script = src('src/scripts/event.ts');
+  const imports = [...script.matchAll(/^import\b[^;]*?from\s+['"]([^'"]+)['"]/gm)].map((m) => m[1]);
+  assert.deepEqual(imports, ['../lib/event-time.ts']);
+  assert.doesNotMatch(script, /\bfetch\b|localStorage|sessionStorage|document\.cookie/);
 });

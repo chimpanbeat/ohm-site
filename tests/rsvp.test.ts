@@ -675,14 +675,14 @@ test('6. dist: opt-in after the guests and before the submit; privacy last; hone
   assert.equal(attr(wrap, 'aria-hidden'), 'true');
 });
 
-test('6. dist: section order, one script, the hero RSVP button', { skip: skipBuilt }, () => {
+test('6. dist: section order, two scripts, the hero RSVP button', { skip: skipBuilt }, () => {
   const h = html();
   const iRsvp = h.indexOf('id="rsvp"');
   const iNotice = h.indexOf('Important: Waiver Required');
   const iInfo = h.indexOf('What to wear');
   assert.ok(iInfo > 0 && iRsvp > iInfo && iNotice > iRsvp, 'info, then RSVP, then the notice');
   const scripts = [...h.matchAll(/<script\b([^>]*)>/gi)].filter((m) => !/ld\+json/i.test(m[1]));
-  assert.equal(scripts.length, 1);
+  assert.equal(scripts.length, 2, 'rsvp.ts and event.ts (E10)');
   const hero = h.match(/<section\b[\s\S]*?<\/section>/)![0];
   const btn = hero.match(/<a\b[^>]*\bhref="#rsvp"[^>]*>[\s\S]*?<\/a>/)![0];
   assert.match(btn, /\bbtn\b/);
@@ -887,4 +887,11 @@ test('C6. source: the tip is shown as text; outside the no-preference block the 
   const rules = [...css.matchAll(/[^{}]*\.rsvp-tip[^{}]*\{[^}]*\}/g)].map((m) => m[0]);
   assert.ok(rules.length >= 2, 'the card has CSS');
   for (const r of rules) assert.ok(!/transition|animation/.test(r), r);
+});
+
+test('E10-5. source: the floating bar uses an IntersectionObserver, a bubbling change, and focuses Name without scrolling', () => {
+  const s = readFileSync(join(root, 'src/scripts/rsvp.ts'), 'utf8');
+  assert.match(s, /new IntersectionObserver\(/);
+  assert.match(s, /new Event\('change',\s*\{\s*bubbles:\s*true\s*\}\)/);
+  assert.match(s, /#rsvp-name[\s\S]{0,300}focus\(\{\s*preventScroll:\s*true\s*\}\)/);
 });

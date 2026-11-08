@@ -1,0 +1,52 @@
+---
+// The floating RSVP bar (E10, I-097; ARCHITECTURE §B10 E8–E11): Going / Maybe / Can't go pinned to the bottom of the
+// screen. Hidden until src/scripts/rsvp.ts shows it (RSVPs open, no result, the #rsvp section below the viewport), so
+// it stays hidden without JS. The labels are rsvpText's; no new copy. No motion.
+import { rsvpText as t, type SiteEvent } from '../../data/events.ts';
+
+interface Props {
+  event: SiteEvent;
+}
+
+const { event } = Astro.props;
+const statuses = ['going', 'maybe', 'cant'] as const;
+---
+
+{
+  event.rsvp && (
+    <div class="rsvp-bar" role="group" aria-label={t.status} hidden>
+      {statuses.map((v) => (
+        <button type="button" class="btn rsvp-bar__btn" data-status={v}>
+          {t[v]}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+<style is:global>
+  .rsvp-bar {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 50; /* under the skip link's 100 */
+    display: flex;
+    justify-content: center;
+    gap: var(--s-3);
+    padding: var(--s-3) var(--gutter) max(var(--s-3), env(safe-area-inset-bottom));
+    background: var(--bg-dark);
+    border-top: 1px solid var(--green-300);
+  }
+  .rsvp-bar[hidden] {
+    display: none;
+  }
+  .rsvp-bar__btn {
+    flex: 1;
+    max-width: 12rem;
+    padding-inline: var(--s-3);
+  }
+  /* Focus never lands under the bar (WCAG 2.4.11) */
+  html:has(.rsvp-bar:not([hidden])) {
+    scroll-padding-bottom: 5rem;
+  }
+</style>

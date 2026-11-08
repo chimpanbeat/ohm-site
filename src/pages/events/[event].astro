@@ -7,6 +7,7 @@ import EventInfo from '../../components/events/EventInfo.astro';
 import EventNotice from '../../components/events/EventNotice.astro';
 import EventCredits from '../../components/events/EventCredits.astro';
 import RsvpForm from '../../components/events/RsvpForm.astro';
+import RsvpBar from '../../components/events/RsvpBar.astro';
 import { events, eventHeadings } from '../../data/events.ts';
 import { site } from '../../data/site.ts';
 import { dateLabel, eventPaths, timeLabel } from '../../lib/events.ts';
@@ -34,8 +35,11 @@ const description = `${dateLabel(event.start, event.timeZone)}, ${timeLabel(even
     </div>
   </section>
 
+  <RsvpBar event={event} />
+
+  <!-- E10 (I-098, fifteenth exception): the entrance class `rise` on each later section's container, never the hero's -->
   <section class="section band-light">
-    <div class="container">
+    <div class="container rise">
       <EventDescription event={event} />
       <EventTimeline event={event} />
     </div>
@@ -44,7 +48,7 @@ const description = `${dateLabel(event.start, event.timeZone)}, ${timeLabel(even
   {
     event.info.length > 0 && (
       <section class="section">
-        <div class="container">
+        <div class="container rise">
           <h2>{eventHeadings.details}</h2>
           {event.info.map((block) => (
             <EventInfo block={block} />
@@ -57,7 +61,7 @@ const description = `${dateLabel(event.start, event.timeZone)}, ${timeLabel(even
   {
     event.rsvp && (
       <section class="section band-light" id="rsvp">
-        <div class="container">
+        <div class="container rise">
           <RsvpForm event={event} />
         </div>
       </section>
@@ -67,7 +71,7 @@ const description = `${dateLabel(event.start, event.timeZone)}, ${timeLabel(even
   {
     event.notices.length > 0 && (
       <section class="section">
-        <div class="container">
+        <div class="container rise">
           {event.notices.map((notice) => (
             <EventNotice notice={notice} />
           ))}
@@ -79,10 +83,14 @@ const description = `${dateLabel(event.start, event.timeZone)}, ${timeLabel(even
   {
     event.credits && (
       <section class="section band-light">
-        <div class="container">
+        <div class="container rise">
           <EventCredits event={event} />
         </div>
       </section>
     )
   }
 </Base>
+
+<script>
+  import '../../scripts/event.ts';
+</script>

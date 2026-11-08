@@ -79,8 +79,8 @@ function htmlFiles(dir: string): string[] {
   );
 }
 
-test('dist: fourteen items, 3 on Home, 5 on About, 2 on Pricing, 4 on Services, none elsewhere', { skip }, () => {
-  const want: Record<string, number> = { 'index.html': 3, 'about.html': 5, 'pricing.html': 2, 'services.html': 4 };
+test('dist: nineteen items, 3 on Home, 5 on About, 2 on Pricing, 4 on Services, 5 on the launch party (E10), none elsewhere', { skip }, () => {
+  const want: Record<string, number> = { 'index.html': 3, 'about.html': 5, 'pricing.html': 2, 'services.html': 4, 'events/launch-party.html': 5 };
   const files = htmlFiles(dist);
   assert.ok(files.includes('index.html'));
   for (const f of files) {

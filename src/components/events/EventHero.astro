@@ -11,6 +11,8 @@ interface Props {
 
 const { event } = Astro.props;
 const tz = event.timeZone;
+// E10 (I-101): the countdown line exists only in a build made before the event ends; client script 6 fills it.
+const showCountdown = Date.now() < Date.parse(event.end);
 const wide = eventAsset(event.graphics.wide);
 const narrow = eventAsset(event.graphics.narrow);
 
@@ -46,6 +48,17 @@ const narrowSizes = `(min-width: 30rem) ${narrow.width}px, 100vw`;
 <p class="event-when">
   <time datetime={event.start}>{dateLabel(event.start, tz)}</time> · {timeLabel(event.start, event.end, tz, 'always')}
 </p>
+{
+  showCountdown && (
+    <p
+      class="event-countdown"
+      data-start={event.start}
+      data-end={event.end}
+      data-tz={tz}
+      data-text={JSON.stringify({ days: rsvpText.countdownDays, tomorrow: rsvpText.countdownTomorrow, today: rsvpText.countdownToday })}
+    />
+  )
+}
 <p class="event-where">
   <a href={mapsUrl(event.venue)} target="_blank" rel="noopener">{event.venue.name}, {event.venue.address}</a>
 </p>
@@ -68,6 +81,12 @@ const narrowSizes = `(min-width: 30rem) ${narrow.width}px, 100vw`;
   }
   .event-when {
     font-size: 1.25rem;
+    font-weight: 600;
+  }
+  /* One line tall even when empty, so filling it shifts nothing (CLS 0) */
+  .event-countdown {
+    margin-top: var(--s-2);
+    min-height: calc(1em * var(--lh-body));
     font-weight: 600;
   }
   .event-where {

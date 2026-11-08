@@ -51,8 +51,24 @@ const { credits } = Astro.props.event;
     grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
     gap: var(--s-6);
   }
+  /* E10 (I-102, fourteenth exception): a lift and shadow on hover and keyboard focus. The padding and the equal negative
+     margin leave the layout as it was; the shadow shows with reduced motion, only the 2px movement does not. */
   .credit {
     display: block;
+    padding: var(--s-2);
+    margin: calc(-1 * var(--s-2));
+    border-radius: var(--radius);
+    transition: translate var(--transition), box-shadow var(--transition);
+  }
+  .credit:hover,
+  .credit:focus-visible {
+    box-shadow: var(--shadow-lift);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .credit:hover,
+    .credit:focus-visible {
+      translate: 0 -2px;
+    }
   }
   .credit :global(img) {
     display: block;
