@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Secrets scan (check:secrets): credential files, keys, tokens and real email addresses in tracked files and in
+// Secrets scan (check:secrets): credential files, keys, tokens, real email addresses and (E13) phone numbers in tracked files and in
 // untracked files that aren't gitignored. Prints file:line and the kind of finding, never the value.
 // A line containing "secrets-scan: allow" is skipped (e.g. a public business contact address); the reviewer sees it.
 // Usage: node tools/check-secrets.mjs   (run from the repo root; exit 1 on any finding)
@@ -33,6 +33,12 @@ const patterns = [
 ];
 const email = /\b[A-Za-z0-9._%+-]+@([A-Za-z0-9-]+\.)+[A-Za-z]{2,}\b/g;
 const fakeDomain = /(^|\.)(example\.(com|org|net)|test|example|invalid|localhost|users\.noreply\.github\.com)$/i;
+// E13: phone numbers. Brian's and the event host's are Script Properties of the RSVP script, never in the repo (the site
+// shows no phone, Brian, Oct 6 2026). US numbers with separators (719-555-0100, (719) 555-0100, 719.555.0100,
+// +1 719 555 0100) and tel:/sms: links with digits. The fictional 555-0100 to 555-0199 range is allowed: tests use it.
+const phone = /(?<![\w.+-])(?:\+?1[\s.-]?)?\(?[2-9]\d{2}\)?[\s.-]?\d{3}[\s.-]\d{4}(?![\w-])/g;
+const phoneLink = /\b(?:tel|sms):\+?[\d().\s-]{7,}/gi;
+const fakePhone = (s) => /55501\d\d$/.test(s.replace(/\D/g, ''));
 
 const findings = [];
 let scanned = 0;
@@ -55,6 +61,9 @@ for (const file of files) {
     for (const [re, kind] of patterns) if (re.test(line)) findings.push(`${file}:${i + 1}: ${kind}`);
     for (const m of line.matchAll(email)) {
       if (!fakeDomain.test(m[0].split('@')[1])) findings.push(`${file}:${i + 1}: email address`);
+    }
+    for (const re of [phone, phoneLink]) {
+      for (const m of line.matchAll(re)) if (!fakePhone(m[0])) findings.push(`${file}:${i + 1}: phone number`);
     }
   });
 }

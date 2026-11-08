@@ -8,6 +8,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { site } from '../src/data/site.ts';
+import { w } from '../src/data/wording.ts';
 import { events, rsvpText } from '../src/data/events.ts';
 import { feedFor } from '../src/lib/events.ts';
 import { fill, words, outcomeLine } from '../src/lib/rsvp.ts';
@@ -21,6 +22,8 @@ const SLUG = party.slug;
 const SHEET_ID = 'fake-sheet-id-0123456789abcdef';
 const TIPS_ID = 'fake-tips-id-0123456789';
 const EXEC = 'https://exec.example.com/macros/exec';
+const SIG_PHONE = '719-555-0100'; // E13: fictional (555-0100 to 555-0199); check:secrets allows the range
+const HOST_NUM = '719-555-0123';
 const HOUR = 3_600_000;
 const MIN = 60_000;
 const CLOCK0 = Date.parse('2026-11-10T12:00:00-07:00');
@@ -101,7 +104,8 @@ function makeEnv(tweak?: (feed: any) => void) {
   const mails: Record<string, string>[] = [];
   const sheets = new Map<string, FakeSheet>();
   const cacheStore = new Map<string, { v: string; exp: number }>();
-  const props: Record<string, string> = { SHEET_ID, TIPS_SHEET_ID: TIPS_ID };
+  // E13: both phone properties set by default, with fictional 555-01xx numbers (never a real one in the repo)
+  const props: Record<string, string> = { SHEET_ID, TIPS_SHEET_ID: TIPS_ID, SIGNATURE_PHONE: SIG_PHONE, HOST_PHONE: HOST_NUM };
   const triggers: any[] = [];
   const logger: string[] = [];
   const jsonReplies: string[] = [];
@@ -353,28 +357,48 @@ function change(env: Env, stored: string, p: P): string {
 // ---- Expected email text, built from the copy deck's layout (§Emails) --------------------------------------------
 
 const T = rsvpText as Record<string, string>;
-const vars = (f: Feed) => ({ title: f.title, dateLabel: f.dateLabel, timeLabel: f.timeLabel, venue: f.venue.name, address: f.venue.address, icsUrl: f.icsUrl, pageUrl: f.pageUrl, siteName: f.sender.name });
+const vars = (f: Feed) => ({ title: f.title, eventName: f.mail.name, thanks: f.mail.thanks, dateLabel: f.dateLabel, timeLabel: f.timeLabel, venue: f.venue.name, address: f.venue.address, icsUrl: f.icsUrl, pageUrl: f.pageUrl });
 const OUT_KEY: Record<string, string> = { confirmed: 'confirmed', waitlist: 'waitlist', full: 'full', maybe: 'maybe', no: 'no' };
 const noticeBlocks = (f: Feed) => f.notices.map((n: any) => [n.title, n.text, n.url].filter(Boolean).join('\n'));
-function expectConfirm(f: Feed, name: string, status: 'going' | 'maybe', people: [string, string][], opts: { waitlist?: boolean; maybe?: boolean } = {}): string {
+// E13: the session answer each cell gives in the confirmation (a Maybe holds no spot: No)
+const ANSWER: Record<string, string> = { confirmed: T.yes, waitlist: T.sessionWaitlist, full: T.no, no: T.no, maybe: T.no };
+/** E13: the plain-text signature, from the feed and the env's SIGNATURE_PHONE as it is now. */
+function expectSig(env: Env): string {
+  const s = env.feed.signature;
+  const phone = env.props.SIGNATURE_PHONE;
+  return [`${s.name}${s.credentials ? `, ${s.credentials}` : ''}`, s.business, phone ? `${phone} • ${s.label}` : s.label].join('\n');
+}
+const bookBlock = (f: Feed) => [T.bookHead, fill(T.bookLine, { link: T.bookLink }), f.bookUrl].join('\n');
+const hostLine = (env: Env) => (env.props.HOST_PHONE ? fill(T.questionsHost, { host: env.feed.mail.host, hostPhone: env.props.HOST_PHONE }) : T.questions);
+/** E13: people = [name, cell], you first. */
+function expectConfirm(env: Env, name: string, status: 'going' | 'maybe', people: [string, string][], opts: { waitlist?: boolean } = {}): string {
+  const f = env.feed;
   const v = vars(f);
-  const lines = people.map(([n, o]) => `- ${outcomeLine(T, 'Yoga', n, OUT_KEY[o] as any)}`);
-  if (opts.waitlist) lines.push(T.waitlistNote);
-  if (opts.maybe) lines.push(fill(T.maybeNote, words('Yoga')));
+  const details = [T.detailsHead];
+  people.forEach(([n, cell], i) => {
+    details.push(i === 0 ? fill(T.yourRsvp, { status: T[status] }) : fill(T.guestRsvp, { name: n, status: T[status] }));
+    if (f.session) details.push(fill(T.sessionAnswer, { Session: 'Yoga', answer: ANSWER[cell] }));
+  });
+  if (opts.waitlist) details.push(T.waitlistNote);
   return [
     fill(T.hi, { name }),
-    fill(T.confirmLead, { ...v, status: T[status] }),
+    fill(T.confirmLead, v).trim(),
+    details.join('\n'),
+    [T.changeLine, f.pageUrl].join('\n'),
     [fill(T.when, v), fill(T.where, v)].join('\n'),
-    lines.length ? lines.join('\n') : '',
+    fill(T.calendarLine, v),
     ...noticeBlocks(f),
-    [fill(T.calendarLine, v), fill(T.detailsLine, v)].join('\n'),
-    T.changeLine,
-    fill(T.signoff, v),
-  ]
-    .filter(Boolean)
-    .join('\n\n');
+    bookBlock(f),
+    hostLine(env),
+    T.seeYou,
+    expectSig(env),
+  ].join('\n\n');
 }
-function expectReminder(f: Feed, name: string, people: [string, string][], maybe = false): string {
+function expectCant(env: Env, name: string): string {
+  return [fill(T.hi, { name }), [fill(T.cantLead, vars(env.feed)), env.feed.pageUrl].join('\n'), bookBlock(env.feed), expectSig(env)].join('\n\n');
+}
+function expectReminder(env: Env, name: string, people: [string, string][], maybe = false): string {
+  const f = env.feed;
   const v = vars(f);
   const lines = people.map(([n, o]) => `- ${outcomeLine(T, 'Yoga', n, OUT_KEY[o] as any)}`);
   if (maybe) lines.push(fill(T.maybeNote, words('Yoga')));
@@ -386,7 +410,7 @@ function expectReminder(f: Feed, name: string, people: [string, string][], maybe
     lines.join('\n'),
     ...noticeBlocks(f),
     [fill(T.detailsLine, v), fill(T.calendarLine, v)].join('\n'),
-    fill(T.signoff, v),
+    expectSig(env),
   ]
     .filter(Boolean)
     .join('\n\n');
@@ -583,7 +607,9 @@ test('6. change confirm page, apply, single use, expiry, closing', () => {
   assert.equal(env.status().session.spotsLeft, 20, 'GET +2');
   const conf = env.mails[env.mails.length - 1];
   assert.equal(env.mails.length, mailsBefore + 1);
-  assert.ok(conf.body.includes(fill(T.maybeNote, words('Yoga'))), 'the maybe confirmation has maybeNote');
+  // E13: the Maybe confirmation shows every person's yoga as No and drops maybeNote (the change line says how)
+  assert.equal(conf.body, expectConfirm(env, 'Alex R', 'maybe', [['Alex R', 'maybe'], ['Sam', 'maybe']]));
+  assert.ok(!conf.body.includes(fill(T.maybeNote, words('Yoga'))), 'no maybeNote in the confirmation');
 
   assert.ok(env.applyChange(token).includes(T.changeExpired), 'the same token again');
 
@@ -642,6 +668,7 @@ test('7. change assignment: keep, renamed, maybe to going, going to cant, spot-f
   assert.equal(freed[0].subject, fill(T.spotFreedSubject, { session: 'yoga', title: env.feed.title }));
   assert.equal(freed[0].body, [fill(T.spotFreedText, { session: 'yoga', n: 1 }), fill(T.detailsLine, vars(env.feed))].join('\n\n'));
   assert.ok(!/Ann|Bea|Cyrus|@/.test(freed[0].body), 'no guest name or email in it');
+  assert.equal(freed[0].htmlBody, undefined, 'E13: the spot-freed note stays plain text, unsigned');
   assert.deepStrictEqual(env.status().session, { spotsLeft: 0, full: true, waitlist: true });
   assert.equal(cellOf('Dee')![COL.cell], 'waitlist', 'nobody is promoted');
 
@@ -692,7 +719,8 @@ function optinScenario(optin: boolean): Record<string, string>[] {
   change(env, 'twin@example.com', { name: 'Twin', email: 'twin@example.com', status: 'cant', optin });
   env.clock.now = REMINDER_AT + MIN;
   env.api.sendDueReminders();
-  return env.mails.map((m) => ({ ...m, body: m.body.replace(/\?change=[0-9a-f-]+/g, '?change=TOKEN') }));
+  const untoken = (s: string | undefined) => s?.replace(/\?change=[0-9a-f-]+/g, '?change=TOKEN');
+  return env.mails.map((m) => ({ ...m, body: untoken(m.body)!, htmlBody: untoken(m.htmlBody)! }));
 }
 
 test('8. opt-in: stored on the you row only, latest answer wins, never in a reply, gates no script mail', () => {
@@ -823,22 +851,22 @@ test('13. emails: going, all confirmed, can\'t go, change, a mail error still sa
   assert.equal(m.subject, fill(T.confirmSubject, { title: env.feed.title }));
   assert.equal(m.name, site.name);
   assert.equal(m.replyTo, site.eventsEmail);
-  assert.equal(m.body, expectConfirm(env.feed, 'Alex Rivera', 'going', [['Alex Rivera', 'confirmed'], ['Sam', 'waitlist']], { waitlist: true }));
+  assert.equal(m.body, expectConfirm(env, 'Alex Rivera', 'going', [['Alex Rivera', 'confirmed'], ['Sam', 'waitlist']], { waitlist: true }));
 
   const e2 = makeEnv();
   rsvp(e2, { name: 'Bo Park', email: 'bo@example.com', guests: [['Cat', 'yes']] });
   m = e2.mails[0];
-  assert.equal(m.body, expectConfirm(e2.feed, 'Bo Park', 'going', [['Bo Park', 'confirmed'], ['Cat', 'confirmed']]));
+  assert.equal(m.body, expectConfirm(e2, 'Bo Park', 'going', [['Bo Park', 'confirmed'], ['Cat', 'confirmed']]));
   assert.ok(!m.body.includes(T.waitlistNote));
 
   rsvp(e2, { name: 'Dan Lee', email: 'dan@example.com', status: 'cant' });
   m = e2.mails[1];
   assert.equal(m.subject, fill(T.cantSubject, { title: e2.feed.title }));
-  assert.equal(m.body, [fill(T.hi, { name: 'Dan Lee' }), fill(T.cantLead, vars(e2.feed)), fill(T.signoff, vars(e2.feed))].join('\n\n'));
+  assert.equal(m.body, expectCant(e2, 'Dan Lee'));
 
   rsvp(e2, { name: 'Eli Ray', email: 'eli@example.com', status: 'maybe', guests: [['Fox', 'no']] });
   m = e2.mails[2];
-  assert.equal(m.body, expectConfirm(e2.feed, 'Eli Ray', 'maybe', [['Eli Ray', 'maybe'], ['Fox', 'no']], { maybe: true }));
+  assert.equal(m.body, expectConfirm(e2, 'Eli Ray', 'maybe', [['Eli Ray', 'maybe'], ['Fox', 'no']]));
 
   // the change mail
   e2.post(params({ name: 'Nova', email: 'bo@example.com', status: 'maybe', guests: [['Cat', 'no']] }));
@@ -852,7 +880,7 @@ test('13. emails: going, all confirmed, can\'t go, change, a mail error still sa
       fill(T.changeLead, vars(e2.feed)),
       [fill(T.newAnswer, { status: T.maybe }), `- ${fill(T.answerLine, { name: 'Nova', Session: 'Yoga', answer: T.yes })}`, `- ${fill(T.answerLine, { name: 'Cat', Session: 'Yoga', answer: T.no })}`].join('\n'),
       [fill(T.changeLinkLine, { changeUrl: `${EXEC}?change=${token}` }), T.changeIgnore].join('\n'),
-      fill(T.signoff, vars(e2.feed)),
+      expectSig(e2),
     ].join('\n\n'),
   );
 
@@ -894,8 +922,8 @@ test('14. reminders: due window, one each, current cells, quota, no repeat after
   const ann = reminders.find((m) => m.to === 'ann@example.com')!;
   const bob = reminders.find((m) => m.to === 'bob@example.com')!;
   assert.equal(ann.subject, fill(T.reminderSubject, { title: env.feed.title }));
-  assert.equal(ann.body, expectReminder(env.feed, 'Ann Aldo', [['Ann Aldo', 'confirmed'], ['Gee Gold', 'confirmed']]));
-  assert.equal(bob.body, expectReminder(env.feed, 'Bob Bay', [['Bob Bay', 'maybe']], true));
+  assert.equal(ann.body, expectReminder(env, 'Ann Aldo', [['Ann Aldo', 'confirmed'], ['Gee Gold', 'confirmed']]));
+  assert.equal(bob.body, expectReminder(env, 'Bob Bay', [['Bob Bay', 'maybe']], true));
   assert.ok(ann.body.includes('Comfy cozy') && ann.body.includes('Parking') && ann.body.includes(env.feed.notices[0].title), 'wear items, parking and the waiver');
   assert.ok(env.data().filter((x) => x[COL.status] !== 'cant').every((x) => x[COL.reminder]), 'stamped');
 
@@ -1049,9 +1077,9 @@ const tipOpens = (env: Env) => env.log.filter((x) => x === 'openTips').length;
 const TIP_LINE = /^Self-care tip: (.*)$/m; // E9, I-095: "of the day" dropped
 const tipOf = (body: string): string | undefined => TIP_LINE.exec(body)?.[1];
 /** The reminder mail with one tip line just before the sign-off (what the copy deck says). */
-const withTipBlock = (f: Feed, body: string, tip: string): string => {
-  const sign = fill(T.signoff, vars(f));
-  assert.ok(body.endsWith(sign), 'the sign-off ends the mail');
+const withTipBlock = (env: Env, body: string, tip: string): string => {
+  const sign = expectSig(env); // E13: the signature replaces the sign-off
+  assert.ok(body.endsWith(sign), 'the signature ends the mail');
   return body.slice(0, body.length - sign.length) + fill(T.reminderTip, { tip }) + '\n\n' + sign;
 };
 
@@ -1141,7 +1169,7 @@ test('S4. reminders: one tip line each, just before the sign-off, no repeats unt
     assert.equal(m.body.split('\n').filter((l) => TIP_LINE.test(l)).length, 1, 'exactly one tip line');
     const i = Number(/Guest (\d)/.exec(m.body)![1]);
     const tip = tipOf(m.body)!;
-    assert.equal(m.body, withTipBlock(three.env.feed, expectReminder(three.env.feed, `Guest ${i}`, [[`Guest ${i}`, 'confirmed']]), tip));
+    assert.equal(m.body, withTipBlock(three.env, expectReminder(three.env, `Guest ${i}`, [[`Guest ${i}`, 'confirmed']]), tip));
   }
   assert.equal(new Set(used.slice(0, 3)).size, 3, `the first three are different: ${used.join(' | ')}`);
   for (const tip of ['Tip one', 'Tip two', 'Tip three']) assert.ok(used.filter((u) => u === tip).length <= 2, `${tip} used more than twice`);
@@ -1154,7 +1182,7 @@ test('S4. reminders: one tip line each, just before the sign-off, no repeats unt
   assert.equal(down.reminders.length, 5, 'the reminders still go');
   assert.ok(down.reminders.every((m) => tipOf(m.body) === undefined && !m.body.includes('Self-care')), 'no tip line when the sheet cannot be read');
   assert.ok(down.env.data().every((x) => x[COL.reminder]), 'and every row is stamped');
-  assert.equal(down.reminders[0].body, expectReminder(down.env.feed, 'Guest 0', [['Guest 0', 'confirmed']]));
+  assert.equal(down.reminders[0].body, expectReminder(down.env, 'Guest 0', [['Guest 0', 'confirmed']]));
 
   const old = remindScenario(2, ['Tip one'], (x) => { delete x.text.reminderTip; });
   assert.equal(old.reminders.length, 2);
@@ -1336,4 +1364,233 @@ test('G7. source: GmailApp.sendEmail only inside send_; no MailApp.sendEmail', (
   const end = text.indexOf('// people:', start);
   const all = [...text.matchAll(/GmailApp\.sendEmail/g)].map((m) => m.index!);
   assert.ok(all.length >= 1 && all.every((i) => i > start && i < end), 'only inside send_');
+});
+
+
+// ---- E13: Marea's email copy, HTML with a plain-text body, Brian's reply signature ---------------------------------
+
+const ORIGIN = site.deploy.site;
+const HOST_LABEL = new URL(ORIGIN).host;
+const SIG_TEXT = (phone?: string) => [w('credential'), site.name, phone ? `${phone} • ${HOST_LABEL}` : HOST_LABEL].join('\n');
+const lastMail = (env: Env, to: string) => [...env.mails].reverse().find((m) => m.to === to)!;
+
+test('E13-1. the Going confirmation is Marea\'s copy, line for line; the subject is unchanged', () => {
+  const env = makeEnv();
+  rsvp(env, { name: 'Alex Rivera', email: 'alex@example.com', guests: [['Sam', 'no']] });
+  const m = env.mails[0];
+  const waiver = party.notices[0];
+  assert.equal(m.subject, `You're on the list: ${party.title}`);
+  assert.equal(
+    m.body,
+    [
+      'Hi Alex Rivera,',
+      'Thanks for your RSVP to Ohm Launch Party. We look forward to celebrating this milestone moment with you.',
+      "Here's all the details:\nYour RSVP: Going\nYoga? Yes\nSam: Going\nYoga? No",
+      `To change your RSVP, register again on the event page with the same email address.\n${ORIGIN}/events/launch-party`,
+      `When: Sunday, Nov 22, 2026, 2:00–6:00 pm\nWhere: ${party.venue.name}, ${party.venue.address}`,
+      `Add it to your calendar: ${ORIGIN}/events/launch-party.ics`,
+      `Important: Waiver Required\n${waiver.text}\n${waiver.link!.url}`,
+      `Need to book a massage?\nBrian's site is now live! Click here to book.\n${ORIGIN}/book`,
+      `If you have any questions, reply to this email or text Maréa: ${HOST_NUM}.`,
+      'See you there!',
+      SIG_TEXT(SIG_PHONE),
+    ].join('\n\n'),
+  );
+  assert.equal(SIG_TEXT(SIG_PHONE), `Brian Clarke, LMT, CNMT\nOhm Precision Bodywork\n${SIG_PHONE} • ohmprecisionbodywork.com`);
+  assert.equal(m.body, expectConfirm(env, 'Alex Rivera', 'going', [['Alex Rivera', 'confirmed'], ['Sam', 'no']]));
+});
+
+test('E13-2. HTML: the headings bold and green, links from the feed only, names escaped, the signature table', () => {
+  const env = makeEnv();
+  rsvp(env, { name: 'Kim <b>Lee</b> & Co', email: 'kim@example.com', guests: [['https://evil.example', 'yes']] });
+  const m = env.mails[0];
+  const html = m.htmlBody;
+  assert.ok(html && html.startsWith('<div>') && html.endsWith('</div>'), 'an htmlBody beside the plain body');
+  for (const head of ["Here's all the details:", 'Important: Waiver Required', 'Need to book a massage?']) {
+    assert.ok(html.includes(`<strong style="color:#125245">${head.replace("'", '&#39;')}</strong>`), `heading ${head}`);
+  }
+  assert.ok(!m.body.includes('<strong'), 'the plain body has no markup');
+  assert.ok(html.includes(`<a href="${ORIGIN}/book">Click here to book</a>.`), 'the book link');
+  for (const url of [env.feed.pageUrl, env.feed.icsUrl, env.feed.notices[0].url]) assert.ok(html.includes(`<a href="${url}">${url}</a>`), `link ${url}`);
+  assert.ok(html.includes('Hi Kim &lt;b&gt;Lee&lt;/b&gt; &amp; Co,') && !html.includes('<b>Lee'), 'the name is escaped');
+  assert.ok(html.includes('https://evil.example: Going') && !html.includes('href="https://evil.example'), 'a name is never a link');
+  assert.ok(html.includes("<br>Yoga? Yes<br>https://evil.example: Going<br>Yoga? Yes"), 'one <br> per line');
+  // the signature: Brian's styles, regular-weight credentials, business and site linked, tel: link and bullet
+  assert.ok(html.includes('<table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,sans-serif;font-size:12px;line-height:16px;color:#125245">'));
+  assert.ok(html.includes('<td style="border-left:2px solid #C37A5B;padding-left:10px">'));
+  assert.ok(html.includes('<div style="font-weight:bold;font-size:13px;line-height:17px">Brian Clarke<span style="font-weight:normal">, LMT, CNMT</span></div>'));
+  assert.ok(html.includes(`<a href="${ORIGIN}" style="color:#125245;text-decoration:none;font-weight:bold">Ohm Precision Bodywork</a>`));
+  assert.ok(html.includes(`<a href="tel:7195550100" style="color:#125245;text-decoration:none">${SIG_PHONE}</a><span style="color:#C37A5B">&nbsp;&bull;&nbsp;</span><a href="${ORIGIN}" style="color:#125245;text-decoration:none">ohmprecisionbodywork.com</a>`));
+  assert.ok(!/<img\b/i.test(html), 'no logo or image');
+  assert.equal(m.from, site.eventsEmail, 'still from the alias');
+});
+
+test('E13-3. the signature reads SIGNATURE_PHONE at send time: set, unset, changed', () => {
+  const env = makeEnv();
+  rsvp(env, { name: 'Ann', email: 'ann@example.com' });
+  assert.ok(env.mails[0].body.endsWith(`\n\n${SIG_TEXT(SIG_PHONE)}`));
+  delete env.props.SIGNATURE_PHONE;
+  rsvp(env, { name: 'Bob', email: 'bob@example.com', status: 'cant' });
+  const bob = env.mails[1];
+  assert.ok(bob.body.endsWith(`\n\nBrian Clarke, LMT, CNMT\nOhm Precision Bodywork\n${HOST_LABEL}`), 'no phone: the site alone, no bullet');
+  assert.ok(!bob.body.includes('•') && !bob.htmlBody.includes('tel:') && !bob.htmlBody.includes('&bull;'));
+  assert.ok(bob.htmlBody.includes(`<div><a href="${ORIGIN}" style="color:#125245;text-decoration:none">${HOST_LABEL}</a></div>`));
+  env.props.SIGNATURE_PHONE = '  (719) 555-0199 ';
+  rsvp(env, { name: 'Cal', email: 'cal@example.com' });
+  const cal = env.mails[2];
+  assert.ok(cal.body.endsWith(`(719) 555-0199 • ${HOST_LABEL}`), 'trimmed, as typed');
+  assert.ok(cal.htmlBody.includes('<a href="tel:7195550199"'), 'tel: link with digits only');
+  for (const m of env.mails) assert.equal(m.body.split('\n\n').filter((b) => b.startsWith(w('credential'))).length, 1, 'one signature');
+});
+
+test('E13-4. the questions line: with HOST_PHONE and the event host, else the short line', () => {
+  const env = makeEnv();
+  rsvp(env, { name: 'Ann', email: 'ann@example.com' });
+  assert.ok(env.mails[0].body.includes(`\n\nIf you have any questions, reply to this email or text Maréa: ${HOST_NUM}.\n\nSee you there!\n\n`));
+  delete env.props.HOST_PHONE;
+  rsvp(env, { name: 'Bob', email: 'bob@example.com' });
+  assert.ok(env.mails[1].body.includes('\n\nIf you have any questions, reply to this email.\n\nSee you there!\n\n'));
+  assert.ok(!env.mails[1].body.includes('Maréa'));
+  const noHost = makeEnv((f) => {
+    f.mail.host = '';
+  });
+  rsvp(noHost, { name: 'Cy', email: 'cy@example.com' });
+  assert.ok(noHost.mails[0].body.includes(`\n\n${T.questions}\n\n`), 'no host in the event: the short line, even with HOST_PHONE');
+  assert.ok(!noHost.mails[0].body.includes(HOST_NUM));
+});
+
+test('E13-5. Maybe: every person Maybe and Yoga? No, no maybeNote, no waitlist note', () => {
+  const env = makeEnv();
+  rsvp(env, { name: 'Eli Ray', email: 'eli@example.com', status: 'maybe', guests: [['Fox', 'yes'], ['Gus', 'no']] });
+  const m = env.mails[0];
+  assert.ok(m.body.includes("Here's all the details:\nYour RSVP: Maybe\nYoga? No\nFox: Maybe\nYoga? No\nGus: Maybe\nYoga? No\n\n"));
+  assert.ok(!m.body.includes(fill(T.maybeNote, words('Yoga'))) && !m.body.includes(T.waitlistNote));
+  assert.ok(!m.body.includes('Yoga? Yes'));
+  assert.equal(m.body, expectConfirm(env, 'Eli Ray', 'maybe', [['Eli Ray', 'maybe'], ['Fox', 'maybe'], ['Gus', 'no']]));
+});
+
+test('E13-6. the yoga answer per cell: confirmed Yes, waitlist Waitlist with the note after the list, full No', () => {
+  const env = makeEnv((f) => {
+    f.session.limit = 1;
+  });
+  rsvp(env, { name: 'Ann', email: 'ann@example.com', guests: [['Bea', 'yes'], ['Cy', 'no']] });
+  assert.ok(env.mails[0].body.includes(`Your RSVP: Going\nYoga? Yes\nBea: Going\nYoga? Waitlist\nCy: Going\nYoga? No\n${T.waitlistNote}\n\n`));
+  const full = makeEnv((f) => {
+    f.session.limit = 1;
+    f.session.waitlist = false;
+  });
+  rsvp(full, { name: 'Ann', email: 'ann@example.com' });
+  rsvp(full, { name: 'Dee', email: 'dee@example.com' });
+  assert.ok(full.mails[1].body.includes("Here's all the details:\nYour RSVP: Going\nYoga? No\n\n"), 'full reads No');
+  assert.ok(!full.mails[1].body.includes(T.waitlistNote));
+});
+
+test('E13-7. an event with no session: no yoga lines', () => {
+  const env = makeEnv((f) => {
+    f.session = null;
+  });
+  rsvp(env, { name: 'Ann', email: 'ann@example.com', guests: [['Bea', 'yes']] });
+  const m = env.mails[0];
+  assert.ok(m.body.includes("Here's all the details:\nYour RSVP: Going\nBea: Going\n\n"));
+  assert.ok(!m.body.includes('Yoga?'));
+  assert.equal(m.body, expectConfirm(env, 'Ann', 'going', [['Ann', ''], ['Bea', '']]));
+});
+
+test("E13-8. Can't go: Marea's copy, the book block and the signature; subject unchanged", () => {
+  const env = makeEnv();
+  rsvp(env, { name: 'Dan Lee', email: 'dan@example.com', status: 'cant' });
+  const m = env.mails[0];
+  assert.equal(m.subject, `RSVP received: ${party.title}`);
+  assert.equal(
+    m.body,
+    [
+      'Hi Dan Lee,',
+      `Thanks for letting me know you can't make it to Ohm Launch Party. We'll miss you! If your plans change, RSVP again on the event page with this email address.\n${ORIGIN}/events/launch-party`,
+      `Need to book a massage?\nBrian's site is now live! Click here to book.\n${ORIGIN}/book`,
+      SIG_TEXT(SIG_PHONE),
+    ].join('\n\n'),
+  );
+  assert.ok(!m.body.includes('See you there') && !m.body.includes('questions'));
+  assert.ok(m.htmlBody.includes(`<a href="${ORIGIN}/book">Click here to book</a>`) && m.htmlBody.includes('border-left:2px solid #C37A5B'));
+});
+
+test('E13-9. the change email keeps its words, gains the signature, and its link still works from either body', () => {
+  const env = makeEnv();
+  rsvp(env, { name: 'Bo Park', email: 'bo@example.com' });
+  env.post(params({ name: 'Bo Park', email: 'bo@example.com', status: 'maybe' }));
+  const m = lastMail(env, 'bo@example.com');
+  const token = env.token('bo@example.com');
+  const url = `${EXEC}?change=${token}`;
+  assert.ok(m.body.includes(`To make the change, open this link and press Confirm change within 6 hours: ${url}\n${T.changeIgnore}\n\n${SIG_TEXT(SIG_PHONE)}`));
+  assert.ok(m.body.endsWith(SIG_TEXT(SIG_PHONE)) && !m.body.includes(T.seeYou) && !m.body.includes(T.bookHead));
+  assert.ok(m.htmlBody.includes(`within 6 hours: <a href="${url}">${url}</a><br>`), 'the link is a link');
+  const fromHtml = /href="[^"]*\?change=([0-9a-f-]+)"/.exec(m.htmlBody)![1];
+  assert.equal(fromHtml, token);
+  assert.ok(env.applyChange(fromHtml).includes(T.changeDoneTitle), 'the HTML link confirms the change');
+  assert.equal(env.data()[0][COL.status], 'maybe');
+});
+
+test('E13-10. the reminder keeps its content, ends with the signature, and escapes a tip in its HTML', () => {
+  const env = makeEnv();
+  setTips(env, 'Breathe <slowly> & smile');
+  rsvp(env, { name: 'Ann Aldo', email: 'ann@example.com' });
+  env.clock.now = REMINDER_AT;
+  env.api.sendDueReminders();
+  const m = lastMail(env, 'ann@example.com');
+  assert.equal(m.subject, fill(T.reminderSubject, { title: env.feed.title }));
+  assert.equal(m.body, withTipBlock(env, expectReminder(env, 'Ann Aldo', [['Ann Aldo', 'confirmed']]), 'Breathe <slowly> & smile'));
+  assert.ok(m.htmlBody.includes('Self-care tip: Breathe &lt;slowly&gt; &amp; smile') && !m.htmlBody.includes('<slowly>'));
+  assert.ok(m.htmlBody.includes(`<a href="${env.feed.pageUrl}">${env.feed.pageUrl}</a>`) && m.htmlBody.includes('<td style="border-left:2px solid #C37A5B'));
+  assert.ok(!m.htmlBody.includes('<strong'), 'the reminder keeps its plain layout: no new headings');
+});
+
+test('E13-11. setup says whether the phone properties are set, never a number', () => {
+  const env = makeEnv();
+  rsvp(env, { email: 'ann@example.com' });
+  env.api.setup();
+  assert.ok(env.logger.includes('Signature phone: set') && env.logger.includes('Host phone: set'), env.logger.join(' | '));
+  assert.ok(!env.logger.some((l) => l.startsWith('Signature for')), 'the feed has the signature');
+  const none = makeEnv((f) => {
+    delete f.signature;
+  });
+  rsvp(none, { email: 'ann@example.com' });
+  delete none.props.SIGNATURE_PHONE;
+  delete none.props.HOST_PHONE;
+  none.api.setup();
+  assert.ok(none.logger.includes('Signature phone: not set') && none.logger.includes('Host phone: not set'));
+  assert.ok(none.logger.includes('Signature for launch-party: not in the feed yet'));
+  for (const e of [env, none]) for (const l of e.logger) assert.ok(!l.includes('555') && !l.includes(SIG_PHONE) && !l.includes(HOST_NUM), `a phone number in the log: ${l}`);
+});
+
+test('E13-12. an older feed still mails; an email that cannot be built never undoes the RSVP', () => {
+  const old = makeEnv((f) => {
+    delete f.signature;
+    delete f.bookUrl;
+    delete f.mail;
+  });
+  rsvp(old, { name: 'Ann', email: 'ann@example.com', status: 'cant' });
+  const m = old.mails[0];
+  assert.ok(m.body.endsWith(`\n\n${site.name}`), 'signs with the business name, as before');
+  assert.ok(!m.body.includes(T.bookHead) && m.body.includes(`can't make it to ${party.title}.`), 'eventName falls back to the title');
+
+  const broken = makeEnv((f) => {
+    delete f.venue;
+  });
+  const r = rsvp(broken, { name: 'Bob', email: 'bob@example.com' });
+  assert.deepStrictEqual(r, { ok: true, status: 'going', outcomes: ['confirmed'] });
+  assert.equal(broken.data().length, 1, 'the row is saved');
+  assert.equal(broken.mails.length, 0);
+  assert.ok(broken.logger.includes('Mail: an email could not be built from the feed; nothing sent'));
+});
+
+test('E13-13. source: the email colours equal tokens.css; no credential, name, business, URL path or phone typed in the script', () => {
+  const css = readFileSync(join(root, 'src/styles/tokens.css'), 'utf8');
+  const token = (name: string) => new RegExp(`${name}:\\s*(#[0-9a-fA-F]{6})`).exec(css)![1].toLowerCase();
+  const constant = (name: string) => new RegExp(`var ${name} = '(#[0-9a-fA-F]{6})'`).exec(src)![1].toLowerCase();
+  assert.equal(constant('MAIL_GREEN'), token('--green-700'));
+  assert.equal(constant('MAIL_TERRA'), token('--terra-500'));
+  assert.equal([...src.matchAll(/#[0-9a-fA-F]{6}\b/g)].length, 2, 'no other colour in the script');
+  for (const word of ['LMT', 'CNMT', site.owner, site.name, '/book', 'Maréa', 'Ohm Launch Party']) assert.ok(!src.includes(word), `rsvp.js types "${word}"`);
+  assert.ok(!/\(?\b[2-9]\d{2}\)?[\s.-]\d{3}[\s.-]\d{4}\b/.test(src), 'no phone number');
+  assert.ok(src.includes("prop_('SIGNATURE_PHONE')") && src.includes("prop_('HOST_PHONE')"));
 });

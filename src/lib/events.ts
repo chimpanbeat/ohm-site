@@ -97,6 +97,7 @@ export function mapsUrl(venue: SiteEvent['venue']): string {
 const root = (siteUrl: string) => siteUrl.replace(/\/+$/, '');
 export const pageUrl = (event: SiteEvent, siteUrl: string) => `${root(siteUrl)}/events/${event.slug}`; // E8, I-092
 export const icsUrl = (event: SiteEvent, siteUrl: string) => `${root(siteUrl)}/events/${event.slug}.ics`;
+export const bookUrl = (siteUrl: string) => `${root(siteUrl)}/book`; // E13: the site's booking page (src/pages/book/index.astro)
 
 // RFC 5545 §3.3.11: escape backslash, semicolon, comma and newlines in TEXT values.
 const escapeText = (s: string) => s.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
@@ -168,6 +169,15 @@ export interface EventFeed {
   tips: boolean;
   /** I-087: `from` is a Gmail send-as alias; `contact` receives the spot-freed note and is the error-page mailto. */
   sender: { name: string; from: string; replyTo: string; contact: string };
+  /** E13: the "Click here to book" link in the confirmation and can't-go emails. */
+  bookUrl: string;
+  /** E13: this event's words in the emails (rsvp.mail): name defaults to title, thanks and host to ''. */
+  mail: { name: string; thanks: string; host: string };
+  /**
+   * E13: Brian's reply signature, the last block of every email to a guest. `credentials` is w('postNominals') ('' while
+   * unlicensed); the phone is never here: the script reads the Script Property SIGNATURE_PHONE at send time.
+   */
+  signature: { name: string; credentials: string; business: string; url: string; label: string };
   text: typeof rsvpText;
 }
 
@@ -204,6 +214,15 @@ export function feedFor(event: SiteEvent, siteUrl: string): EventFeed {
       .map((n) => ({ title: n.title, text: n.text, ...(n.link && { url: n.link.url }) })),
     tips: rsvp.tips === true,
     sender: { name: site.name, from: site.eventsEmail, replyTo: site.eventsEmail, contact: site.email },
+    bookUrl: bookUrl(siteUrl),
+    mail: { name: rsvp.mail?.name ?? event.title, thanks: rsvp.mail?.thanks ?? '', host: rsvp.mail?.host ?? '' },
+    signature: {
+      name: site.owner,
+      credentials: wording.postNominals[site.licensed ? 1 : 0],
+      business: site.name,
+      url: root(siteUrl),
+      label: new URL(siteUrl).host,
+    },
     text: rsvpText,
   };
 }

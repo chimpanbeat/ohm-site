@@ -20,7 +20,11 @@ export interface Notice { id: string; title: string; text: string; link?: { labe
 export interface CappedSession { key: string; label: string; item: number; limit: number; waitlist: boolean }
 // tips (E6, I-082/I-084): true = the in-page "Self-care tip of the day" card after an RSVP and one tip in each reminder
 // email, read by the Apps Script from Brian's tips sheet (ARCHITECTURE §B10 Tips). Absent or false: no tips.
-export interface EventRsvp { closesAt: Iso; maxGuests: number; reminderAt: Iso; showGoing: boolean; session?: CappedSession; tips?: boolean }
+// mail (E13, Marea's email copy): this event's words in the RSVP emails. name = {eventName} in confirmLead and cantLead
+// (absent: title); thanks = {thanks}, the confirmation's second sentence (absent: none); host = {host}, who guests may
+// text, shown only when the Script Property HOST_PHONE is set (absent: the questions line without a host).
+export interface RsvpMail { name: string; thanks?: string; host?: string }
+export interface EventRsvp { closesAt: Iso; maxGuests: number; reminderAt: Iso; showGoing: boolean; session?: CappedSession; tips?: boolean; mail?: RsvpMail }
 // One "made possible by" entry (E4, I-079; E5, I-085): the image, then `name` (bold) and under it `role` (smaller, its
 // own line, first letter capitalised), all one link (new tab). No comma between them since E5.
 // image: a path under src/assets/events/; alt '' when the name beside it already says what the image shows.
@@ -186,6 +190,8 @@ export function launchParty(limit: number, chaiNote: string | null = null): Site
       showGoing: false,
       session: { key: 'yoga', label: 'Yoga', item: 1, limit, waitlist: true },
       tips: true, // I-082, I-084 (Brian): self-care tips after an RSVP and in the reminder email
+      // E13 (Marea's email copy, approved by Brian, Nov 8, 2026, verbatim)
+      mail: { name: 'Ohm Launch Party', thanks: 'We look forward to celebrating this milestone moment with you.', host: 'Maréa' },
     },
   };
 }
@@ -278,9 +284,20 @@ export const rsvpText = {
   back: 'Back to the event page',
   hi: 'Hi {name},',
   confirmSubject: "You're on the list: {title}",
-  confirmLead: 'Thanks for your RSVP to {title}. You said: {status}.',
+  confirmLead: 'Thanks for your RSVP to {eventName}. {thanks}', // E13, Marea (approved by Brian)
+  detailsHead: "Here's all the details:", // E13, Marea
+  yourRsvp: 'Your RSVP: {status}', // E13, Marea
+  guestRsvp: '{name}: {status}', // E13, Marea
+  sessionAnswer: '{Session}? {answer}', // E13, Marea ("Yoga? Yes")
+  sessionWaitlist: 'Waitlist', // E13, Brian (the answer word for a waitlisted person)
+  bookHead: 'Need to book a massage?', // E13, Marea
+  bookLine: "Brian's site is now live! {link}.", // E13, Marea; {link} = bookLink, linked to the site's /book
+  bookLink: 'Click here to book', // E13, Marea
+  questions: 'If you have any questions, reply to this email.', // E13, Brian (HOST_PHONE unset)
+  questionsHost: 'If you have any questions, reply to this email or text {host}: {hostPhone}.', // E13, Marea
+  seeYou: 'See you there!', // E13, Marea
   cantSubject: 'RSVP received: {title}',
-  cantLead: "Thanks for letting me know you can't make {title}. If your plans change, RSVP again on the event page with this email.",
+  cantLead: "Thanks for letting me know you can't make it to {eventName}. We'll miss you! If your plans change, RSVP again on the event page with this email address.", // E13, Marea
   reminderSubject: 'Reminder: {title}',
   reminderLead: "Here's a reminder about {title}.",
   when: 'When: {dateLabel}, {timeLabel}',
@@ -288,8 +305,7 @@ export const rsvpText = {
   waitlistNote: "The waitlist goes in sign-up order. I'll email you if a spot opens.",
   calendarLine: 'Add it to your calendar: {icsUrl}',
   detailsLine: 'Event details: {pageUrl}',
-  changeLine: 'To change your RSVP, RSVP again on the event page with this email, or reply to this email.',
-  signoff: '{siteName}',
+  changeLine: 'To change your RSVP, register again on the event page with the same email address.', // E13, Marea
   changeSubject: 'Confirm your RSVP change: {title}',
   changeLead: 'Someone asked to change your RSVP to {title} using this email address. If it was you, confirm the new answer below.',
   newAnswer: 'New answer: {status}',

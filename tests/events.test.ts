@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { join, extname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { site } from '../src/data/site.ts';
+import { w, wording } from '../src/data/wording.ts';
 import { events, rsvpText, launchParty, eventBySlug, eventHeadings, eventsAt, CHAI_AT, CHAI_NOTE, SESSION_LIMIT } from '../src/data/events.ts';
 import type { SiteEvent } from '../src/data/events.ts';
 import {
@@ -359,8 +360,8 @@ test('6. eventPaths', () => {
 test('7. feed', () => {
   const feed = feedFor(party, siteUrl);
   assert.deepEqual(Object.keys(feed).sort(), [
-    'closesAt', 'dateLabel', 'end', 'icsUrl', 'maxGuests', 'notices', 'pageUrl', 'reminderAt', 'reminderInfo',
-    'sender', 'session', 'slug', 'start', 'text', 'timeLabel', 'tips', 'title', 'v', 'venue',
+    'bookUrl', 'closesAt', 'dateLabel', 'end', 'icsUrl', 'mail', 'maxGuests', 'notices', 'pageUrl', 'reminderAt', 'reminderInfo',
+    'sender', 'session', 'signature', 'slug', 'start', 'text', 'timeLabel', 'tips', 'title', 'v', 'venue',
   ]);
   assert.equal(feed.v, 1);
   assert.equal(feed.slug, 'launch-party');
@@ -380,6 +381,27 @@ test('7. feed', () => {
   const json = JSON.stringify(feed);
   assert.ok(!('showGoing' in feed) && !json.includes('showGoing'));
   assert.deepEqual(json.match(/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g)!.sort(), [site.email, site.eventsEmail, site.eventsEmail].sort(), 'the only addresses');
+});
+
+test('7b. feed (E13): the book link, the event words for the emails, the signature, and no phone number', () => {
+  const feed = feedFor(party, siteUrl);
+  assert.equal(feed.bookUrl, `${origin}${base}/book`);
+  assert.deepEqual(feed.mail, { name: 'Ohm Launch Party', thanks: 'We look forward to celebrating this milestone moment with you.', host: 'Maréa' });
+  assert.deepEqual(feed.signature, { name: 'Brian Clarke', credentials: 'LMT, CNMT', business: site.name, url: origin, label: 'ohmprecisionbodywork.com' });
+  assert.equal(`${feed.signature.name}, ${feed.signature.credentials}`, w('credential'), 'the signature line is the credential');
+  assert.equal(feed.signature.name, site.owner);
+  assert.equal(wording.credential[1], `${site.owner}, ${wording.postNominals[1]}`);
+  assert.equal(wording.postNominals[0], '', 'unlicensed: no letters after the name');
+  // defaults for an event without rsvp.mail
+  const bare = feedFor({ ...party, rsvp: { ...party.rsvp!, mail: undefined } }, siteUrl);
+  assert.deepEqual(bare.mail, { name: party.title, thanks: '', host: '' });
+  const json = JSON.stringify(feed);
+  assert.ok(!/\(?\b[2-9]\d{2}\)?[\s.-]\d{3}[\s.-]\d{4}\b/.test(json) && !/tel:|PHONE/.test(json), 'no phone number or phone property in the feed');
+  // the new copy keys, and the sign-off is gone (the signature replaces it)
+  for (const k of ['detailsHead', 'yourRsvp', 'guestRsvp', 'sessionAnswer', 'sessionWaitlist', 'bookHead', 'bookLine', 'bookLink', 'questions', 'questionsHost', 'seeYou']) {
+    assert.ok(k in feed.text, `text.${k}`);
+  }
+  assert.ok(!('signoff' in feed.text));
 });
 
 test('8. source: event facts live in events.ts only; no hex in the components', () => {

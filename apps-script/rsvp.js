@@ -4,11 +4,14 @@
 // How it fits: the site publishes each event's public facts and every string of copy as /events/<slug>.json (the
 // feed). This script reads the feed, so a new event or a copy change needs no change here. The settings are the
 // Script Properties SHEET_ID (the private sheet that holds the RSVPs) and, from E6, TIPS_SHEET_ID (Brian's self-care
-// tips sheet). Nothing else is configured and no guest data, sheet ID, script ID or email address lives in the repository.
+// tips sheet). From E13, SIGNATURE_PHONE (Brian's number, in his email signature) and HOST_PHONE (the host's number, in
+// the confirmation's questions line), both optional, read at send time only. Nothing else is configured and no guest
+// data, sheet ID, script ID, email address or phone number lives in the repository.
 //
 // Entry points: doGet (spots left, or the change-confirm page), doPost (an RSVP, a change request, or a confirmed
 // change), sendDueReminders (a 15-minute trigger), setup (run once by hand).
 // I-087 (E7): all mail goes through GmailApp from the events alias (see send_); the alias is never written here.
+// E13: mail to guests is HTML with a plain-text body, signed with Brian's reply signature (see mail_ and signature_).
 
 var SITE_ORIGIN = 'https://ohmprecisionbodywork.com';
 var SLUG_RE = /^[a-z0-9-]{1,40}$/;
@@ -399,15 +402,17 @@ function outcomesOf_(ev, status, assigned) {
 // ---- Mail --------------------------------------------------------------------------------------------------------
 
 function vars_(ev) {
+  var mail = ev.mail || {};
   return {
     title: ev.title,
+    eventName: mail.name || ev.title,
+    thanks: mail.thanks || '',
     dateLabel: ev.dateLabel,
     timeLabel: ev.timeLabel,
     venue: ev.venue.name,
     address: ev.venue.address,
     icsUrl: ev.icsUrl,
     pageUrl: ev.pageUrl,
-    siteName: ev.sender.name,
   };
 }
 
@@ -417,14 +422,159 @@ function outcomeText_(ev, name, cell) {
   return fill_(t.outcomeLine, { name: name, outcome: fill_(t[CELL_KEY[cell]], w) });
 }
 
-function noticeBlocks_(ev) {
-  return (ev.notices || []).map(function (n) {
-    return [n.title, n.text, n.url].filter(Boolean).join('\n');
+// E13: every mail to a guest is HTML with a plain-text twin, built from one list of blocks. A block is a string (its
+// lines split on "\n") or an array of lines. A line is a string, { head } (a heading: bold and green in HTML, plain in
+// the text) or { runs } (strings and { text, href } links; in the text, a link whose words aren't its URL puts the URL
+// on the next line). Only feed URLs become links; a guest's name is always escaped text.
+// The colours are Brian's signature colours, copied from src/styles/tokens.css (the script can't read it; a test
+// keeps them equal).
+var MAIL_GREEN = '#125245'; // tokens.css --green-700
+var MAIL_TERRA = '#C37A5B'; // tokens.css --terra-500
+var SIG_SEP = ' • '; // the bullet between the phone and the site (plain text)
+var SIG_SEP_HTML = '&nbsp;&bull;&nbsp;';
+
+// A template as { runs }: each {key} named in links becomes that link; the rest is filled from vars, as fill_ does.
+function tpl_(template, vars, links) {
+  var s = String(template);
+  var runs = [];
+  var last = 0;
+  var re = /\{(\w+)\}/g;
+  var m;
+  while ((m = re.exec(s))) {
+    if (!Object.prototype.hasOwnProperty.call(links, m[1])) continue;
+    runs.push(fill_(s.slice(last, m.index), vars));
+    runs.push(links[m[1]]);
+    last = m.index + m[0].length;
+  }
+  runs.push(fill_(s.slice(last), vars));
+  return {
+    runs: runs.filter(function (r) {
+      return r !== '';
+    }),
+  };
+}
+
+// A line that is one URL, linked.
+function url_(url) {
+  return { runs: [{ text: url, href: url }] };
+}
+
+// A template line whose {key} is a URL, linked (calendarLine, detailsLine, changeLinkLine).
+function urlLine_(template, vars, key, url) {
+  var links = {};
+  links[key] = { text: url, href: url };
+  return tpl_(template, vars, links);
+}
+
+function lineText_(l) {
+  if (typeof l === 'string') return l;
+  if ('head' in l) return str_(l.head);
+  var text = '';
+  var after = [];
+  l.runs.forEach(function (r) {
+    if (typeof r === 'string') {
+      text += r;
+    } else {
+      text += r.text;
+      if (r.text !== r.href) after.push(r.href);
+    }
   });
+  return [text].concat(after).join('\n');
+}
+
+function lineHtml_(l) {
+  if (typeof l === 'string') return esc_(l);
+  if ('head' in l) return '<strong style="color:' + MAIL_GREEN + '">' + esc_(l.head) + '</strong>';
+  return l.runs
+    .map(function (r) {
+      return typeof r === 'string' ? esc_(r) : '<a href="' + esc_(r.href) + '">' + esc_(r.text) + '</a>';
+    })
+    .join('');
+}
+
+function linesOf_(b) {
+  if (typeof b === 'string') return b ? b.split('\n') : [];
+  return (b || []).filter(function (l) {
+    return l !== '' && l !== null && l !== undefined;
+  });
+}
+
+// A Script Property, trimmed; '' when unset or unreadable (a mail never fails over a phone number).
+function prop_(key) {
+  try {
+    return str_(PropertiesService.getScriptProperties().getProperty(key)).trim();
+  } catch (err) {
+    return '';
+  }
+}
+
+// Brian's reply signature (E13), from the feed's `signature`: name and credentials, the business linked to the site,
+// then the phone (Script Property SIGNATURE_PHONE, read at send time, never stored or logged) as a tel: link, a bullet
+// and the site. No phone: the site alone. An older feed without `signature` signs with the business name, as before.
+function signature_(ev) {
+  var s = ev.signature;
+  if (!s) return { text: ev.sender.name, html: '<p style="margin:0">' + esc_(ev.sender.name) + '</p>' };
+  var phone = prop_('SIGNATURE_PHONE');
+  var tel = phone.replace(/[^\d+]/g, '');
+  var text = [s.name + (s.credentials ? ', ' + s.credentials : ''), s.business, (phone ? phone + SIG_SEP : '') + s.label].join('\n');
+  var link = 'color:' + MAIL_GREEN + ';text-decoration:none';
+  var phoneHtml = '';
+  if (phone) {
+    phoneHtml = tel ? '<a href="tel:' + esc_(tel) + '" style="' + link + '">' + esc_(phone) + '</a>' : esc_(phone);
+    phoneHtml += '<span style="color:' + MAIL_TERRA + '">' + SIG_SEP_HTML + '</span>';
+  }
+  var html =
+    '<table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,sans-serif;font-size:12px;line-height:16px;color:' + MAIL_GREEN + '">' +
+    '<tr><td style="border-left:2px solid ' + MAIL_TERRA + ';padding-left:10px">' +
+    '<div style="font-weight:bold;font-size:13px;line-height:17px">' + esc_(s.name) +
+    (s.credentials ? '<span style="font-weight:normal">, ' + esc_(s.credentials) + '</span>' : '') + '</div>' +
+    '<div><a href="' + esc_(s.url) + '" style="' + link + ';font-weight:bold">' + esc_(s.business) + '</a></div>' +
+    '<div>' + phoneHtml + '<a href="' + esc_(s.url) + '" style="' + link + '">' + esc_(s.label) + '</a></div>' +
+    '</td></tr></table>';
+  return { text: text, html: html };
+}
+
+// The blocks plus the signature as { text, html }: blocks apart by a blank line (text) or as paragraphs (HTML).
+function mail_(ev, blocks) {
+  var list = blocks.map(linesOf_).filter(function (ls) {
+    return ls.length;
+  });
+  var sig = signature_(ev);
+  var text = list
+    .map(function (ls) {
+      return ls.map(lineText_).join('\n');
+    })
+    .concat([sig.text])
+    .join('\n\n');
+  var html =
+    '<div>' +
+    list
+      .map(function (ls) {
+        return '<p style="margin:0 0 16px">' + ls.map(lineHtml_).join('<br>') + '</p>';
+      })
+      .join('') +
+    sig.html +
+    '</div>';
+  return { text: text, html: html };
+}
+
+// Each inEmails notice as a block: its title (a heading when `head`), its text, its link.
+function noticeBlocks_(ev, head) {
+  return (ev.notices || []).map(function (n) {
+    return linesOf_([n.title ? (head ? { head: n.title } : n.title) : '', n.text, n.url ? url_(n.url) : '']);
+  });
+}
+
+// E13: bookHead and bookLine, its link to the feed's bookUrl; nothing on a feed without bookUrl.
+function bookBlock_(ev) {
+  var t = ev.text;
+  if (!ev.bookUrl) return [];
+  return [{ head: t.bookHead }, tpl_(t.bookLine, {}, { link: { text: t.bookLink, href: ev.bookUrl } })];
 }
 
 // I-087: the one send point. MailApp is rejected for outside addresses, so mail goes through GmailApp, from the
 // events alias when it is a Gmail send-as address of this account. A missing or rejected alias never blocks mail.
+// E13: `mail` is { text, html? }: text is the plain body; html, when present, goes as the htmlBody option.
 var ALIAS_LOG = 'Mail: the events alias is not a Gmail send-as address; sent from the account address';
 
 // The feed's sender.from when it is one of this account's Gmail aliases (ignoring case), else ''.
@@ -442,9 +592,10 @@ function fromAlias_(ev) {
   return '';
 }
 
-function send_(ev, to, subject, blocks) {
-  var body = blocks.filter(Boolean).join('\n\n');
+function send_(ev, to, subject, mail) {
+  var body = mail.text;
   var opts = { name: ev.sender.name, replyTo: ev.sender.replyTo };
+  if (mail.html) opts.htmlBody = mail.html;
   var from = fromAlias_(ev);
   if (from) opts.from = from;
   else Logger.log(ALIAS_LOG);
@@ -455,8 +606,9 @@ function send_(ev, to, subject, blocks) {
     if (!from) return false; // a mail failure never undoes an RSVP
   }
   Logger.log(ALIAS_LOG);
+  delete opts.from;
   try {
-    GmailApp.sendEmail(to, subject, body, { name: opts.name, replyTo: opts.replyTo });
+    GmailApp.sendEmail(to, subject, body, opts);
     return true;
   } catch (err) {
     return false;
@@ -476,46 +628,67 @@ function sessionLines_(ev, people) {
   return { lines: lines, maybe: maybe, maybeNote: fill_(t.maybeNote, words_(ev.session ? ev.session.label : '')) };
 }
 
+// E13: the session answer a person's cell gives in the confirmation (the text key). A Maybe holds no spot: No.
+var SESSION_ANSWER = { confirmed: 'yes', waitlist: 'sessionWaitlist', full: 'no', no: 'no', maybe: 'no' };
+
+// "Here's all the details:", then for each person their answer (yourRsvp, then guestRsvp) and, for a session event,
+// their session answer; the waitlist note after the list when anyone waits.
+function detailsBlock_(ev, status, people, assigned) {
+  var t = ev.text;
+  var w = words_(ev.session ? ev.session.label : '');
+  var lines = [{ head: t.detailsHead }];
+  people.forEach(function (p, i) {
+    lines.push(i === 0 ? fill_(t.yourRsvp, { status: t[status] }) : fill_(t.guestRsvp, { name: p.name, status: t[status] }));
+    var key = ev.session ? SESSION_ANSWER[assigned[i].cell] : '';
+    if (key) lines.push(fill_(t.sessionAnswer, { Session: w.Session, answer: t[key] }));
+  });
+  if (ev.session && assigned.some(function (a) { return a.cell === 'waitlist'; })) lines.push(t.waitlistNote);
+  return lines;
+}
+
+// The questions line: with the host's number (Script Property HOST_PHONE, read at send time) when it and the event's
+// host are both set, else the line without one.
+function questionsLine_(ev) {
+  var t = ev.text;
+  var host = ev.mail && ev.mail.host;
+  var phone = prop_('HOST_PHONE');
+  return host && phone ? fill_(t.questionsHost, { host: host, hostPhone: phone }) : t.questions;
+}
+
 function mailConfirmation_(ev, to, name, status, people, assigned) {
   var t = ev.text;
   var v = vars_(ev);
-  var lines = [];
-  if (ev.session) {
-    var s = sessionLines_(
-      ev,
-      people.map(function (p, i) {
-        return { name: p.name, cell: assigned[i].cell };
-      }),
-    );
-    lines = s.lines.slice();
-    if (assigned.some(function (a) { return a.cell === 'waitlist'; })) lines.push(t.waitlistNote);
-    if (s.maybe) lines.push(s.maybeNote);
-  }
   var blocks = [
     fill_(t.hi, { name: name }),
-    fill_(t.confirmLead, merge_(v, { status: t[status] })),
-    [fill_(t.when, v), fill_(t.where, v)].join('\n'),
-    lines.join('\n'),
-  ];
-  noticeBlocks_(ev).forEach(function (b) {
-    blocks.push(b);
-  });
-  blocks.push([fill_(t.calendarLine, v), fill_(t.detailsLine, v)].join('\n'));
-  blocks.push(t.changeLine);
-  blocks.push(fill_(t.signoff, v));
-  send_(ev, to, fill_(t.confirmSubject, v), blocks);
+    fill_(t.confirmLead, v).trim(),
+    detailsBlock_(ev, status, people, assigned),
+    [t.changeLine, url_(ev.pageUrl)],
+    [fill_(t.when, v), fill_(t.where, v)],
+    [urlLine_(t.calendarLine, v, 'icsUrl', ev.icsUrl)],
+  ]
+    .concat(noticeBlocks_(ev, true))
+    .concat([bookBlock_(ev), questionsLine_(ev), t.seeYou]);
+  send_(ev, to, fill_(t.confirmSubject, v), mail_(ev, blocks));
 }
 
 function mailCant_(ev, to, name) {
   var t = ev.text;
   var v = vars_(ev);
-  send_(ev, to, fill_(t.cantSubject, v), [fill_(t.hi, { name: name }), fill_(t.cantLead, v), fill_(t.signoff, v)]);
+  var blocks = [fill_(t.hi, { name: name }), [fill_(t.cantLead, v), url_(ev.pageUrl)], bookBlock_(ev)];
+  send_(ev, to, fill_(t.cantSubject, v), mail_(ev, blocks));
 }
 
 // After a new RSVP or a confirmed change: the confirmation, or the short note for can't go.
+// E13: an email that can't be built (a feed older than the script, say) is skipped like one that can't be sent.
+var BUILD_LOG = 'Mail: an email could not be built from the feed; nothing sent';
+
 function mailOutcome_(ev, to, n, people, assigned) {
-  if (n.status === 'cant') mailCant_(ev, to, n.name);
-  else mailConfirmation_(ev, to, n.name, n.status, people, assigned);
+  try {
+    if (n.status === 'cant') mailCant_(ev, to, n.name);
+    else mailConfirmation_(ev, to, n.name, n.status, people, assigned);
+  } catch (err) {
+    Logger.log(BUILD_LOG); // a mail failure never undoes an RSVP
+  }
 }
 
 function merge_(a, b) {
@@ -546,23 +719,27 @@ function mailChange_(ev, to, storedName, n, changeUrl) {
       return '- ' + l;
     }),
   );
-  send_(ev, to, fill_(t.changeSubject, v), [
-    fill_(t.hi, { name: storedName }),
-    fill_(t.changeLead, v),
-    answer.join('\n'),
-    [fill_(t.changeLinkLine, { changeUrl: changeUrl }), t.changeIgnore].join('\n'),
-    fill_(t.signoff, v),
-  ]);
+  send_(
+    ev,
+    to,
+    fill_(t.changeSubject, v),
+    mail_(ev, [
+      fill_(t.hi, { name: storedName }),
+      fill_(t.changeLead, v),
+      answer,
+      [urlLine_(t.changeLinkLine, {}, 'changeUrl', changeUrl), t.changeIgnore],
+    ]),
+  );
 }
 
+// To Brian only: plain text, no signature (E13 leaves it as it was).
 function mailSpotFreed_(ev, freed) {
   var t = ev.text;
   var v = vars_(ev);
   var w = words_(ev.session.label);
-  send_(ev, ev.sender.contact || ev.sender.replyTo, fill_(t.spotFreedSubject, merge_(v, { session: w.session })), [
-    fill_(t.spotFreedText, { session: w.session, n: freed }),
-    fill_(t.detailsLine, v),
-  ]);
+  send_(ev, ev.sender.contact || ev.sender.replyTo, fill_(t.spotFreedSubject, merge_(v, { session: w.session })), {
+    text: [fill_(t.spotFreedText, { session: w.session, n: freed }), fill_(t.detailsLine, v)].join('\n\n'),
+  });
 }
 
 // ---- Pages (HtmlService) -----------------------------------------------------------------------------------------
@@ -804,7 +981,11 @@ function requestChange_(ev, n, stored) {
   var token = Utilities.getUuid();
   var base = stored.changed || stored.submitted;
   cache.put('chg:' + token, JSON.stringify({ slug: ev.slug, email: n.email, base: base, submission: n }), CHANGE_TTL);
-  mailChange_(ev, stored.email, stored.name, n, ScriptApp.getService().getUrl() + '?change=' + token);
+  try {
+    mailChange_(ev, stored.email, stored.name, n, ScriptApp.getService().getUrl() + '?change=' + token);
+  } catch (err) {
+    Logger.log(BUILD_LOG);
+  }
 }
 
 function applyChange_(token) {
@@ -985,19 +1166,26 @@ function mailReminder_(ev, d) {
     if (s.maybe) lines2.push(s.maybeNote);
     blocks.push(lines2.join('\n'));
   }
-  noticeBlocks_(ev).forEach(function (b) {
+  noticeBlocks_(ev, false).forEach(function (b) {
     blocks.push(b);
   });
-  blocks.push([fill_(t.detailsLine, v), fill_(t.calendarLine, v)].join('\n'));
-  if (d.tip && t.reminderTip) blocks.push(fill_(t.reminderTip, { tip: d.tip })); // plain text mail: no escaping needed
-  blocks.push(fill_(t.signoff, v));
-  return send_(ev, d.to, fill_(t.reminderSubject, v), blocks);
+  blocks.push([urlLine_(t.detailsLine, v, 'pageUrl', ev.pageUrl), urlLine_(t.calendarLine, v, 'icsUrl', ev.icsUrl)]);
+  if (d.tip && t.reminderTip) blocks.push(fill_(t.reminderTip, { tip: d.tip })); // escaped in the HTML part like every line
+  var mail;
+  try {
+    mail = mail_(ev, blocks); // E13: the signature replaces the sign-off
+  } catch (err) {
+    Logger.log(BUILD_LOG);
+    return false; // unstamped: the next run tries again
+  }
+  return send_(ev, d.to, fill_(t.reminderSubject, v), mail);
 }
 
 // ---- setup (run once by hand) ------------------------------------------------------------------------------------
 
 // Checks SHEET_ID, replaces the reminder trigger with one every 15 minutes, logs how much mail the account may
-// send today (a new Workspace account has lower limits for a while) and how many tips it can read (never a tip or the ID).
+// send today (a new Workspace account has lower limits for a while), how many tips it can read (never a tip or the ID)
+// and, from E13, whether SIGNATURE_PHONE and HOST_PHONE are set (never a number).
 function setup() {
   var ss = openSheet_(); // throws a clear message when SHEET_ID is unset or wrong
   ScriptApp.getProjectTriggers().forEach(function (t) {
@@ -1019,7 +1207,11 @@ function setup() {
     if (!ev.sender.from) Logger.log('From alias for ' + slug + ': not in the feed yet');
     else if (fromAlias_(ev)) Logger.log('From alias for ' + slug + ': ready');
     else Logger.log('From alias for ' + slug + ': not a Gmail send-as address (mail goes from the account address)');
+    if (!ev.signature) Logger.log('Signature for ' + slug + ': not in the feed yet');
   });
+  // E13: whether the two phone properties are set, never their values
+  Logger.log('Signature phone: ' + (prop_('SIGNATURE_PHONE') ? 'set' : 'not set'));
+  Logger.log('Host phone: ' + (prop_('HOST_PHONE') ? 'set' : 'not set'));
   var tipsId = PropertiesService.getScriptProperties().getProperty('TIPS_SHEET_ID');
   if (!tipsId) Logger.log('TIPS_SHEET_ID not set (no tips)');
   else CacheService.getScriptCache().remove('tips'); // read the sheet now, not a result cached in the last five minutes

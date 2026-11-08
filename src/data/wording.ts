@@ -5,6 +5,9 @@
 
 import { site } from './site.ts';
 
+// Licensed-only (I-035): typed once, read by `credential` and `postNominals` (E13).
+const POST_NOMINALS = 'LMT, CNMT';
+
 export const wording = {
   /** Brian's role noun. */
   role: ['practitioner', 'Licensed Massage Therapist'],
@@ -38,7 +41,9 @@ export const wording = {
    * Licensed-only: the unlicensed variants are empty and Credentials.astro renders nothing
    * while unlicensed. Never add the license number here (I-035, I-027).
    */
-  credential: ['', 'Brian Clarke, LMT, CNMT'],
+  credential: ['', `${site.owner}, ${POST_NOMINALS}`],
+  /** The letters after Brian's name (E13): the event-email signature's first line, after `site.owner` and a comma. */
+  postNominals: ['', POST_NOMINALS],
   licensedIn: ['', 'Licensed in Colorado.'],
   /** Link text; the link goes to site.licenseVerifyUrl. */
   verifyLicense: ['', 'Verify my license'],

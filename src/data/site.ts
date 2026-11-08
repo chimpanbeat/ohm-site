@@ -40,6 +40,8 @@ const mapQuery = (params: Record<string, string>) => new URLSearchParams(params)
 export const site = {
   name: 'Ohm Precision Bodywork',
   legalName: 'Ohm Precision Bodywork LLC',
+  /** Brian's name as he signs (E13): the event-email signature and, with wording `postNominals`, the credential line. */
+  owner: 'Brian Clarke',
   tagline: 'Reduce resistance. Restore movement.',
 
   licensed: true, // flips wording rules (brief §7). Licensed since Oct 12, 2026 (I-035).
