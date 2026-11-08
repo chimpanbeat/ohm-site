@@ -55,7 +55,7 @@ export const SESSION_LIMIT = 20;
 // read as chai tea, in a build made then (.github/workflows/deploy.yml runs three scheduled builds on Nov 22, 2026).
 // All or nothing: set CHAI_NOTE to null to turn the whole swap off.
 export const CHAI_AT: Iso = '2026-11-22T16:00:00-07:00'; // 23:00 UTC // I-091
-export const CHAI_NOTE: string | null = 'Chai tea led by John Marshall 🍵🫖'; // I-091 (Brian, Nov 8, 2026, verbatim)
+export const CHAI_NOTE: string | null = 'Chai tea by John Marshall 🍵🫖'; // I-091 (Brian, Nov 8, 2026, verbatim)
 const TAI_CHI_NOTE = 'Tai Chi led by John Marshall ☯️ 🥋'; // I-088
 const TAI_CHI_ROLE = 'Tai Chi instruction'; // I-089
 const CHAI_ROLE = 'Chai Tea ceremony'; // I-091 (Brian)
@@ -104,14 +104,14 @@ export function launchParty(limit: number, chaiNote: string | null = null): Site
       {
         start: '2026-11-22T15:00:00-07:00',
         end: '2026-11-22T18:00:00-07:00',
-        title: 'Self Care Launch Party',
+        title: 'Self Care-Themed Launch Party 🎉', // E12, Marea (e8-yoga)
         // I-078; I-086 (Marea); I-088 (Brian): "Optional" dropped, Tai Chi led by John Marshall with emoji; I-091: the chai swap
         notes: ['Open house style, come and go as you please', 'Refreshments provided', 'Activities and merch', chaiNote ?? TAI_CHI_NOTE],
       },
       {
         start: '2026-11-22T18:00:00-07:00',
         end: '2026-11-22T20:00:00-07:00',
-        title: 'Optional: climb at the gym until close',
+        title: 'Optional: climb at the gym until close 🧗🏼‍♀️', // E12, Marea (e8-yoga)
         // I-078: "Own day pass required" becomes the linked "Day pass purchase required" (URL confirmed by Brian)
         // I-086 (Marea): rentals cost extra, so "provided" became "available"
         notes: [[{ text: 'Day pass purchase required', href: 'https://climbcityrock.com/day-passes' }], 'Harness and shoe rentals available'],

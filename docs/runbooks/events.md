@@ -61,12 +61,12 @@ Until this is done, **no event email reaches an address outside the domain**: Go
 ## Event-day swap (Nov 22) (I-091; after step E8)
 Brian's joke: at about 4:00 pm on Sun Nov 22, 2026 the launch-party page changes Tai Chi to chai tea. A static page changes only with a deploy, so a scheduled deploy does it.
 
-**What changes.** Two strings, together or not at all: the schedule bullet `Tai Chi led by John Marshall ☯️ 🥋` becomes `Chai tea led by John Marshall 🍵🫖`, and John Marshall's credit role `Tai Chi instruction` becomes `Chai Tea ceremony`. Nothing else changes. The words are `CHAI_NOTE` in `src/data/events.ts`; the moment is `CHAI_AT` (4:00 pm MST, 23:00 UTC).
+**What changes.** Two strings, together or not at all: the schedule bullet `Tai Chi led by John Marshall ☯️ 🥋` becomes `Chai tea by John Marshall 🍵🫖`, and John Marshall's credit role `Tai Chi instruction` becomes `Chai Tea ceremony`. Nothing else changes. The words are `CHAI_NOTE` in `src/data/events.ts`; the moment is `CHAI_AT` (4:00 pm MST, 23:00 UTC).
 
 **When.** `.github/workflows/deploy.yml` has three scheduled runs on Nov 22: **4:07, 4:22 and 4:45 pm MST** (23:07, 23:22 and 23:45 UTC). GitHub can start a scheduled run late or drop one under load, hence three, none on the hour. Each run rebuilds and redeploys the whole site; the first one after 4:00 pm makes the swap and the others change nothing.
 
 **Check at about 4:15 pm.**
-1. Open `https://ohmprecisionbodywork.com/events/launch-party` and reload hard: the schedule shows `Chai tea led by John Marshall 🍵🫖` and the credits show `John Marshall` / `Chai Tea ceremony`.
+1. Open `https://ohmprecisionbodywork.com/events/launch-party` and reload hard: the schedule shows `Chai tea by John Marshall 🍵🫖` and the credits show `John Marshall` / `Chai Tea ceremony`.
 2. If it still says Tai Chi, open the repository's **Actions** tab → **Deploy**: a run from `schedule` should be queued, running or green. Give it a few minutes before the fallback.
 
 **Fallback.** Actions → **Deploy** → **Run workflow** (branch `main`) any time after 4:00 pm. A manual run is allowed in any year and deploys the version for the time it runs, so after 4:00 pm it is the chai version.

@@ -36,7 +36,7 @@ const JOBS = [
   // brief/launch_party_graphics/john_photo.<ext> (gitignored), replace this job with
   //   { out: 'john-thumb.jpg', input: <that path>, extract: <a square face crop>, square: true, jpeg: true }
   // run `npm run event-images` and keep only the new john-thumb.jpg.
-  { out: 'john-thumb.jpg', placeholder: true, jpeg: true },
+  { out: 'john-thumb.jpg', input: 'brief/launch_party_graphics/john_photo.jpg', extract: { left: 0, top: 340, width: 3024, height: 3024 }, square: true, jpeg: true },
   {
     out: 'cityrock-logo.png',
     input: 'brief/launch_party_graphics/cityrock_logo.avif', // 7559x4571 RGBA, already transparent

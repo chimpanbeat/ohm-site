@@ -393,7 +393,7 @@ const notices = event.notices.filter((n): n is typeof n & { link: NonNullable<ty
      script adds no confetti or reel and the emoji sits still. */
   @media (prefers-reduced-motion: no-preference) {
     .rsvp-result :global(.rsvp-confetti i) {
-      animation: ohm-confetti 1000ms ease-out var(--d) forwards;
+      animation: ohm-confetti 2000ms ease-out var(--d) forwards;
     }
     .rsvp-result__emoji--maybe {
       animation: ohm-wiggle 1s ease-out;

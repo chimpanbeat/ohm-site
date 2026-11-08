@@ -82,7 +82,7 @@ function start(form: HTMLFormElement): void {
       box.append(i);
     }
     result.append(box);
-    removeAfter(box, CONFETTI, 1500);
+    removeAfter(box, CONFETTI, 2500);
   }
   function showEmoji(view: ResultView): void {
     emoji.textContent = view.cheerEmoji ?? '';

@@ -103,11 +103,11 @@ test('1a. launch party data equals the copy deck', () => {
         false,
       ],
       [
-        'Self Care Launch Party',
+        'Self Care-Themed Launch Party 🎉',
         ['Open house style, come and go as you please', 'Refreshments provided', 'Activities and merch', 'Tai Chi led by John Marshall ☯️ 🥋'], // E8, I-088
         false,
       ],
-      ['Optional: climb at the gym until close', ['Day pass purchase required', 'Harness and shoe rentals available'], true], // E5, I-086
+      ['Optional: climb at the gym until close 🧗🏼‍♀️', ['Day pass purchase required', 'Harness and shoe rentals available'], true], // E5, I-086
     ],
   );
   assert.deepEqual(party.timeline[3].notes![0], [{ text: 'Day pass purchase required', href: 'https://climbcityrock.com/day-passes' }]);
@@ -637,7 +637,7 @@ test('E8-1. data: the yoga title, the Tai Chi note, John Marshall, the photo', (
 });
 
 test('E8-2. the event-day swap: both versions, the clock, the switch', () => {
-  assert.equal(CHAI_NOTE, 'Chai tea led by John Marshall 🍵🫖');
+  assert.equal(CHAI_NOTE, 'Chai tea by John Marshall 🍵🫖');
   assert.deepEqual(codePoints(CHAI_NOTE!).slice(-2), ['1F375', '1FAD6']);
   assert.equal(new Date(CHAI_AT).toISOString(), '2026-11-22T23:00:00.000Z');
   const tai = launchParty(20, null);
@@ -737,7 +737,7 @@ test('E8-5. built: the page under /events, the redirect page, one parking link, 
   // either version, never mixed (the deploy job tests a build that may straddle 23:00 UTC)
   const body = text(html);
   const tai = body.includes('Tai Chi led by John Marshall ☯️ 🥋') && body.includes('John Marshall Tai Chi instruction');
-  const chai = body.includes('Chai tea led by John Marshall 🍵🫖') && body.includes('John Marshall Chai Tea ceremony');
+  const chai = body.includes('Chai tea by John Marshall 🍵🫖') && body.includes('John Marshall Chai Tea ceremony');
   assert.ok(tai !== chai, 'exactly one version');
   if (tai) assert.ok(!body.includes('Chai') && !body.includes('chai'));
   else assert.ok(!body.includes('Tai Chi'));
