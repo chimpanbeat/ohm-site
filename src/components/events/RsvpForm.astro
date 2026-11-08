@@ -149,14 +149,19 @@ const notices = event.notices.filter((n): n is typeof n & { link: NonNullable<ty
     <ul class="rsvp-lines"></ul>
     <p class="rsvp-result__note" hidden></p>
     {/* E9 (I-096): the calendar, then each inResult notice's own link (the waiver), for Going and Maybe */}
+    {/* E15 (Brian, Nov 8): less busy. The two calendar buttons are quiet outlines side by side; the notice button (the waiver) is the one solid button, on its own row. */}
     <div class="rsvp-result__actions" hidden>
-      <a class="btn rsvp-result__calendar" href={googleUrl} target="_blank" rel="noopener" hidden>{t.calendarGoogle}</a>
-      <a class="btn rsvp-result__calendar" href={href(`/events/${event.slug}.ics`)} download hidden>{t.calendar}</a>
+      <div class="rsvp-result__row">
+        <a class="btn btn--outline rsvp-result__calendar" href={googleUrl} target="_blank" rel="noopener" hidden>{t.calendarGoogle}</a>
+        <a class="btn btn--outline rsvp-result__calendar" href={href(`/events/${event.slug}.ics`)} download hidden>{t.calendar}</a>
+      </div>
       {
         notices.map((n) => (
-          <a class="btn rsvp-result__notice" href={n.link.url} target="_blank" rel="noopener" hidden>
-            {n.link.label}
-          </a>
+          <div class="rsvp-result__row">
+            <a class="btn rsvp-result__notice" href={n.link.url} target="_blank" rel="noopener" hidden>
+              {n.link.label}
+            </a>
+          </div>
         ))
       }
     </div>
@@ -321,38 +326,78 @@ const notices = event.notices.filter((n): n is typeof n & { link: NonNullable<ty
     transform-origin: 50% 80%;
   }
   .rsvp-result__actions {
+    display: grid;
+    gap: var(--s-4);
+    margin-top: var(--s-4);
+  }
+  .rsvp-result__row {
     display: flex;
     flex-wrap: wrap;
     gap: var(--s-3);
   }
-  /* E9 (I-099): added by the script, so outside this component's scope */
-  .rsvp-result :global(.rsvp-confetti) {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    width: 0;
-    height: 0;
-    pointer-events: none;
+  .rsvp-result__row:not(:has(> :not([hidden]))) {
+    display: none;
   }
-  .rsvp-result :global(.rsvp-confetti i) {
+  /* quiet: an outline in the text colour, smaller than the solid button */
+  .rsvp-result a.btn--outline {
+    min-height: 44px;
+    padding: var(--s-2) var(--s-4);
+    border-color: var(--green-700);
+    background: transparent;
+    color: var(--green-700);
+    font-size: var(--fs-small);
+  }
+  .rsvp-result a.btn--outline:hover {
+    background: var(--green-700);
+    border-color: var(--green-700);
+    color: var(--cream);
+  }
+  .rsvp-result {
+    scroll-margin-top: var(--s-8);
+  }
+  /* E9 (I-099), E15: added by the script to <body>, a fixed layer over the viewport; the origin is the top of the result card */
+  :global(.rsvp-confetti) {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    overflow: hidden;
+    pointer-events: none;
+    --spread: min(46vw, 30rem);
+    --rise: 30vh;
+  }
+  :global(.rsvp-confetti i) {
     position: absolute;
-    top: 0;
-    left: -4px;
-    width: 8px;
-    height: 4px;
+    left: calc(var(--ox) - var(--z) / 2);
+    top: var(--oy);
+    width: var(--z);
+    height: calc(var(--z) * 0.55);
     opacity: 0;
   }
-  .rsvp-result :global(.rsvp-confetti .c0) {
+  :global(.rsvp-confetti .s1) {
+    height: var(--z);
+    border-radius: 50%;
+  }
+  :global(.rsvp-confetti .s2) {
+    height: calc(var(--z) * 0.25);
+    width: calc(var(--z) * 1.8);
+  }
+  :global(.rsvp-confetti .c0) {
     background: var(--accent);
   }
-  .rsvp-result :global(.rsvp-confetti .c1) {
+  :global(.rsvp-confetti .c1) {
     background: var(--terra-700);
   }
-  .rsvp-result :global(.rsvp-confetti .c2) {
+  :global(.rsvp-confetti .c2) {
     background: var(--green-700);
   }
-  .rsvp-result :global(.rsvp-confetti .c3) {
+  :global(.rsvp-confetti .c3) {
     background: var(--green-300);
+  }
+  .rsvp-lines :global(.rsvp-answer--yes) {
+    color: var(--green-700);
+  }
+  .rsvp-lines :global(.rsvp-answer--no) {
+    color: var(--terra-700);
   }
   /* E9 (I-095): the Pricing rate card's look */
   .rsvp-tip {
@@ -394,8 +439,8 @@ const notices = event.notices.filter((n): n is typeof n & { link: NonNullable<ty
   /* Motion set three (§A3, the eleventh to thirteenth exceptions): one-shot, decoration only; with reduced motion the
      script adds no confetti or reel and the emoji sits still. */
   @media (prefers-reduced-motion: no-preference) {
-    .rsvp-result :global(.rsvp-confetti i) {
-      animation: ohm-confetti 2000ms ease-out var(--d) forwards;
+    :global(.rsvp-confetti i) {
+      animation: ohm-confetti 3400ms linear var(--d) forwards;
     }
     .rsvp-result__emoji--maybe {
       animation: ohm-wiggle 1s ease-out;
@@ -403,22 +448,29 @@ const notices = event.notices.filter((n): n is typeof n & { link: NonNullable<ty
     .rsvp-result__emoji--cant {
       animation: ohm-droop 1s ease-in-out;
     }
-    .rsvp-tip__window :global(.rsvp-tip__strip) {
-      animation: ohm-reel 900ms cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+    .rsvp-tip__window :global(.rsvp-tip__reel--go .rsvp-tip__strip) {
+      animation: ohm-reel var(--dur, 900ms) cubic-bezier(0.15, 0.6, 0.2, 1) forwards;
     }
+    /* up and out fast (ease-out), then a slow tumbling fall (ease-in) past the whole viewport, fading at the end */
     @keyframes ohm-confetti {
       0% {
         opacity: 1;
         translate: 0 0;
         rotate: 0deg;
+        animation-timing-function: cubic-bezier(0.1, 0.7, 0.3, 1);
       }
-      40% {
+      30% {
         opacity: 1;
-        translate: calc(var(--x) * 10rem) calc(var(--y) * 6rem);
+        translate: calc(var(--x) * var(--spread) * 0.75) calc(var(--y) * var(--rise));
+        rotate: calc(var(--r) * 0.4);
+        animation-timing-function: cubic-bezier(0.4, 0, 0.9, 0.6);
+      }
+      85% {
+        opacity: 1;
       }
       100% {
         opacity: 0;
-        translate: calc(var(--x) * 10rem) 4rem;
+        translate: calc(var(--x) * var(--spread)) calc(var(--f) * 100vh);
         rotate: var(--r);
       }
     }

@@ -48,7 +48,8 @@ const { credits } = Astro.props.event;
     padding: 0;
     margin-top: var(--s-6);
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    /* E15 (Brian, Nov 8): narrower cards (was 15rem, stretching to fill) so more of them fit on one row */
+    grid-template-columns: repeat(auto-fill, minmax(10rem, 12rem));
     gap: var(--s-6);
   }
   /* E10 (I-102, fourteenth exception): a lift and shadow on hover and keyboard focus. The padding and the equal negative

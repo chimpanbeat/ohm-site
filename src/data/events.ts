@@ -261,13 +261,13 @@ export const rsvpText = {
   doneText: 'I sent a confirmation to your email.',
   cantTitle: 'Thanks for letting me know.',
   cantText: 'I sent a short note to your email.',
-  outcomeConfirmed: '{Session}: confirmed',
-  outcomeWaitlist: '{Session}: waitlist',
-  outcomeFull: '{Session}: full',
-  outcomeNo: '{Session}: no',
+  outcomeConfirmed: '{Session}: Yes', // E15 (Brian, Nov 8): Yes/No like the emails, name and answer split by a dash
+  outcomeWaitlist: '{Session}: Waitlist',
+  outcomeFull: '{Session}: Full',
+  outcomeNo: '{Session}: No',
   outcomeMaybe: '{Session}: no spot held while Maybe',
   maybeNote: "A Maybe doesn't hold a {session} spot. If you decide to come, RSVP again on the event page with this email and choose Going.",
-  outcomeLine: '{name} · {outcome}',
+  outcomeLine: '{name} — {outcome}', // E15 (Brian, Nov 8): was a middle dot
   calendar: 'Add to another calendar', // E14 (Brian, Nov 8): the .ics, for Apple, Outlook and the rest; the Google button sits before it
   calendarGoogle: 'Add to Google Calendar', // E14 (Brian, Nov 8)
   errInvalid: 'Check the fields marked below.',
@@ -312,7 +312,7 @@ export const rsvpText = {
   changeSubject: 'Confirm your RSVP change: {title}',
   changeLead: 'Someone asked to change your RSVP to {title} using this email address. If it was you, confirm the new answer below.',
   newAnswer: 'New answer: {status}',
-  answerLine: '{name} · {Session}: {answer}',
+  answerLine: '{name} — {Session}: {answer}', // E15: a dash like outcomeLine and guestLine
   changeLinkLine: 'To make the change, open this link and press Confirm change within 6 hours: {changeUrl}',
   changeIgnore: "If you didn't ask for this, ignore this email. Your RSVP stays as it is.",
   changeConfirmLead: 'Confirm this change to your RSVP:',

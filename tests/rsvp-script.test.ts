@@ -1425,12 +1425,12 @@ test('E13-2. HTML: the headings bold and green, links from the feed only, names 
   assert.ok(!html.includes('now live! <a'), 'the link is no longer inside the sentence');
   for (const url of [env.feed.pageUrl, env.feed.icsUrl, env.feed.googleCalUrl, env.feed.notices[0].url]) assert.ok(html.includes(`<a href="${esc(url)}">${esc(url)}</a>`), `link ${url}`);
   assert.ok(html.includes('Hi Kim &lt;b&gt;Lee&lt;/b&gt; &amp; Co,') && !html.includes('<b>Lee'), 'the name is escaped');
-  assert.ok(html.includes('<li>https://evil.example — Yoga: <strong style="color:#125245">Yes</strong></li>') && !html.includes('href="https://evil.example'), 'a name is never a link');
+  assert.ok(html.includes('<li><strong style="color:inherit">https://evil.example</strong> — Yoga: <strong style="color:#125245">Yes</strong></li>') && !html.includes('href="https://evil.example'), 'a name is never a link');
   // E14: your own Yoga line, Yes green; the guests a real bulleted list; No terracotta
   assert.ok(html.includes('Your RSVP: Going<br>Yoga: <strong style="color:#125245">Yes</strong></p>'), 'your answer, coloured');
   assert.ok(html.includes('<ul style="margin:0 0 16px;padding-left:20px"><li>'), 'a bulleted list');
   rsvp(env, { name: 'Lou', email: 'lou@example.com', guests: [['Max', 'no']] });
-  assert.ok(env.mails[1].htmlBody.includes('<li>Max — Yoga: <strong style="color:#9C5739">No</strong></li>'), 'No is terracotta');
+  assert.ok(env.mails[1].htmlBody.includes('<li><strong style="color:inherit">Max</strong> — Yoga: <strong style="color:#9C5739">No</strong></li>'), 'No is terracotta');
   // the signature: Brian's styles, regular-weight credentials, business and site linked, tel: link and bullet
   assert.ok(html.includes('<table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,sans-serif;font-size:12px;line-height:16px;color:#125245">'));
   assert.ok(html.includes('<td style="border-left:2px solid #C37A5B;padding-left:10px">'));

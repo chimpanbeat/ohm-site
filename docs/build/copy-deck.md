@@ -529,10 +529,10 @@ Brian's Partiful description with Marea's edits on P1 (`650 hours`, Brian confir
 | `doneText` | `I sent a confirmation to your email.` |
 | `cantTitle` | `Thanks for letting me know.` |
 | `cantText` | `I sent a short note to your email.` |
-| `outcomeConfirmed` · `outcomeWaitlist` · `outcomeFull` · `outcomeNo` | `{Session}: confirmed` · `{Session}: waitlist` · `{Session}: full` · `{Session}: no` (Brian: "Yoga: confirmed", "Yoga: waitlist") |
+| `outcomeConfirmed` · `outcomeWaitlist` · `outcomeFull` · `outcomeNo` | `{Session}: Yes` · `{Session}: Waitlist` · `{Session}: Full` · `{Session}: No` (E15, Brian Nov 8: was "Yoga: confirmed"; the page bolds the name and colours Yes green, No and Full terracotta) |
 | `outcomeMaybe` | `{Session}: no spot held while Maybe` *(architect, I-064)* |
 | `maybeNote` | `A Maybe doesn't hold a {session} spot. If you decide to come, RSVP again on the event page with this email and choose Going.` *(architect, I-064)* |
-| `outcomeLine` | `{name} · {outcome}` |
+| `outcomeLine` | `{name} — {outcome}` (E15: was a middle dot) |
 | `calendar` | `Add to another calendar` (E14, Brian, Nov 8: the `.ics` file, for Apple, Outlook and every other calendar; was `Add to calendar`) |
 | `calendarGoogle` | `Add to Google Calendar` (E14, Brian, Nov 8: opens Google's pre-filled event form, no file; it needs a Google account; sits before `calendar` on the event page and the result card) |
 | `errInvalid` | `Check the fields marked below.` |
@@ -577,7 +577,7 @@ Brian's Partiful description with Marea's edits on P1 (`650 hours`, Brian confir
 | `changeSubject` | `Confirm your RSVP change: {title}` *(architect, I-064)* |
 | `changeLead` | `Someone asked to change your RSVP to {title} using this email address. If it was you, confirm the new answer below.` *(architect, I-064)* |
 | `newAnswer` | `New answer: {status}` *(architect, I-064; `{status}` = the `going`, `maybe` or `cant` text)* |
-| `answerLine` | `{name} · {Session}: {answer}` *(architect, I-064; `{answer}` = the `yes` or `no` text; the change email and page list what was asked for, not outcomes)* |
+| `answerLine` | `{name} — {Session}: {answer}` *(architect, I-064; `{answer}` = the `yes` or `no` text; the change email and page list what was asked for, not outcomes)* |
 | `changeLinkLine` | `To make the change, open this link and press Confirm change within 6 hours: {changeUrl}` *(architect, I-064)* |
 | `changeIgnore` | `If you didn't ask for this, ignore this email. Your RSVP stays as it is.` *(architect, I-064)* |
 | `changeConfirmLead` | `Confirm this change to your RSVP:` *(architect, I-064: the script's confirm page)* |

@@ -5,8 +5,14 @@
 import { confettiPieces, createRsvp, reelFor, type RawFields, type ResultView, type RsvpConfig, type RsvpState, type RsvpText } from '../lib/rsvp.ts';
 
 // E9 (§A3, the eleventh to thirteenth exceptions): the script only adds a node or a class; CSS moves it. One check.
-const CONFETTI = 24;
+// E15 (Brian, Nov 8): a bigger burst over the whole viewport, and a first tip that spins long and lands after the
+// confetti is gone (confetti: up to 450 ms of delay + 3400 ms; first reel: 4400 ms from the same moment).
+const CONFETTI = 110;
+const CONFETTI_MS = 3400;
 const REEL_ITEMS = 6;
+const REEL_MS = 900;
+const REEL_FIRST_ITEMS = 36;
+const REEL_FIRST_MS = 4400;
 const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // Removes a decoration when its last animation ends, or after `ms` if no animation runs (so nothing is left behind).
@@ -68,21 +74,44 @@ function start(form: HTMLFormElement): void {
   const tipNext = tipCard.querySelector<HTMLButtonElement>('.rsvp-tip__next')!;
 
   // ---- E9 decorations: confetti for Going (I-099), the emoji's one-shot class (I-105), the tip reel (I-095).
+  // E15: scroll the result to a fixed spot (28% down the viewport, so there is room above for the burst and the tip card
+  // below stays in view), then resolve once the page has stopped moving. Reduced motion jumps instead of gliding.
+  function scrollToResult(): Promise<void> {
+    const instant = reduceMotion();
+    const top = Math.max(0, window.scrollY + result.getBoundingClientRect().top - Math.round(window.innerHeight * 0.28));
+    window.scrollTo({ top, behavior: instant ? 'auto' : 'smooth' });
+    if (instant || Math.abs(top - window.scrollY) < 2) return Promise.resolve();
+    return new Promise((resolve) => {
+      const finish = () => {
+        window.removeEventListener('scrollend', finish);
+        clearTimeout(timer);
+        resolve();
+      };
+      const timer = setTimeout(finish, 1000); // a browser without `scrollend`, or a scroll that was interrupted
+      window.addEventListener('scrollend', finish);
+    });
+  }
+  // A fixed layer over the viewport (so nothing scrolls sideways), bursting from the top of the result card.
   function confetti(): void {
+    const at = result.getBoundingClientRect();
     const box = document.createElement('div');
     box.className = 'rsvp-confetti';
     box.setAttribute('aria-hidden', 'true');
+    box.style.setProperty('--ox', `${Math.round(at.left + at.width / 2)}px`);
+    box.style.setProperty('--oy', `${Math.round(at.top + 56)}px`);
     for (const p of confettiPieces(CONFETTI, Math.random)) {
       const i = document.createElement('i');
-      i.className = `c${p.colour}`;
+      i.className = `c${p.colour} s${p.shape}`;
       i.style.setProperty('--x', String(p.x));
       i.style.setProperty('--y', String(p.y));
       i.style.setProperty('--r', `${p.r}deg`);
       i.style.setProperty('--d', `${p.delay}ms`);
+      i.style.setProperty('--z', `${p.size}px`);
+      i.style.setProperty('--f', String(p.fall));
       box.append(i);
     }
-    result.append(box);
-    removeAfter(box, CONFETTI, 2500);
+    document.body.append(box);
+    removeAfter(box, CONFETTI, CONFETTI_MS + 1500);
   }
   function showEmoji(view: ResultView): void {
     emoji.textContent = view.cheerEmoji ?? '';
@@ -90,18 +119,24 @@ function start(form: HTMLFormElement): void {
     if (view.answer === 'maybe' || view.answer === 'cant') emoji.classList.add(`rsvp-result__emoji--${view.answer}`);
   }
   let reel: HTMLElement | null = null;
+  let introDone = false; // the first tip spins long, the "Another tip" ones short
+  let scrolled: Promise<void> = Promise.resolve();
   function spin(landing: string): void {
     reel?.remove();
     reel = null;
     const tips = rsvp.allTips();
+    const long = !introDone;
+    introDone = true;
     if (reduceMotion() || tips.length < 2) return;
-    const items = reelFor(tips, landing, Math.random, REEL_ITEMS);
+    const items = reelFor(tips, landing, Math.random, long ? REEL_FIRST_ITEMS : REEL_ITEMS);
     const h = tipWindow.getBoundingClientRect().height;
     if (!h) return;
     const box = document.createElement('div');
     box.className = 'rsvp-tip__reel';
     box.setAttribute('aria-hidden', 'true');
     box.style.setProperty('--h', `${h}px`);
+    const ms = long ? REEL_FIRST_MS : REEL_MS;
+    box.style.setProperty('--dur', `${ms}ms`);
     const strip = document.createElement('div');
     strip.className = 'rsvp-tip__strip';
     strip.style.setProperty('--steps', String(items.length - 1));
@@ -114,7 +149,15 @@ function start(form: HTMLFormElement): void {
     box.append(strip);
     tipWindow.append(box);
     reel = box;
-    removeAfter(box, 1, 1300);
+    // The first reel waits (parked on its first line, over the real tip) until the page has scrolled to the result and
+    // the confetti goes up, so the spin and the burst start together.
+    const go = () => {
+      if (reel !== box) return;
+      box.classList.add('rsvp-tip__reel--go');
+      removeAfter(box, 1, ms + 400);
+    };
+    if (long) void scrolled.then(go);
+    else go();
   }
   const errorSpans = Array.from(form.querySelectorAll<HTMLElement>('[data-error-for]'));
 
@@ -255,14 +298,21 @@ function start(form: HTMLFormElement): void {
       cheer.hidden = !s.result.cheer;
       if (!resultShown) showEmoji(s.result);
       const list = result.querySelector<HTMLElement>('.rsvp-lines')!;
+      // E15: a bold name, the separator, then the label and the answer in colour (like the emails)
       list.replaceChildren(
-        ...s.result.lines.map((line) => {
+        ...(s.result.rows ?? []).map((row) => {
           const li = document.createElement('li');
-          li.textContent = line;
+          const name = document.createElement('strong');
+          name.textContent = row.name;
+          li.append(name, `${row.sep}${row.label}`);
+          const answer = document.createElement('strong');
+          answer.textContent = row.answer;
+          if (row.tone) answer.className = `rsvp-answer--${row.tone}`;
+          li.append(answer);
           return li;
         }),
       );
-      list.hidden = s.result.lines.length === 0;
+      list.hidden = (s.result.rows ?? []).length === 0;
       const note = result.querySelector<HTMLElement>('.rsvp-result__note')!;
       note.hidden = !s.result.note;
       note.textContent = s.result.note ?? '';
@@ -271,8 +321,9 @@ function start(form: HTMLFormElement): void {
       for (const a of noticeLinks) a.hidden = !s.result.calendar;
       result.hidden = false;
       if (!resultShown) {
-        result.focus();
-        if (s.result.answer === 'going' && !reduceMotion()) confetti();
+        result.focus({ preventScroll: true });
+        scrolled = scrollToResult();
+        if (s.result.answer === 'going' && !reduceMotion()) void scrolled.then(confetti);
       }
     }
     resultShown = s.result !== null;

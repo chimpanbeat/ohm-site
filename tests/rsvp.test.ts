@@ -224,11 +224,11 @@ test('4. spotsText, outcomeLine and errServer give the copy deck lines', () => {
   assert.equal(spotsText(t, 'Yoga', 0, false), 'Yoga is full.');
   assert.equal(spotsText(t, 'Yoga', 20, false), '20 yoga spots left');
 
-  assert.equal(outcomeLine(t, 'Yoga', 'Alex', 'waitlist'), 'Alex · Yoga: waitlist');
-  assert.equal(outcomeLine(t, 'Yoga', 'Alex', 'confirmed'), 'Alex · Yoga: confirmed');
-  assert.equal(outcomeLine(t, 'Yoga', 'Alex', 'full'), 'Alex · Yoga: full');
-  assert.equal(outcomeLine(t, 'Yoga', 'Alex', 'no'), 'Alex · Yoga: no');
-  assert.equal(outcomeLine(t, 'Yoga', 'Alex', 'maybe'), 'Alex · Yoga: no spot held while Maybe');
+  assert.equal(outcomeLine(t, 'Yoga', 'Alex', 'waitlist'), 'Alex — Yoga: Waitlist');
+  assert.equal(outcomeLine(t, 'Yoga', 'Alex', 'confirmed'), 'Alex — Yoga: Yes');
+  assert.equal(outcomeLine(t, 'Yoga', 'Alex', 'full'), 'Alex — Yoga: Full');
+  assert.equal(outcomeLine(t, 'Yoga', 'Alex', 'no'), 'Alex — Yoga: No');
+  assert.equal(outcomeLine(t, 'Yoga', 'Alex', 'maybe'), 'Alex — Yoga: no spot held while Maybe');
 
   const e = errServer(t, site.email);
   assert.ok(e.includes(site.email) && !e.includes('{'), e);
@@ -274,7 +274,7 @@ test('5. load reads the spots; submit posts form-urlencoded, pairs outcomes with
   const r = c.state.result!;
   assert.equal(r.title, rsvpText.doneTitle);
   assert.equal(r.text, rsvpText.doneText);
-  assert.deepEqual(r.lines, ['Alex · Yoga: confirmed', 'Sam · Yoga: waitlist', 'Jo · Yoga: no']);
+  assert.deepEqual(r.lines, ['Alex — Yoga: Yes', 'Sam — Yoga: Waitlist', 'Jo — Yoga: No']);
   assert.equal(r.calendar, true);
   assert.equal(r.note, undefined);
   assert.equal(c.state.sending, false);
@@ -518,7 +518,7 @@ test('E9-1. resultView: the answer, the status line, the cheer and its emoji by 
   assert.equal(g.cheer, "Can't wait to see you there!");
   assert.equal(g.cheerEmoji, '');
   assert.equal(g.calendar, true);
-  assert.deepEqual(g.lines, ['Alex · Yoga: confirmed']);
+  assert.deepEqual(g.lines, ['Alex — Yoga: Yes']);
 
   const m = resultView(t, 'Yoga', ok('maybe', ['maybe']), ['Alex']);
   assert.equal(m.answer, 'maybe');
@@ -568,7 +568,8 @@ test('E9-3. confettiPieces: n pieces, every field in range, colour 0–3, the sa
     assert.ok(p.x >= -1 && p.x <= 1, `x ${p.x}`);
     assert.ok(p.y >= -1 && p.y <= -0.4, `y ${p.y}`);
     assert.ok(p.r >= -540 && p.r <= 540, `r ${p.r}`);
-    assert.ok(p.delay >= 0 && p.delay <= 150, `delay ${p.delay}`);
+    assert.ok(p.delay >= 0 && p.delay <= 450, `delay ${p.delay}`);
+    assert.ok(p.size >= 7 && p.size <= 13 && [0, 1, 2].includes(p.shape) && p.fall >= 0.6 && p.fall <= 1.4, 'E15 size, shape, fall');
     assert.ok(Number.isInteger(p.colour) && p.colour >= 0 && p.colour <= 3, `colour ${p.colour}`);
   }
   assert.deepEqual(confettiPieces(24, lcg(7)), a);

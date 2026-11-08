@@ -247,6 +247,28 @@ export function outcomeLine(text: RsvpText, label: string, name: string, outcome
   return fill(text.outcomeLine, { name, outcome: fill(text[OUTCOME_KEY[outcome]], words(label)) });
 }
 
+/** (E15) One guest's line in pieces, so the page can bold the name and colour the answer: `name`, the separator from
+ * `outcomeLine`, `label` (`Yoga: `) and `answer` (`Yes`), with `tone` yes (green) or no (terracotta), '' for a waitlist. */
+export interface OutcomeRow {
+  name: string;
+  sep: string;
+  label: string;
+  answer: string;
+  tone: 'yes' | 'no' | '';
+}
+const OUTCOME_TONE: Record<Outcome, OutcomeRow['tone']> = { confirmed: 'yes', no: 'no', full: 'no', waitlist: '', maybe: '' };
+export function outcomeRow(text: RsvpText, label: string, name: string, outcome: Outcome): OutcomeRow {
+  const full = fill(text[OUTCOME_KEY[outcome]], words(label));
+  const at = full.indexOf(': ');
+  return {
+    name,
+    sep: text.outcomeLine.replace('{name}', '').replace('{outcome}', ''),
+    label: at < 0 ? '' : full.slice(0, at + 2),
+    answer: at < 0 ? full : full.slice(at + 2),
+    tone: OUTCOME_TONE[outcome],
+  };
+}
+
 export function errServer(text: RsvpText, email: string): string {
   return fill(text.errServer, { email });
 }
@@ -282,6 +304,8 @@ export interface ResultView {
   text: string;
   /** One `<name> · <outcome>` per person; empty for can't go, a repeat RSVP and events without a session. */
   lines: string[];
+  /** (E15) The same people as `lines`, in pieces (bold name, coloured answer). */
+  rows?: OutcomeRow[];
   note?: string;
   /** Show the Add to calendar button (and, from E9, the notice buttons). Going and Maybe. */
   calendar: boolean;
@@ -309,7 +333,8 @@ export function resultView(text: RsvpText, label: string, reply: Extract<PostRep
   if (answer === 'cant') return { title: text.cantTitle, text: text.cantText, lines: [], calendar: false, ...said };
   // E14: a Maybe has no session answers, so no per-person lines; the note below still says it holds no spot
   const lines = answer === 'maybe' ? [] : names.slice(0, reply.outcomes.length).map((n, i) => outcomeLine(text, label, n, reply.outcomes[i]));
-  const view: ResultView = { title: text.doneTitle, text: text.doneText, lines, calendar: true, ...said };
+  const rows = answer === 'maybe' ? [] : names.slice(0, reply.outcomes.length).map((n, i) => outcomeRow(text, label, n, reply.outcomes[i]));
+  const view: ResultView = { title: text.doneTitle, text: text.doneText, lines, rows, calendar: true, ...said };
   if (reply.outcomes.includes('maybe')) view.note = fill(text.maybeNote, words(label));
   return view;
 }
@@ -323,10 +348,16 @@ export interface ConfettiPiece {
   y: number;
   /** Spin, −540…540 degrees. */
   r: number;
-  /** Start delay, 0…150 ms. */
+  /** Start delay, 0…450 ms. */
   delay: number;
   /** c0…c3: --accent, --terra-700, --green-700, --green-300. */
   colour: number;
+  /** (E15) Size in px, 7…13. */
+  size: number;
+  /** (E15) 0 a rectangle, 1 a dot, 2 a thin strip. */
+  shape: number;
+  /** (E15) Fall past the burst's height, 0.6…1.4 (× the viewport height). */
+  fall: number;
 }
 
 const between = (random: () => number, lo: number, hi: number) => lo + random() * (hi - lo);
@@ -337,8 +368,11 @@ export function confettiPieces(n: number, random: () => number): ConfettiPiece[]
     x: round2(between(random, -1, 1)),
     y: round2(between(random, -1, -0.4)),
     r: Math.round(between(random, -540, 540)),
-    delay: Math.round(between(random, 0, 150)),
+    delay: Math.round(between(random, 0, 450)),
     colour: Math.min(3, Math.floor(random() * 4)),
+    size: Math.round(between(random, 7, 13)),
+    shape: Math.min(2, Math.floor(random() * 3)),
+    fall: round2(between(random, 0.6, 1.4)),
   }));
 }
 

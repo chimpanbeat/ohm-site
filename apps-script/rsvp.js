@@ -492,7 +492,7 @@ function lineText_(l) {
 }
 
 // A coloured word: Yes in green, No in the terracotta of the site's buttons; any other tone is plain.
-var TONE_COLOR = { yes: MAIL_GREEN, no: MAIL_CTA };
+var TONE_COLOR = { yes: MAIL_GREEN, no: MAIL_CTA, name: 'inherit' }; // E15: a guest's name in a bullet is bold, in the text's colour
 
 function lineHtml_(l) {
   if (typeof l === 'string') return esc_(l);
@@ -715,7 +715,7 @@ function detailsBlocks_(ev, status, people, assigned) {
   if (people.length > 1) {
     var guests = [{ head: t.guestsHead }];
     people.slice(1).forEach(function (p, i) {
-      guests.push({ li: asks ? tpl_(t.guestLine, { name: p.name, Session: w.Session }, { answer: answerRun_(t, assigned[i + 1].cell) }) : p.name });
+      guests.push({ li: asks ? tpl_(t.guestLine, { Session: w.Session }, { name: { text: p.name, tone: 'name' }, answer: answerRun_(t, assigned[i + 1].cell) }) : p.name });
     });
     blocks.push(guests);
   }
