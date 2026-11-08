@@ -281,17 +281,77 @@ export interface ResultView {
   /** One `<name> · <outcome>` per person; empty for can't go, a repeat RSVP and events without a session. */
   lines: string[];
   note?: string;
-  /** Show the Add to calendar button. */
+  /** Show the Add to calendar button (and, from E9, the notice buttons). Going and Maybe. */
   calendar: boolean;
+  /** (E9) The answer the script saved; absent for a repeat RSVP (`pending`) and the honeypot's quiet success. */
+  answer?: Status;
+  /** (E9, I-094) `RSVP: Going` and so on. */
+  statusLine?: string;
+  /** (E9, I-103) One line by answer. */
+  cheer?: string;
+  /** (E9, I-105) The decorative emoji after the cheer: '' for Going (it gets the confetti). */
+  cheerEmoji?: string;
 }
+
+const CHEER: Record<Status, [string, string]> = {
+  going: ['cheerGoing', ''],
+  maybe: ['cheerMaybe', 'cheerMaybeEmoji'],
+  cant: ['cheerCant', 'cheerCantEmoji'],
+};
 
 export function resultView(text: RsvpText, label: string, reply: Extract<PostReply, { ok: true }>, names: string[]): ResultView {
   if (reply.pending) return { title: text.changeTitle, text: text.changeText, lines: [], calendar: false };
-  if (reply.status === 'cant') return { title: text.cantTitle, text: text.cantText, lines: [], calendar: false };
+  const answer = reply.status;
+  const [cheerKey, emojiKey] = CHEER[answer];
+  const said = { answer, statusLine: fill(text.resultStatus, { status: text[answer] }), cheer: text[cheerKey], cheerEmoji: emojiKey ? text[emojiKey] : '' };
+  if (answer === 'cant') return { title: text.cantTitle, text: text.cantText, lines: [], calendar: false, ...said };
   const lines = names.slice(0, reply.outcomes.length).map((n, i) => outcomeLine(text, label, n, reply.outcomes[i]));
-  const view: ResultView = { title: text.doneTitle, text: text.doneText, lines, calendar: true };
+  const view: ResultView = { title: text.doneTitle, text: text.doneText, lines, calendar: true, ...said };
   if (reply.outcomes.includes('maybe')) view.note = fill(text.maybeNote, words(label));
   return view;
+}
+
+// ---- Motion helpers (E9, I-099, I-095): pure, so the DOM layer only places what these return ----------------------
+
+export interface ConfettiPiece {
+  /** Horizontal spread, −1…1 (× 10rem). */
+  x: number;
+  /** Rise, −1…−0.4 (× 6rem). */
+  y: number;
+  /** Spin, −540…540 degrees. */
+  r: number;
+  /** Start delay, 0…150 ms. */
+  delay: number;
+  /** c0…c3: --accent, --terra-700, --green-700, --green-300. */
+  colour: number;
+}
+
+const between = (random: () => number, lo: number, hi: number) => lo + random() * (hi - lo);
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+export function confettiPieces(n: number, random: () => number): ConfettiPiece[] {
+  return Array.from({ length: n }, () => ({
+    x: round2(between(random, -1, 1)),
+    y: round2(between(random, -1, -0.4)),
+    r: Math.round(between(random, -540, 540)),
+    delay: Math.round(between(random, 0, 150)),
+    colour: Math.min(3, Math.floor(random() * 4)),
+  }));
+}
+
+/** The slot-machine strip: `count` items ending with `landing`. Fillers are the other tips, never `landing`, and with
+ * three or more tips no two neighbours are equal. One tip (or none besides `landing`) → `[landing]`. */
+export function reelFor(tips: readonly string[], landing: string, random: () => number, count: number): string[] {
+  const others = tips.filter((t) => t !== landing);
+  if (others.length === 0 || count <= 1) return [landing];
+  const strip: string[] = [];
+  for (let i = 0; i < count - 1; i++) {
+    const prev = strip[i - 1];
+    const pool = others.length > 1 && prev !== undefined ? others.filter((t) => t !== prev) : others;
+    strip.push(pool[Math.min(pool.length - 1, Math.floor(random() * pool.length))]);
+  }
+  strip.push(landing);
+  return strip;
 }
 
 // ---- The controller ----------------------------------------------------------------------------------------------
@@ -355,6 +415,7 @@ export function createRsvp(opts: RsvpOptions) {
   let state: RsvpState = { spots: null, closed: false, sending: false, banner: null, fieldErrors: {}, focus: null, result: null, tip: null, moreTips: false };
   // The deck comes from the first status read that has tips and lasts for the page view (a later read never resets it).
   let deck: ReturnType<typeof tipDeck> | null = null;
+  let deckTips: readonly string[] = []; // E9: the list the deck was built from, for the reel
   const set = (patch: Partial<RsvpState>) => {
     state = { ...state, ...patch };
     // Whenever a result is showing and a deck exists, the card gets its first tip.
@@ -392,7 +453,10 @@ export function createRsvp(opts: RsvpOptions) {
       const res = await request(`${url}?slug=${encodeURIComponent(event.slug)}`, {});
       const p = parseStatus(res.text, res.status);
       if (!p.ok) return; // the timeline already says how many spots there are
-      if (!deck && p.tips.length > 0) deck = tipDeck(p.tips, random);
+      if (!deck && p.tips.length > 0) {
+        deckTips = Object.freeze(p.tips.slice());
+        deck = tipDeck(deckTips, random);
+      }
       set({ closed: !p.open, spots: p.session ? spotsText(text, event.session?.label ?? label, p.session.spotsLeft, p.session.waitlist) : null });
     } catch {
       // the spots line stays as it was
@@ -444,6 +508,10 @@ export function createRsvp(opts: RsvpOptions) {
     /** The "Another tip" button: the next tip from the deck. Does nothing until a tip is showing. */
     nextTip(): void {
       if (deck && state.tip !== null) set({ tip: deck.next() });
+    },
+    /** (E9) The tips the deck was built from (the reel's fillers); [] until a status read brings tips. */
+    allTips(): readonly string[] {
+      return deckTips;
     },
     subscribe(fn: (s: RsvpState) => void) {
       listeners.push(fn);

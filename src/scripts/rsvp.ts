@@ -2,7 +2,25 @@
 // A thin DOM layer: the logic is createRsvp() in src/lib/rsvp.ts. The form works without it (a plain post to the
 // Apps Script with mode=html); this adds spots left, the guest rows, validation and the in-page result.
 // The only request is to the form's own action. Nothing is stored, logged or put in the URL.
-import { createRsvp, type RawFields, type RsvpConfig, type RsvpState, type RsvpText } from '../lib/rsvp.ts';
+import { confettiPieces, createRsvp, reelFor, type RawFields, type ResultView, type RsvpConfig, type RsvpState, type RsvpText } from '../lib/rsvp.ts';
+
+// E9 (§A3, the eleventh to thirteenth exceptions): the script only adds a node or a class; CSS moves it. One check.
+const CONFETTI = 24;
+const REEL_ITEMS = 6;
+const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// Removes a decoration when its last animation ends, or after `ms` if no animation runs (so nothing is left behind).
+function removeAfter(node: HTMLElement, pending: number, ms: number): void {
+  let left = pending;
+  const done = () => node.remove();
+  const timer = setTimeout(done, ms);
+  node.addEventListener('animationend', () => {
+    if (--left <= 0) {
+      clearTimeout(timer);
+      done();
+    }
+  });
+}
 
 function start(form: HTMLFormElement): void {
   const root = form.closest<HTMLElement>('.rsvp');
@@ -34,10 +52,70 @@ function start(form: HTMLFormElement): void {
   const banner = q<HTMLElement>('.rsvp-banner')!;
   const spots = q<HTMLElement>('.rsvp-spots')!;
   const closed = q<HTMLElement>('.rsvp-closed')!;
+  const heading = q<HTMLElement>('.rsvp-heading');
+  const intro = q<HTMLElement>('.rsvp-intro');
   const result = q<HTMLElement>('.rsvp-result')!;
+  const statusLine = result.querySelector<HTMLElement>('.rsvp-result__status')!;
+  const cheer = result.querySelector<HTMLElement>('.rsvp-result__cheer')!;
+  const cheerText = cheer.querySelector<HTMLElement>('.rsvp-result__cheer-text')!;
+  const emoji = cheer.querySelector<HTMLElement>('.rsvp-result__emoji')!;
+  const actions = result.querySelector<HTMLElement>('.rsvp-result__actions')!;
+  const calendar = actions.querySelector<HTMLElement>('.rsvp-result__calendar')!;
+  const noticeLinks = Array.from(actions.querySelectorAll<HTMLElement>('.rsvp-result__notice'));
   const tipCard = q<HTMLElement>('.rsvp-tip')!;
+  const tipWindow = tipCard.querySelector<HTMLElement>('.rsvp-tip__window')!;
   const tipText = tipCard.querySelector<HTMLElement>('.rsvp-tip__text')!;
   const tipNext = tipCard.querySelector<HTMLButtonElement>('.rsvp-tip__next')!;
+
+  // ---- E9 decorations: confetti for Going (I-099), the emoji's one-shot class (I-105), the tip reel (I-095).
+  function confetti(): void {
+    const box = document.createElement('div');
+    box.className = 'rsvp-confetti';
+    box.setAttribute('aria-hidden', 'true');
+    for (const p of confettiPieces(CONFETTI, Math.random)) {
+      const i = document.createElement('i');
+      i.className = `c${p.colour}`;
+      i.style.setProperty('--x', String(p.x));
+      i.style.setProperty('--y', String(p.y));
+      i.style.setProperty('--r', `${p.r}deg`);
+      i.style.setProperty('--d', `${p.delay}ms`);
+      box.append(i);
+    }
+    result.append(box);
+    removeAfter(box, CONFETTI, 1500);
+  }
+  function showEmoji(view: ResultView): void {
+    emoji.textContent = view.cheerEmoji ?? '';
+    emoji.classList.remove('rsvp-result__emoji--maybe', 'rsvp-result__emoji--cant');
+    if (view.answer === 'maybe' || view.answer === 'cant') emoji.classList.add(`rsvp-result__emoji--${view.answer}`);
+  }
+  let reel: HTMLElement | null = null;
+  function spin(landing: string): void {
+    reel?.remove();
+    reel = null;
+    const tips = rsvp.allTips();
+    if (reduceMotion() || tips.length < 2) return;
+    const items = reelFor(tips, landing, Math.random, REEL_ITEMS);
+    const h = tipWindow.getBoundingClientRect().height;
+    if (!h) return;
+    const box = document.createElement('div');
+    box.className = 'rsvp-tip__reel';
+    box.setAttribute('aria-hidden', 'true');
+    box.style.setProperty('--h', `${h}px`);
+    const strip = document.createElement('div');
+    strip.className = 'rsvp-tip__strip';
+    strip.style.setProperty('--steps', String(items.length - 1));
+    for (const tip of items) {
+      const item = document.createElement('div');
+      item.className = 'rsvp-tip__reel-item';
+      item.textContent = tip;
+      strip.append(item);
+    }
+    box.append(strip);
+    tipWindow.append(box);
+    reel = box;
+    removeAfter(box, 1, 1300);
+  }
   const errorSpans = Array.from(form.querySelectorAll<HTMLElement>('[data-error-for]'));
 
   // ---- Guest rows: none until asked, one at a time, up to the rows the page rendered. The ceiling is never said.
@@ -118,9 +196,19 @@ function start(form: HTMLFormElement): void {
     form.setAttribute('aria-busy', String(s.sending));
     for (const span of errorSpans) showError(span, s.fieldErrors[span.dataset.errorFor ?? ''] ?? '');
     form.hidden = s.closed || s.result !== null;
+    // E9 (I-094): after a result the heading stays for screen readers (the outline keeps H2 RSVP over the H3 result);
+    // the intro and the spots line go.
+    heading?.classList.toggle('visually-hidden', s.result !== null);
+    if (intro) intro.hidden = s.result !== null;
+    if (s.result) spots.hidden = true;
     if (s.result) {
       result.querySelector('.rsvp-result__title')!.textContent = s.result.title;
       result.querySelector('.rsvp-result__text')!.textContent = s.result.text;
+      statusLine.textContent = s.result.statusLine ?? '';
+      statusLine.hidden = !s.result.statusLine;
+      cheerText.textContent = s.result.cheer ?? '';
+      cheer.hidden = !s.result.cheer;
+      if (!resultShown) showEmoji(s.result);
       const list = result.querySelector<HTMLElement>('.rsvp-lines')!;
       list.replaceChildren(
         ...s.result.lines.map((line) => {
@@ -133,17 +221,26 @@ function start(form: HTMLFormElement): void {
       const note = result.querySelector<HTMLElement>('.rsvp-result__note')!;
       note.hidden = !s.result.note;
       note.textContent = s.result.note ?? '';
-      result.querySelector<HTMLElement>('.rsvp-result__calendar')!.hidden = !s.result.calendar;
+      actions.hidden = !s.result.calendar;
+      calendar.hidden = !s.result.calendar;
+      for (const a of noticeLinks) a.hidden = !s.result.calendar;
       result.hidden = false;
-      if (!resultShown) result.focus();
+      if (!resultShown) {
+        result.focus();
+        if (s.result.answer === 'going' && !reduceMotion()) confetti();
+      }
     }
     resultShown = s.result !== null;
     // The self-care tip (E6): plain text only, shown under any successful reply. The live region speaks only when its
-    // text changes, so the first tip is read by moving on to it and "Another tip" announces the new one.
+    // text changes, so the first tip is read by moving on to it and "Another tip" announces the new one. E9: the real
+    // text is set first, then the reel (decoration) spins over it.
     const tip = s.result ? (s.tip ?? '') : '';
-    if (tipText.textContent !== tip) tipText.textContent = tip;
     tipCard.hidden = !tip;
     tipNext.hidden = !tip || !s.moreTips;
+    if (tipText.textContent !== tip) {
+      tipText.textContent = tip;
+      if (tip) spin(tip);
+    }
   };
   rsvp.subscribe(render);
   tipNext.addEventListener('click', () => rsvp.nextTip());

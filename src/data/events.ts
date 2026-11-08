@@ -149,6 +149,7 @@ export function launchParty(limit: number, chaiNote: string | null = null): Site
         text: "If you haven't been to CityROCK in the last 2 years, you'll be required to fill out a waiver to enter the building. We recommend filling this out in advance, but it can be done in person if you forget!",
         link: { label: 'Fill out the waiver', url: 'https://portal.climbcityrock.com/cityrockdowntown/agreements/cityrock-waiver' },
         inEmails: true,
+        inResult: true, // E9, I-096: also a button on the RSVP result card (Going and Maybe)
       },
     ],
     // I-079 (Marea's labels): replaces the host section. Images made by `npm run event-images` (E4).
@@ -300,9 +301,15 @@ export const rsvpText = {
   changeDoneTitle: 'Your RSVP is updated.',
   spotFreedSubject: 'A {session} spot opened: {title}',
   spotFreedText: "A guest's RSVP change freed {session} spots (freed: {n}) while people are on the waitlist. In the sheet, set the lowest Waitlist # to confirmed and email that guest, once for each freed spot.",
-  tipTitle: 'Self-care tip of the day', // E6, I-082 (Brian)
+  tipTitle: 'Self-care tip', // E9, I-095 (Brian: drops "of the day")
   tipNext: 'Another tip', // E6, I-082 (Brian)
-  reminderTip: 'Self-care tip of the day: {tip}', // E6, I-084 (architect; email wording still open in I-081)
+  reminderTip: 'Self-care tip: {tip}', // E9, I-095 (Brian: drops "of the day"; the script reads it from the feed)
+  resultStatus: 'RSVP: {status}', // E9, I-094 (Brian)
+  cheerGoing: "Can't wait to see you there!", // E9, I-103 (Brian, verbatim)
+  cheerMaybe: 'Hope to see you there!', // E9, I-103 (Brian, verbatim)
+  cheerCant: "Sorry you can't make it!", // E9, I-103 (Brian, verbatim)
+  cheerMaybeEmoji: '🤞', // E9, I-105 (Brian; decorative)
+  cheerCantEmoji: '🥲', // E9, I-105 (Brian; decorative)
 } as const;
 
 export type RsvpTextKey = keyof typeof rsvpText;

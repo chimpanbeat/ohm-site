@@ -23,10 +23,12 @@ const guestsHelp = fill(session ? t.guestsHelp : t.guestsHelpPlain, w);
 const rows = Array.from({ length: cfg.maxGuests }, (_, i) => i + 1);
 const statuses = ['going', 'maybe', 'cant'] as const;
 const answers = ['yes', 'no'] as const;
+// E9 (I-096): notices whose link is also a result-card button
+const notices = event.notices.filter((n): n is typeof n & { link: NonNullable<typeof n.link> } => n.inResult === true && n.link !== undefined);
 ---
 
 <div class="rsvp">
-  <h2>{t.heading}</h2>
+  <h2 class="rsvp-heading">{t.heading}</h2>
   <p class="rsvp-intro">{t.intro}</p>
   <p class="rsvp-closed" hidden>{t.closed}</p>
   <p class="rsvp-spots" aria-live="polite" hidden></p>
@@ -140,15 +142,31 @@ const answers = ['yes', 'no'] as const;
   <div class="rsvp-result" role="status" tabindex="-1" hidden>
     <h3 class="rsvp-result__title"></h3>
     <p class="rsvp-result__text"></p>
+    {/* E9 (I-094, I-103, I-105): your answer, then a line by answer with a decorative emoji */}
+    <p class="rsvp-result__status" hidden></p>
+    <p class="rsvp-result__cheer" hidden><span class="rsvp-result__cheer-text"></span> <span class="rsvp-result__emoji" aria-hidden="true"></span></p>
     <ul class="rsvp-lines"></ul>
     <p class="rsvp-result__note" hidden></p>
-    <a class="btn rsvp-result__calendar" href={href(`/events/${event.slug}.ics`)} download hidden>{t.calendar}</a>
+    {/* E9 (I-096): the calendar, then each inResult notice's own link (the waiver), for Going and Maybe */}
+    <div class="rsvp-result__actions" hidden>
+      <a class="btn rsvp-result__calendar" href={href(`/events/${event.slug}.ics`)} download hidden>{t.calendar}</a>
+      {
+        notices.map((n) => (
+          <a class="btn rsvp-result__notice" href={n.link.url} target="_blank" rel="noopener" hidden>
+            {n.link.label}
+          </a>
+        ))
+      }
+    </div>
   </div>
 
   {/* E6 (I-082): a sibling of the result, not inside it: role="status" is read whole, so a new tip would re-read the result. */}
   <div class="rsvp-tip" hidden>
     <h3 class="rsvp-tip__title">{t.tipTitle}</h3>
-    <p class="rsvp-tip__text" aria-live="polite"></p>
+    {/* E9 (I-095): the window holds the live text; the aria-hidden reel spins over it */}
+    <div class="rsvp-tip__window">
+      <p class="rsvp-tip__text" aria-live="polite"></p>
+    </div>
     <button type="button" class="link-button rsvp-tip__next" hidden>{t.tipNext}</button>
   </div>
 </div>
@@ -282,6 +300,7 @@ const answers = ['yes', 'no'] as const;
     font-size: var(--fs-small);
   }
   .rsvp-result {
+    position: relative; /* E9: the confetti's anchor */
     margin-top: var(--s-6);
     padding: var(--s-6);
     border: 1px solid var(--line-light);
@@ -291,14 +310,174 @@ const answers = ['yes', 'no'] as const;
   .rsvp-result > * + * {
     margin-top: var(--s-3);
   }
+  /* E9 (I-094, I-096, I-105) */
+  .rsvp-result__status {
+    font-weight: 600;
+  }
+  .rsvp-result__emoji {
+    display: inline-block;
+    transform-origin: 50% 80%;
+  }
+  .rsvp-result__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-3);
+  }
+  /* E9 (I-099): added by the script, so outside this component's scope */
+  .rsvp-result :global(.rsvp-confetti) {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+  }
+  .rsvp-result :global(.rsvp-confetti i) {
+    position: absolute;
+    top: 0;
+    left: -4px;
+    width: 8px;
+    height: 4px;
+    opacity: 0;
+  }
+  .rsvp-result :global(.rsvp-confetti .c0) {
+    background: var(--accent);
+  }
+  .rsvp-result :global(.rsvp-confetti .c1) {
+    background: var(--terra-700);
+  }
+  .rsvp-result :global(.rsvp-confetti .c2) {
+    background: var(--green-700);
+  }
+  .rsvp-result :global(.rsvp-confetti .c3) {
+    background: var(--green-300);
+  }
+  /* E9 (I-095): the Pricing rate card's look */
   .rsvp-tip {
     margin-top: var(--s-6);
     padding: var(--s-6);
-    border: 1px solid var(--line-light);
+    border-top: 3px solid var(--accent);
     border-radius: var(--radius);
+    background: var(--bg-dark);
+    color: var(--text-on-dark);
   }
   .rsvp-tip > * + * {
     margin-top: var(--s-3);
+  }
+  .rsvp-tip__title::after {
+    content: '';
+    display: block;
+    width: 100%;
+    height: 2px;
+    margin-top: var(--s-3);
+    background: var(--accent);
+  }
+  .rsvp-tip__next {
+    color: var(--text-on-dark);
+  }
+  .rsvp-tip__window {
+    position: relative;
+    overflow: hidden;
+  }
+  .rsvp-tip__window :global(.rsvp-tip__reel) {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background: var(--bg-dark);
+  }
+  .rsvp-tip__window :global(.rsvp-tip__reel-item) {
+    height: var(--h);
+    overflow: hidden;
+  }
+  /* Motion set three (§A3, the eleventh to thirteenth exceptions): one-shot, decoration only; with reduced motion the
+     script adds no confetti or reel and the emoji sits still. */
+  @media (prefers-reduced-motion: no-preference) {
+    .rsvp-result :global(.rsvp-confetti i) {
+      animation: ohm-confetti 1000ms ease-out var(--d) forwards;
+    }
+    .rsvp-result__emoji--maybe {
+      animation: ohm-wiggle 1s ease-out;
+    }
+    .rsvp-result__emoji--cant {
+      animation: ohm-droop 1s ease-in-out;
+    }
+    .rsvp-tip__window :global(.rsvp-tip__strip) {
+      animation: ohm-reel 900ms cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+    }
+    @keyframes ohm-confetti {
+      0% {
+        opacity: 1;
+        translate: 0 0;
+        rotate: 0deg;
+      }
+      40% {
+        opacity: 1;
+        translate: calc(var(--x) * 10rem) calc(var(--y) * 6rem);
+      }
+      100% {
+        opacity: 0;
+        translate: calc(var(--x) * 10rem) 4rem;
+        rotate: var(--r);
+      }
+    }
+    @keyframes ohm-wiggle {
+      0% {
+        scale: 0;
+        rotate: 0deg;
+      }
+      15% {
+        scale: 1.15;
+      }
+      30% {
+        scale: 1;
+        rotate: 0deg;
+      }
+      44% {
+        rotate: -12deg;
+      }
+      58% {
+        rotate: 12deg;
+      }
+      72% {
+        rotate: -12deg;
+      }
+      86% {
+        rotate: 12deg;
+      }
+      100% {
+        scale: 1;
+        rotate: 0deg;
+      }
+    }
+    @keyframes ohm-droop {
+      0% {
+        opacity: 0;
+        rotate: 0deg;
+        translate: 0 0;
+      }
+      25% {
+        opacity: 1;
+        rotate: 0deg;
+        translate: 0 0;
+      }
+      55% {
+        rotate: 14deg;
+        translate: 0 2px;
+      }
+      100% {
+        opacity: 1;
+        rotate: 0deg;
+        translate: 0 0;
+      }
+    }
+    @keyframes ohm-reel {
+      from {
+        translate: 0 0;
+      }
+      to {
+        translate: 0 calc(-1 * var(--steps) * var(--h));
+      }
+    }
   }
   .rsvp-lines {
     padding-left: 1.1em;

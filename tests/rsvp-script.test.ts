@@ -1046,7 +1046,7 @@ const setTips = (env: Env, ...cells: unknown[]) => {
   env.state.tips = ['Tip', ...cells];
 };
 const tipOpens = (env: Env) => env.log.filter((x) => x === 'openTips').length;
-const TIP_LINE = /^Self-care tip of the day: (.*)$/m;
+const TIP_LINE = /^Self-care tip: (.*)$/m; // E9, I-095: "of the day" dropped
 const tipOf = (body: string): string | undefined => TIP_LINE.exec(body)?.[1];
 /** The reminder mail with one tip line just before the sign-off (what the copy deck says). */
 const withTipBlock = (f: Feed, body: string, tip: string): string => {

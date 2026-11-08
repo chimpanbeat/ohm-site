@@ -24,6 +24,9 @@ import {
   cleanTips,
   shuffle,
   tipDeck,
+  resultView,
+  confettiPieces,
+  reelFor,
 } from '../src/lib/rsvp.ts';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
@@ -503,6 +506,93 @@ test('C4. nextTip does nothing before a result; subscribers hear the tip', async
   assert.ok(tipsSeen.some((t) => t !== null));
 });
 
+// ---- E9. The result card: your answer, a line by answer, confetti, the reel (I-094, I-099, I-103, I-105, I-095) ------
+type Ok = Extract<ReturnType<typeof parseReply>, { ok: true }>;
+const ok = (status: 'going' | 'maybe' | 'cant', outcomes: Ok['outcomes'] = [], pending = false): Ok => ({ ok: true, status, outcomes, pending });
+
+test('E9-1. resultView: the answer, the status line, the cheer and its emoji by answer; none for pending', () => {
+  const t = rsvpText;
+  const g = resultView(t, 'Yoga', ok('going', ['confirmed']), ['Alex']);
+  assert.equal(g.answer, 'going');
+  assert.equal(g.statusLine, 'RSVP: Going');
+  assert.equal(g.cheer, "Can't wait to see you there!");
+  assert.equal(g.cheerEmoji, '');
+  assert.equal(g.calendar, true);
+  assert.deepEqual(g.lines, ['Alex · Yoga: confirmed']);
+
+  const m = resultView(t, 'Yoga', ok('maybe', ['maybe']), ['Alex']);
+  assert.equal(m.answer, 'maybe');
+  assert.equal(m.statusLine, 'RSVP: Maybe');
+  assert.equal(m.cheer, 'Hope to see you there!');
+  assert.equal(m.cheerEmoji, '🤞');
+  assert.equal(m.calendar, true);
+
+  const c = resultView(t, 'Yoga', ok('cant'), ['Alex']);
+  assert.equal(c.title, t.cantTitle);
+  assert.equal(c.text, t.cantText);
+  assert.equal(c.answer, 'cant');
+  assert.equal(c.statusLine, "RSVP: Can't go");
+  assert.equal(c.cheer, "Sorry you can't make it!");
+  assert.equal(c.cheerEmoji, '🥲');
+  assert.equal(c.calendar, false);
+  assert.deepEqual(c.lines, []);
+
+  const p = resultView(t, 'Yoga', ok('going', [], true), ['Alex']);
+  assert.equal(p.title, t.changeTitle);
+  for (const k of ['answer', 'statusLine', 'cheer', 'cheerEmoji'] as const) assert.equal(p[k], undefined, k);
+});
+
+test('E9-2. flow: the honeypot result has no answer; a sent RSVP has one; allTips is the cleaned list and stays put', async () => {
+  const bot = make(fakeFetch());
+  await bot.submit({ ...alex, website: 'spam' });
+  assert.ok(bot.state.result);
+  assert.equal(bot.state.result!.answer, undefined);
+  assert.equal(bot.state.result!.statusLine, undefined);
+
+  const c = make(fakeFetch(reply(going), reply(withTips([' A ', 'B', 'a', 'C']))), { random: lcg(3) });
+  assert.deepEqual(c.allTips(), [], 'no read yet');
+  await c.submit(alex);
+  assert.equal(c.state.result!.answer, 'going');
+  assert.equal(c.state.result!.statusLine, 'RSVP: Going');
+  assert.ok(['A', 'B', 'C'].includes(c.state.tip!), String(c.state.tip));
+  assert.deepEqual(c.allTips(), ['A', 'B', 'C']);
+  c.nextTip();
+  c.nextTip();
+  assert.deepEqual(c.allTips(), ['A', 'B', 'C']);
+});
+
+test('E9-3. confettiPieces: n pieces, every field in range, colour 0–3, the same seed gives the same pieces', () => {
+  const a = confettiPieces(24, lcg(7));
+  assert.equal(a.length, 24);
+  for (const p of a) {
+    assert.ok(p.x >= -1 && p.x <= 1, `x ${p.x}`);
+    assert.ok(p.y >= -1 && p.y <= -0.4, `y ${p.y}`);
+    assert.ok(p.r >= -540 && p.r <= 540, `r ${p.r}`);
+    assert.ok(p.delay >= 0 && p.delay <= 150, `delay ${p.delay}`);
+    assert.ok(Number.isInteger(p.colour) && p.colour >= 0 && p.colour <= 3, `colour ${p.colour}`);
+  }
+  assert.deepEqual(confettiPieces(24, lcg(7)), a);
+  assert.notDeepEqual(confettiPieces(24, lcg(8)), a);
+  assert.ok(new Set(a.map((p) => p.colour)).size > 1, 'more than one colour');
+});
+
+test('E9-4. reelFor: count items ending with the landing tip; fillers never the landing tip; no equal neighbours from three tips', () => {
+  assert.deepEqual(reelFor(['a'], 'a', lcg(1), 6), ['a']);
+  assert.deepEqual(reelFor([], 'a', lcg(1), 6), ['a']);
+  assert.deepEqual(reelFor(['a', 'b'], 'a', lcg(1), 6), ['b', 'b', 'b', 'b', 'b', 'a']);
+  for (let seed = 1; seed <= 40; seed++) {
+    const tips = ['a', 'b', 'c', 'd', 'e'];
+    const r = reelFor(tips, 'c', lcg(seed), 6);
+    assert.equal(r.length, 6);
+    assert.equal(r.at(-1), 'c');
+    for (const f of r.slice(0, -1)) assert.notEqual(f, 'c', r.join(''));
+    for (let i = 1; i < r.length; i++) assert.notEqual(r[i], r[i - 1], `seed ${seed}: ${r.join('')}`);
+    assert.deepEqual(reelFor(tips, 'c', lcg(seed), 6), r, 'seeded runs repeat');
+    const three = reelFor(['a', 'b', 'c'], 'a', lcg(seed), 6);
+    for (let i = 1; i < three.length; i++) assert.notEqual(three[i], three[i - 1], three.join(''));
+  }
+});
+
 // ---- 6. The built form -------------------------------------------------------------------------------------------
 const built = existsSync(join(dist, 'events/launch-party.html')); // E8, I-092: the page moved under /events
 const skipBuilt = built ? false : 'dist/events/launch-party.html is missing; run `npm run build` first';
@@ -640,10 +730,41 @@ test('source: the guest card spacing rule matches the markup (E5, I-086)', () =>
   assert.match(src, /\.guest \.field \+ \.group\s*\{\s*margin-top: var\(--s-4\);\s*\}/);
 });
 
+// The whole <div …>…</div> whose opening tag matches `open` (nested divs counted), or null.
+function divBlock(src: string, open: RegExp): string | null {
+  const m = new RegExp(open.source, 'g').exec(src);
+  if (!m) return null;
+  const tags = /<\/?div\b[^>]*>/g;
+  tags.lastIndex = m.index;
+  let depth = 0;
+  for (let t = tags.exec(src); t; t = tags.exec(src)) {
+    depth += t[0].startsWith('</') ? -1 : 1;
+    if (depth === 0) return src.slice(m.index, t.index + t[0].length);
+  }
+  return null;
+}
+// The opening tags of an element's direct children.
+function childTags(block: string): string[] {
+  const inner = block.slice(block.indexOf('>') + 1, block.lastIndexOf('<'));
+  const out: string[] = [];
+  let depth = 0;
+  for (const t of inner.matchAll(/<(\/?)([a-z][a-z0-9]*)\b[^>]*?(\/?)>/g)) {
+    if (t[1]) depth--;
+    else {
+      if (depth === 0) out.push(t[0]);
+      if (!t[3]) depth++;
+    }
+  }
+  return out;
+}
+const RESULT_OPEN = /<div\b[^>]*\bclass="rsvp-result"[^>]*>/;
+const TIP_OPEN = /<div\b[^>]*\bclass="rsvp-tip"[^>]*>/;
+
 test('C5. dist: the tip card is a hidden sibling after the result, with a live text and a hidden button', { skip: skipBuilt }, () => {
   const sec = section();
-  const result = sec.match(/<div\b[^>]*\brsvp-result\b[^>]*>[\s\S]*?<\/div>/)!;
-  const tip = sec.match(/<div\b[^>]*\brsvp-tip\b[^>]*>[\s\S]*?<\/div>/);
+  const result = [divBlock(sec, RESULT_OPEN)!];
+  const tipBlock = divBlock(sec, TIP_OPEN);
+  const tip = tipBlock ? [tipBlock] : null;
   assert.ok(tip, 'the .rsvp-tip card');
   assert.ok(sec.indexOf(tip![0]) >= sec.indexOf(result[0]) + result[0].length, 'after .rsvp-result ends, not inside it');
   assert.ok(!result[0].includes('rsvp-tip'), 'not inside the result');
@@ -661,6 +782,85 @@ test('C5. dist: the tip card is a hidden sibling after the result, with a live t
   assert.equal(data.tipNext, rsvpText.tipNext);
 });
 
+test('E9-5. dist: the result card children in order, the emoji hidden, the actions row, the tip title and window', { skip: skipBuilt }, () => {
+  const sec = section();
+  const result = divBlock(sec, RESULT_OPEN)!;
+  const cls = (tag: string) => attr(tag, 'class') ?? '';
+  assert.deepEqual(
+    childTags(result).map(cls),
+    ['rsvp-result__title', 'rsvp-result__text', 'rsvp-result__status', 'rsvp-result__cheer', 'rsvp-lines', 'rsvp-result__note', 'rsvp-result__actions'],
+  );
+  const cheer = result.match(/<p\b[^>]*\brsvp-result__cheer\b[^>]*>[\s\S]*?<\/p>/)![0];
+  assert.ok(/<span\b[^>]*class="rsvp-result__cheer-text"/.test(cheer), 'the cheer text span');
+  const emoji = cheer.match(/<span\b[^>]*\brsvp-result__emoji\b[^>]*>/)![0];
+  assert.equal(attr(emoji, 'aria-hidden'), 'true');
+  assert.ok(cheer.indexOf('rsvp-result__cheer-text') < cheer.indexOf('rsvp-result__emoji'), 'text, then the emoji');
+
+  const actions = divBlock(result, /<div\b[^>]*\brsvp-result__actions\b[^>]*>/)!;
+  const links = [...actions.matchAll(/<a\b[^>]*>[\s\S]*?<\/a>/g)].map((m) => m[0]);
+  assert.equal(links.length, 2, 'the calendar link and one notice');
+  assert.ok(links[0].includes('rsvp-result__calendar'));
+  const waiver = party.notices.find((n) => n.id === 'waiver')!;
+  assert.equal(waiver.inResult, true);
+  const notice = links[1];
+  const open = notice.match(/^<a\b[^>]*>/)![0];
+  assert.ok(/\brsvp-result__notice\b/.test(cls(open)) && /\bbtn\b/.test(cls(open)), cls(open));
+  assert.equal(decode(attr(open, 'href')!), waiver.link!.url);
+  assert.equal(attr(open, 'target'), '_blank');
+  assert.equal(attr(open, 'rel'), 'noopener');
+  assert.ok(has(open, 'hidden'), 'hidden until a Going or Maybe result');
+  assert.equal(text(notice), 'Fill out the waiver');
+
+  const tip = divBlock(sec, TIP_OPEN)!;
+  assert.equal(text(tip.match(/<h3\b[^>]*>[\s\S]*?<\/h3>/)![0]), 'Self-care tip');
+  const win = divBlock(tip, /<div\b[^>]*\brsvp-tip__window\b[^>]*>/);
+  assert.ok(win && /\brsvp-tip__text\b/.test(win), 'the text sits inside the window');
+
+  const data = JSON.parse(decode(attr(form().match(/^<form\b[^>]*>/)![0], 'data-text')!));
+  for (const k of ['resultStatus', 'cheerGoing', 'cheerMaybe', 'cheerCant', 'cheerMaybeEmoji', 'cheerCantEmoji'] as const)
+    assert.equal(data[k], rsvpText[k], k);
+  assert.equal(data.tipTitle, 'Self-care tip');
+  assert.equal(data.reminderTip, 'Self-care tip: {tip}');
+});
+
+// `@media (prefers-reduced-motion: no-preference) { … }` blocks, as [start, end) ranges (braces counted).
+function noPreferenceRanges(css: string): [number, number][] {
+  const out: [number, number][] = [];
+  for (const m of css.matchAll(/@media[^{]*prefers-reduced-motion:\s*no-preference[^{]*\{/g)) {
+    let depth = 0;
+    for (let i = m.index! + m[0].length - 1; i < css.length; i++) {
+      if (css[i] === '{') depth++;
+      else if (css[i] === '}' && --depth === 0) {
+        out.push([m.index!, i + 1]);
+        break;
+      }
+    }
+  }
+  return out;
+}
+
+test('E9-6. source: the keyframes sit under no-preference, one-shot, tokens only; the script gates motion and sets text only', () => {
+  const read = (p: string) => readFileSync(join(root, p), 'utf8');
+  const astro = read('src/components/events/RsvpForm.astro');
+  const css = astro.slice(astro.indexOf('<style>'));
+  const ranges = noPreferenceRanges(css);
+  for (const name of ['ohm-confetti', 'ohm-wiggle', 'ohm-droop', 'ohm-reel']) {
+    const at = css.indexOf(`@keyframes ${name}`);
+    assert.ok(at >= 0, `@keyframes ${name}`);
+    assert.ok(ranges.some(([a, b]) => at > a && at < b), `${name} inside a prefers-reduced-motion: no-preference block`);
+  }
+  assert.ok(!/\binfinite\b/.test(css), 'no infinite animation');
+  assert.ok(!/#[0-9a-fA-F]{3,8}\b/.test(css), 'no raw hex');
+  const tipRule = css.match(/\.rsvp-tip\s*\{[^}]*\}/)![0];
+  assert.match(tipRule, /background:\s*var\(--bg-dark\)/);
+  assert.match(tipRule, /border-top:\s*3px solid var\(--accent\)/);
+
+  const script = read('src/scripts/rsvp.ts');
+  assert.ok(script.includes('prefers-reduced-motion: reduce'), 'one matchMedia check');
+  assert.ok(script.includes('visually-hidden'), 'the heading is visually hidden, not hidden');
+  for (const bad of ['.animate(', 'requestAnimationFrame', 'innerHTML']) assert.ok(!script.includes(bad), bad);
+});
+
 // ---- 7. Source ---------------------------------------------------------------------------------------------------
 test('7. rsvp.ts keeps the visitor private; the URL lives only in site.ts', () => {
   const read = (p: string) => readFileSync(join(root, p), 'utf8');
@@ -676,12 +876,14 @@ test('7. rsvp.ts keeps the visitor private; the URL lives only in site.ts', () =
   for (const p of others) assert.ok(!read(p).includes('script.google.com'), `${p} holds the URL`);
 });
 
-test('C6. source: the tip is shown as text; the tip card has no transition or animation', () => {
+test('C6. source: the tip is shown as text; outside the no-preference block the tip card has no transition or animation (E9: the reel lives inside it)', () => {
   const read = (p: string) => readFileSync(join(root, p), 'utf8');
   const script = read('src/scripts/rsvp.ts');
   assert.ok(!script.includes('innerHTML') && !script.includes('insertAdjacentHTML'), 'textContent only');
   assert.ok(script.includes('.rsvp-tip'), 'the script drives the card');
-  const css = read('src/components/events/RsvpForm.astro');
+  const full = read('src/components/events/RsvpForm.astro');
+  let css = full;
+  for (const [a, b] of noPreferenceRanges(full).reverse()) css = css.slice(0, a) + css.slice(b);
   const rules = [...css.matchAll(/[^{}]*\.rsvp-tip[^{}]*\{[^}]*\}/g)].map((m) => m[0]);
   assert.ok(rules.length >= 2, 'the card has CSS');
   for (const r of rules) assert.ok(!/transition|animation/.test(r), r);
