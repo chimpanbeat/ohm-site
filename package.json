@@ -17,6 +17,7 @@
     "check:contrast": "node scripts/check-contrast.mjs",
     "test": "node --test \"tests/**/*.test.ts\"",
     "icons": "node scripts/make-icons.mjs",
+    "event-banner": "node scripts/make-event-banner.mjs",
     "omega": "node scripts/trace-omega.mjs",
     "event-images": "node scripts/make-event-credits.mjs",
     "check:dist": "node scripts/check-dist.mjs",

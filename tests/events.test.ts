@@ -421,7 +421,7 @@ test('8b. source: E4 components and styles', () => {
   const hero = comp('EventHero.astro');
   const wide = hero.slice(hero.indexOf('@media (min-width: 48rem)'));
   assert.ok(wide.length > 0 && hero.includes('@media (min-width: 48rem)'), 'a 48rem media block');
-  for (const decl of ['aspect-ratio: 31 / 10', 'object-fit: cover', 'object-position: 50% 50%', 'scale: 1.6129']) {
+  for (const decl of ['aspect-ratio: 31 / 10', 'object-fit: cover', 'object-position: 50% 50%']) {
     assert.ok(wide.includes(decl), `wide block has ${decl}`);
   }
   for (const gone of ['11 / 4', '1.5152', 'max-width: 60rem']) assert.ok(!hero.includes(gone), `E5 removed ${gone} from the hero`); // I-085: fills the column
@@ -871,4 +871,58 @@ test('E10-4. source: credit lift, timeline dots and segments, bar position, clie
   const imports = [...script.matchAll(/^import\b[^;]*?from\s+['"]([^'"]+)['"]/gm)].map((m) => m[1]);
   assert.deepEqual(imports, ['../lib/event-time.ts']);
   assert.doesNotMatch(script, /\bfetch\b|localStorage|sessionStorage|document\.cookie/);
+});
+
+// E11 (I-104): sharper desktop banner
+const bannerDir = join(root, 'src/assets/events/launch-party');
+test('11a. banner outputs', () => {
+  const png = readFileSync(join(bannerDir, 'banner-bg.png'));
+  assert.equal(png.subarray(1, 4).toString(), 'PNG');
+  assert.equal(png.readUInt32BE(16), 1240);
+  assert.equal(png.readUInt32BE(20), 400);
+  assert.equal(png[25], 2, 'colour type 2 (RGB)');
+  const raw = readFileSync(join(bannerDir, 'banner-mark.json'), 'utf8');
+  assert.ok(Buffer.byteLength(raw) <= 40 * 1024, 'banner-mark.json is at most 40 KB');
+  const j = JSON.parse(raw);
+  assert.equal(j.viewBox, '0 0 694 203');
+  for (const k of ['left', 'top', 'width', 'height']) assert.ok(typeof j.box[k] === 'number' && j.box[k] > 0 && j.box[k] < 100, `box.${k}`);
+  for (const k of ['accent', 'light']) assert.ok(j[k].startsWith('M') && j[k].includes('Z'), `${k} path`);
+  assert.ok(!/NaN/.test(raw), 'no NaN');
+  assert.ok(!/\d\.\d{2,}/.test(j.accent + j.light), 'path numbers have at most one decimal');
+});
+
+test('11b. banner script is deterministic', () => {
+  const run = () => {
+    const out = mkdtempSync(join(tmpdir(), 'banner-'));
+    const r = spawnSync(process.execPath, ['scripts/make-event-banner.mjs', '--out', out], { cwd: root, encoding: 'utf8' });
+    assert.equal(r.status, 0, r.stderr);
+    return out;
+  };
+  const a = run();
+  const b = run();
+  for (const n of ['banner-bg.png', 'banner-mark.json']) assert.ok(readFileSync(join(a, n)).equals(readFileSync(join(b, n))), `${n} is byte-identical across runs`);
+  assert.equal(readFileSync(join(a, 'banner-mark.json'), 'utf8'), readFileSync(join(bannerDir, 'banner-mark.json'), 'utf8'));
+});
+
+test('11c. banner data and hero source', () => {
+  assert.equal(party.graphics.wide, 'launch-party/banner-bg.png');
+  assert.equal(party.graphics.wideMark, 'launch-party/banner-mark.json');
+  assert.equal(party.graphics.og, 'launch-party/header-green.png');
+  const hero = readFileSync(join(root, 'src/components/events/EventHero.astro'), 'utf8');
+  assert.ok(!hero.includes('scale: 1.6129'), 'no CSS scale');
+  for (const t of ['event-banner__mark', 'preserveAspectRatio="none"', 'aria-hidden="true"', 'fill: var(--accent)', 'fill: var(--text-on-dark)']) assert.ok(hero.includes(t), t);
+  assert.match(hero, /\.event-banner__mark\s*\{[^}]*display:\s*none/);
+  assert.match(hero, /@media \(min-width: 48rem\)[\s\S]*\.event-banner__mark\s*\{[^}]*display:\s*block/);
+});
+
+test('11d. built page: banner', { skip: skipBuilt }, () => {
+  const html = page();
+  assert.equal([...html.matchAll(/<svg\b[^>]*class="[^"]*event-banner__mark/g)].length, 1);
+  const svg = html.match(/<svg\b[^>]*event-banner__mark[\s\S]*?<\/svg>/)![0];
+  assert.equal([...svg.matchAll(/<path\b[^>]*fill-rule="evenodd"/g)].length, 2);
+  const wide = [...html.matchAll(/<source\b[^>]*media="\(min-width: 48rem\)"[^>]*>/g)].map((m) => m[0]);
+  assert.equal(wide.length, 2);
+  for (const s of wide) assert.equal([...attr(s, 'srcset')!.matchAll(/banner-bg[^ ]* \d+w/g)].length, 2, 'two banner-bg widths');
+  assert.equal(meta(html, 'og:image:width'), '857');
+  assert.equal(meta(html, 'og:image:height'), '450');
 });

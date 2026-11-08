@@ -7,3 +7,18 @@ export function eventAsset(path: string): ImageMetadata {
   if (!found) throw new Error(`missing event asset: ${path}`);
   return found.default;
 }
+
+// E11 (I-104): the traced launch mark made by `npm run event-banner`.
+export interface EventMark {
+  viewBox: string;
+  box: { left: number; top: number; width: number; height: number };
+  accent: string;
+  light: string;
+}
+const marks = import.meta.glob<{ default: EventMark }>('../assets/events/**/*.json', { eager: true });
+
+export function eventMark(path: string): EventMark {
+  const found = marks[`../assets/events/${path}`];
+  if (!found) throw new Error(`missing event asset: ${path}`);
+  return found.default;
+}

@@ -172,7 +172,8 @@ export function launchParty(limit: number, chaiNote: string | null = null): Site
       ],
     },
     graphics: {
-      wide: 'launch-party/header-green.png',
+      wide: 'launch-party/banner-bg.png',
+      wideMark: 'launch-party/banner-mark.json',
       narrow: 'launch-party/launch-mark-on-dark.png',
       og: 'launch-party/header-green.png',
       alt: 'Ohm Precision Bodywork Launch Party',
