@@ -84,6 +84,8 @@
   --focus-ring: 2px solid var(--focus);
   --focus-offset: 3px;
   --transition: 150ms ease;
+  /* (E10, I-102) the only shadow on the site: an event credit on hover and keyboard focus (A3 fourteenth exception) */
+  --shadow-lift: 0 6px 16px rgb(11 38 32 / 0.18);
   --container: 72rem;
   --gutter: var(--s-4);
   --header-h: 4rem;

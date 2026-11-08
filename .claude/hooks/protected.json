@@ -8,6 +8,7 @@
     "src/lib/geo.ts",
     "src/styles/tokens.css",
     "astro.config.mjs",
+    ".github/workflows/deploy.yml",
     "brief/BRIEF.md",
     "docs/build/ARCHITECTURE.md",
     "docs/build/copy-deck.md"

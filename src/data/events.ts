@@ -11,8 +11,11 @@ export type Iso = string; // '2026-11-22T14:00:00-07:00': local wall time plus t
 export type Run = string | { text: string; href: string } | { w: string };
 export type Rich = string | Run[];
 export interface TimelineItem { start: Iso; end?: Iso; title: string; notes?: Rich[]; optional?: boolean }
-export interface InfoBlock { id: string; title: string; text?: string; items?: string[]; inReminder?: boolean }
-export interface Notice { id: string; title: string; text: string; link?: { label: string; url: string }; inEmails?: boolean }
+// text is Rich since E8 (I-093: the parking text links "free parking along Wahsatch"); the feed and the reminder email
+// get it as plain text (plainText in src/lib/events.ts), so the email line is unchanged.
+export interface InfoBlock { id: string; title: string; text?: Rich; items?: string[]; inReminder?: boolean }
+// inResult (E9, I-096): true = its link also shows as a button on the RSVP result card for Going and Maybe (never Can't go).
+export interface Notice { id: string; title: string; text: string; link?: { label: string; url: string }; inEmails?: boolean; inResult?: boolean }
 // label 'Yoga'; item = index into timeline (its time goes in the question); limit and waitlist per I-050
 export interface CappedSession { key: string; label: string; item: number; limit: number; waitlist: boolean }
 // tips (E6, I-082/I-084): true = the in-page "Self-care tip of the day" card after an RSVP and one tip in each reminder
@@ -38,7 +41,9 @@ export interface SiteEvent {
   notices: Notice[];
   credits?: { heading: string; items: Credit[] }; // the last section (E4, I-079; replaces `host`)
   // paths under src/assets/events/; alt = the words on the header graphic: the header <picture> alt and og:image:alt
-  graphics: { wide: string; narrow: string; og: string; alt: string };
+  // wideMark (E11, I-104): a JSON path made by `npm run event-banner`, the traced mark drawn as inline SVG over `wide`
+  // from 48rem; absent: `wide` is the whole banner (E5 crop).
+  graphics: { wide: string; narrow: string; og: string; alt: string; wideMark?: string };
   index: boolean; // false: noindex and out of the sitemap
   rsvp?: EventRsvp; // absent: no form, no feed
 }

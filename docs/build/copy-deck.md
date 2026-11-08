@@ -412,13 +412,15 @@ The Pricing intro (→ Pricing, I-046; shortened again in step V) and the Book i
 
 ---
 
-## Events (`src/pages/[event].astro`, `src/data/events.ts`, I-048–I-050)
+## Events (`src/pages/events/[event].astro` since E8, was `src/pages/[event].astro`; `src/data/events.ts`, I-048–I-050)
 
 Each event's strings live in its entry in `src/data/events.ts`; the RSVP strings shared by every event live in `rsvpText` there. The page, the feed and the Apps Script read them; nothing types them again. Layout: ARCHITECTURE §B10. **Brian's wording is verbatim** (I-048, Nov 6, 2026), including his capitals (`Self Care Launch Party`, `Important: Waiver Required`); don't reword or "fix" it. Lines marked *(architect)* are new wording for Brian to read.
 
 **References:** `{dateLabel}` = `dateLabel(start)` [Sunday, Nov 22, 2026] · `{timeLabel}` = `timeLabel(start, end, 'always')` [2:00–6:00 pm] · `{limit}` = `rsvp.session.limit` [20] · `{session}` = `session.label` lowercased [yoga], `{Session}` = `session.label` [Yoga] · `{time}` = the session item's `timeLabel(…, 'auto')` [2–3 pm] · `{n}` = a number · `{title}` = the event title · `{name}` = the guest's name as typed · `{email}` = `site.email` as a `mailHref` link (page) or text (email) · `{siteName}` = `site.name`.
 
-### Launch party (`slug: 'launch-party'`, page `/launch-party`)
+### Launch party (`slug: 'launch-party'`, page `/events/launch-party` since E8, I-092; `/launch-party` redirects there)
+
+**Changes in E8–E11 (Nov 8, 2026; I-088–I-105, Brian's wording, from Maréa's reviewer page and the Ohm Site Code chat):** the yoga title gains 🧘 🪷 and the Tai Chi note becomes `Tai Chi led by John Marshall ☯️ 🥋` (I-088); John Marshall is the fifth credit (I-089); on Nov 22 at about 4:00 pm the Tai Chi note and his role switch to chai tea (I-091, Event-day swap below); `free parking along Wahsatch` is a link (I-093); the RSVP result card says your answer and a line by answer, with an emoji for Maybe and Can't go (I-094, I-103, I-105) and the waiver button (I-096, the notice's own label); the tip card drops "of the day" (I-095); a countdown under the date (I-101). No other words change.
 
 **Changes in E4 (Nov 7, 2026; Marea's review, Brian approved; I-077–I-080):** the description under the hero (new); the H1 drops `Ohm Launch Party` (the graphic says it), the meta title keeps it; `Maréa` with the accent; schedule edits (yoga title, mats note moved from What to wear, `Activities and merch`, the linked day-pass note); the Host section becomes "This event made possible by…" at the bottom; the guest yoga question is visible; the privacy line is Brian's new text (→ RSVP text).
 
@@ -433,6 +435,7 @@ Each event's strings live in its entry in `src/data/events.ts`; the RSVP strings
 **Hero** (green)
 - **H1** (`heading`, E4, Marea): `A Celebration of Self-Care` (visible; was `Ohm Launch Party: A Celebration of Self-Care`)
 - **When:** `{dateLabel} · {timeLabel}` → `Sunday, Nov 22, 2026 · 2:00–6:00 pm`
+- **Countdown** (E10, I-101; under When, JS only, computed in the browser in the event's time zone; wording approved by Brian, Nov 8, 2026): `countdownDays` `In {n} days` (n ≥ 2) · `countdownTomorrow` `Tomorrow` · `countdownToday` `Today!` (the event's day, until it ends) · nothing once the event has ended (→ RSVP text changes in E9 and E10)
 - **Where** (`venue.name`, `venue.address`; one link to Google Maps): `CityROCK, 21 N Nevada Ave, Colorado Springs, CO 80903`
 - **Buttons:** `RSVP` · `Add to calendar`
 - Header graphic: `alt` = `graphics.alt` (E4; the H1 no longer carries the words).
@@ -452,15 +455,15 @@ Brian's Partiful description with Marea's edits on P1 (`650 hours`, Brian confir
 - **H2** *(architect)* (`eventHeadings.schedule`; typed in `EventTimeline` until E5): `Schedule`
 - Items (time label from the data's times; title; notes), Brian's wording, E4 and E5 edits by Marea:
   1. `1:45 pm` · `Arrive for yoga, get settled in`
-  2. `2–3 pm` · `Restorative Yoga with Britt` · notes: `No supplies or experience needed` · `Mats provided, or bring your own` · `Water bottle and stretchy clothes recommended` · `Limited to first {limit} sign-ups`
-  3. `3–6 pm` · `Self Care Launch Party` · notes: `Open house style, come and go as you please` · `Refreshments provided` · `Activities and merch` · `Optional Tai Chi by John Marshall` (E5, I-086, Marea: "Under 'activities and merch' please add 'Optional Tai Chi by John Marshall'"; built as the next bullet after `Activities and merch`, not a nested one: `notes` has no nesting, and a sub-bullet would need a new data shape; open question for Brian. John Marshall is not linked or credited: Marea did not ask)
+  2. `2–3 pm` · `Restorative Yoga with Britt 🧘 🪷` (E8, I-088, Brian; was `Restorative Yoga with Britt`) · notes: `No supplies or experience needed` · `Mats provided, or bring your own` · `Water bottle and stretchy clothes recommended` · `Limited to first {limit} sign-ups`
+  3. `3–6 pm` · `Self Care Launch Party` · notes: `Open house style, come and go as you please` · `Refreshments provided` · `Activities and merch` · `Tai Chi led by John Marshall ☯️ 🥋` (E8, I-088, Brian: drops "Optional"; was E5's `Optional Tai Chi by John Marshall`, the next bullet after `Activities and merch`, not nested; ☯️ is U+262F U+FE0F, 🥋 U+1F94B. From about 4:00 pm on Nov 22 this bullet is the chai tea note: Event-day swap below)
   4. `6–8 pm` · `Optional: climb at the gym until close` · notes: `[Day pass purchase required](https://climbcityrock.com/day-passes)` · `Harness and shoe rentals available` (`optional: true`, hollow marker). E5, I-086, Marea: rentals are an extra charge, so `Harness and shoes provided` (E4) becomes `Harness and shoe rentals available`.
 
 **Details** (green; E5, I-085)
 - **H2** (`eventHeadings.details`, Brian's word): `Details`
 - **Info blocks** (`info`, in this order, each an **H3** under `Details` since E5; were H2s)
 1. `id: 'wear'`, `inReminder: true`. **H3:** `What to wear`. Items (Brian): `Comfy cozy: yoga clothes or sweat pants` · `Fuzzy socks encouraged` · `Shoes off in the yoga room` (E4: `Mats provided, own mats welcome` removed; the mats note is on the yoga item, so the reminder email no longer mentions mats)
-2. `id: 'parking'`, `inReminder: true`. **H3:** `Parking`. Text (Brian): `Metered street parking, or free parking along Wahsatch if you don't mind walking 2 blocks.`
+2. `id: 'parking'`, `inReminder: true`. **H3:** `Parking`. Text (Brian): `Metered street parking, or [free parking along Wahsatch](https://maps.app.goo.gl/kdJ5A88ab9EMxUmQ8) if you don't mind walking 2 blocks.` (E8, I-093, Brian, Nov 8, 2026: only those four words are the link, new tab, to his map pin; same words as before.) The reminder email's parking line stays plain text, exactly as before (no link, no URL).
 3. `id: 'raffle'`. **H3:** `Raffle`. Text *(architect, from Brian's note; no rules)*: `Complete the activities at the party for a chance to win a body care gift basket and limited-edition Ohm merch.`
 
 **Page outline** (E5): H1 `A Celebration of Self-Care` · H2 `Description` · H2 `Schedule` (H3 per item) · H2 `Details` (H3 per info block) · H2 `RSVP` · H2 `Important: Waiver Required` · H2 `This event made possible by…`. No level is skipped.
@@ -471,6 +474,7 @@ Brian's Partiful description with Marea's edits on P1 (`650 hours`, Brian confir
 - **Text** (Brian, verbatim): `If you haven't been to CityROCK in the last 2 years, you'll be required to fill out a waiver to enter the building. We recommend filling this out in advance, but it can be done in person if you forget!`
 - **Link** (label *(architect)*): `Fill out the waiver` → `https://portal.climbcityrock.com/cityrockdowntown/agreements/cityrock-waiver`
 - E4 (I-080): same words; the box becomes a light surface on the green band (ARCHITECTURE §B10).
+- E9 (I-096): `inResult: true`, so the same link, with the same label `Fill out the waiver`, is also a button on the RSVP result card for Going and Maybe (not Can't go). No new words.
 
 **This event made possible by…** (cream band, last section; `credits`, E4, I-079; replaces the Host section, its `Your host` H2 and its photo alt)
 - **H2** (Marea; the ellipsis is the single character `…`, as in `Sending…`): `This event made possible by…`
@@ -479,8 +483,13 @@ Brian's Partiful description with Marea's edits on P1 (`650 hours`, Brian confir
   2. `CityROCK` / `Venue` → `https://climbcityrock.com` · logo `cityrock-logo.png` (transparent since E5)
   3. `Britt Maddy` / `Yoga instruction` → `https://www.instagram.com/brittandspirit/` · photo `britt-thumb.jpg`
   4. `JohnMark` / `Graphic design` → `https://johnmark.co` (Marea typed `JohnMark.co`; written as an https URL with a lowercase host) · logo `johnmark-logo.png` (transparent since E5)
+  5. `John Marshall` / `Tai Chi instruction` → `https://ransfordengineering.com` (E8, I-089: Maréa's entry, Brian's role) · photo `john-thumb.jpg`, framed, `alt: ''` (a plain green placeholder tile until Brian sends the photo, I-090). From about 4:00 pm on Nov 22 the role is `Chai Tea ceremony` (I-091, Brian: Event-day swap below)
 - Each link's accessible name is the alt, the name and the role, in that order (`CityROCK Venue`, `Rantala Creative JohnMark Graphic design`).
 - Image alts: → Alt text (unchanged in E5).
+
+**Event-day swap** (E8, I-091; Brian's joke, a timed deploy at about 4:00 pm MT on Sun Nov 22, 2026 (23:00 UTC); ARCHITECTURE §B10 E8–E11). Two strings change on the page together, or neither does:
+- Schedule item 3, the Tai Chi note `Tai Chi led by John Marshall ☯️ 🥋` → `TODO(Brian): the chai tea bullet, exact words; with 🍵🫖` (Brian's emojis: 🍵 U+1F375, 🫖 U+1FAD6; Maréa says Brian will send the words). Until this line has Brian's words, `CHAI_NOTE` stays `null` and nothing swaps.
+- John Marshall's credit role `Tai Chi instruction` → `Chai Tea ceremony` (Brian).
 
 ### RSVP text (`rsvpText`, shared by every event) *(architect)*
 
@@ -559,13 +568,31 @@ Brian's Partiful description with Marea's edits on P1 (`650 hours`, Brian confir
 | `changeDoneTitle` | `Your RSVP is updated.` *(architect, I-064)* |
 | `spotFreedSubject` | `A {session} spot opened: {title}` *(architect, I-064: to Brian only)* |
 | `spotFreedText` | `A guest's RSVP change freed {session} spots (freed: {n}) while people are on the waitlist. In the sheet, set the lowest Waitlist # to confirmed and email that guest, once for each freed spot.` *(architect, I-064: to Brian only)* |
-| `tipTitle` | `Self-care tip of the day` (Brian, I-082: the tip card's H3, under the RSVP result) |
+| `tipTitle` | `Self-care tip of the day` (Brian, I-082: the tip card's H3, under the RSVP result; E9 changes it, below) |
 | `tipNext` | `Another tip` (Brian, I-082: the card's button; hidden when there is only one tip) |
-| `reminderTip` | `Self-care tip of the day: {tip}` *(architect, I-084: one line in each reminder email; `{tip}` = one tip from the sheet. The email wording is still open in I-081, so reword it here; the script reads it from the feed, so a reword needs a site deploy, not a script paste)* |
+| `reminderTip` | `Self-care tip of the day: {tip}` *(architect, I-084: one line in each reminder email; `{tip}` = one tip from the sheet. The script reads it from the feed, so a reword needs a site deploy, not a script paste; E9 changes it, below)* |
+
+### RSVP text changes in E9 and E10 (Nov 8, 2026; I-094, I-095, I-101, I-103, I-105)
+
+`tests/events.test.ts` 1c compares the table above with `rsvpText`, so these rows wait here: E9 moves its rows into that table (replacing `tipTitle` and `reminderTip`, adding the rest) in the same change that edits `rsvpText`, and E10 moves the three countdown rows. Same format, words verbatim.
+
+| Key | Text |
+|---|---|
+| `tipTitle` | `Self-care tip` (E9, I-095, Brian: drops "of the day"; was `Self-care tip of the day`, I-082: the tip card's H3, under the RSVP result) |
+| `reminderTip` | `Self-care tip: {tip}` (E9, I-095, Brian: drops "of the day"; was the architect's `Self-care tip of the day: {tip}`, I-084: one line in each reminder email; `{tip}` = one tip from the sheet. The script reads it from the feed, so this needs a site deploy, not a script paste) |
+| `resultStatus` | `RSVP: {status}` (E9, I-094, Brian; `{status}` = the `going`, `maybe` or `cant` text: `RSVP: Going`, `RSVP: Maybe`, `RSVP: Can't go`; on the result card above the yoga lines) |
+| `cheerGoing` | `Can't wait to see you there!` (E9, I-103, Brian, verbatim; under `resultStatus` for Going) |
+| `cheerMaybe` | `Hope to see you there!` (E9, I-103, Brian, verbatim; Maybe) |
+| `cheerCant` | `Sorry you can't make it!` (E9, I-103, Brian, verbatim; Can't go) |
+| `cheerMaybeEmoji` | `🤞` (E9, I-105, Brian; U+1F91E, after `cheerMaybe`, decorative: `aria-hidden`) |
+| `cheerCantEmoji` | `🥲` (E9, I-105, Brian; U+1F972, after `cheerCant`, decorative: `aria-hidden`). Going has no emoji (it gets the confetti, I-099) |
+| `countdownDays` | `In {n} days` (E10, I-101, Brian, Nov 8; n ≥ 2; under the hero date) |
+| `countdownTomorrow` | `Tomorrow` (E10, I-101, Brian) |
+| `countdownToday` | `Today!` (E10, I-101, Brian; the event's day until it ends; after that the line is empty) |
 
 **Self-care tips** (E6, I-082, I-084). The tips themselves are not in this deck or the repo: they are Brian's rows in the Google Sheet **`Self Care tip of the day`**, tab **`Sheet1`**, column **A**, header **`Tip`** in row 1, one tip per row (blank and duplicate rows are skipped; a row over 280 characters is skipped; at most the first 100 tips are used). The Apps Script reads the sheet (ARCHITECTURE §B10 Tips), so Brian adds or deletes rows and the change reaches the page within about 5 minutes, with no deploy. **Every tip is public** (anyone can read the script's status reply) and is shown as plain text. The site's checks never see the tips, so Brian keeps them to the §A6 rules himself: no medical claims (treat, cure, diagnose, fix, heal), nothing that names a client, no email address or phone number, no link (shown as plain text, not clickable).
 
-**Page states:** the spots line shows `spotsLeft` (n ≥ 2), `spotLeft` (n = 1), `fullWaitlist` or `full` (n = 0, by the event's waitlist setting). Success (going/maybe): `doneTitle`, `doneText`, one `outcomeLine` per person, `maybeNote` when any outcome is `maybe`, the `calendar` button. Success (can't go): `cantTitle`, `cantText`. The email already has an RSVP (`pending`): `changeTitle`, `changeText`, nothing else. A failed RSVP shows its error above the form; field errors sit under their fields, with `errInvalid` above the form. **Tip card** (E6, I-082; JS only, after any successful reply: going, maybe, can't go or `pending`): under the result, `tipTitle` (H3), one tip, and the `tipNext` button; no card when the tips can't load or there are none, no button with one tip, never on the script's no-JS page. The form ends with the `optIn` checkbox, the `submit` button and the `privacy` line, in that order; no text states how many guests can be added (I-060).
+**Page states:** the spots line shows `spotsLeft` (n ≥ 2), `spotLeft` (n = 1), `fullWaitlist` or `full` (n = 0, by the event's waitlist setting). Success (going/maybe): `doneTitle`, `doneText`, **(E9)** `resultStatus`, the cheer line (`cheerGoing`, or `cheerMaybe` + `cheerMaybeEmoji`), then one `outcomeLine` per person, `maybeNote` when any outcome is `maybe`, the `calendar` button and the waiver notice's link as a button (its own label). Success (can't go): `cantTitle`, `cantText`, **(E9)** `resultStatus`, `cheerCant` + `cheerCantEmoji`; no buttons. **(E9, I-094)** After any success the `heading` (kept for screen readers only), `intro` and spots line are hidden. The email already has an RSVP (`pending`): `changeTitle`, `changeText`, nothing else. A failed RSVP shows its error above the form; field errors sit under their fields, with `errInvalid` above the form. **Tip card** (E6, I-082; JS only, after any successful reply: going, maybe, can't go or `pending`): under the result, `tipTitle` (H3), one tip, and the `tipNext` button; no card when the tips can't load or there are none, no button with one tip, never on the script's no-JS page. The form ends with the `optIn` checkbox, the `submit` button and the `privacy` line, in that order; no text states how many guests can be added (I-060).
 
 **Script pages** (no-JS reply and the change link; `pageTitle` as the title, every link and form `target="_top"`, each ends with the `back` link): the no-JS reply shows the same states as the page. Confirm page: `changeConfirmLead` · `newAnswer` · one `answerLine` per person (session events, not `cant`) · the `changeConfirm` button. After confirming: `changeDoneTitle` · `doneText` · one `outcomeLine` per person · `maybeNote` when any outcome is `maybe` (can't go: `cantTitle` · `cantText`). A used or expired link: `changeExpired`. Closed: `closed`.
 
@@ -580,6 +607,7 @@ Brian's Partiful description with Marea's edits on P1 (`650 hours`, Brian confir
 ---
 
 ## Checks Opus ran on this deck
+- **Events, E8–E11 (I-088–I-105, Nov 8, 2026):** every new visible string is Brian's from the items, verbatim: `Restorative Yoga with Britt 🧘 🪷`, `Tai Chi led by John Marshall ☯️ 🥋`, `John Marshall` / `Tai Chi instruction` / `Chai Tea ceremony`, `RSVP: {status}`, `Can't wait to see you there!`, `Hope to see you there!`, `Sorry you can't make it!`, 🤞, 🥲, `In {n} days`, `Tomorrow`, `Today!`, `Self-care tip`, `Self-care tip: {tip}`. The architect wrote none; the chai bullet is `TODO(Brian)` and the swap stays off until it is filled. The parking link adds a URL, not words; the waiver button reuses the notice's label; the floating bar reuses `going`, `maybe`, `cant` and `status`. "Tai Chi instruction" and "Chai Tea ceremony" describe John Marshall's part in the party, not a credential. `ransfordengineering.com` returned 200 and the parking short link 302s to a Google Maps pin (Nov 8, 2026). 🪷 (lotus, Unicode 14, 2021) shows as an empty box on systems older than about 2022; accepted as Brian's choice. No licensed-only term, no "treat/cure/diagnose/fix/heal/health", no phone, email or address.
 - **Events, E5 and E6 (I-085, I-086, I-082, I-084, Nov 7, 2026):** new visible words: `Description`, `Details`, `Venue`, `Yoga instruction` (Brian, I-085), `Host` and `Graphic design` (Marea's, capitalised), `Harness and shoe rentals available` and `Optional Tai Chi by John Marshall` (Marea, I-086, verbatim), `Self-care tip of the day` and `Another tip` (Brian, I-082). The architect wrote only `reminderTip` (`Self-care tip of the day: {tip}`, its layout open in I-081). "Rentals available" replaces "provided", which wrongly implied free gear (Marea: an extra charge). "John Marshall" is a person's name from Marea; no credential or claim attached to it. No licensed-only term is new; no "treat/cure/diagnose/fix/heal/health"; no phone, email or address. The tips are not deck copy: they come from Brian's sheet at run time, so `check:wording` never sees them; the deck and runbook tell Brian they are public and must follow §A6.
 - **Events, E4 (I-077–I-080, Nov 7, 2026):** every new string is Brian's or Marea's exact text (Brian approved Marea's requests); the architect wrote only the four credit alts (three empty, one the logo's words). Licensure: the description's only licensed-only words ("licensed", "massage therapist") sit in `wording.ts` `launchStateTest`, whose unlicensed variant is empty, so the unlicensed page has no licensure claim and no bare "massage"; Marea's "licensed" replaces the Partiful text's "certified" and "state licensure", and matches the credential (licensed in Colorado, Oct 12, 2026, I-035). `check:wording` will warn on "healthy" (P3; the scan matches `heal…`): a food word, accepted. Flagged to Brian, kept verbatim: "Last month" (P1; true for the license, a month off for the studies, which ended in September, and wrong after November) and "designed to reset your nervous system" / "help you release tension" (activity aims in Brian's own words, not treat/cure/diagnose/fix/heal; §A6 asks for no medical claims). The privacy line (I-078) is narrower than I-065/I-069: event emails only, plus news, offers and invitations for opted-in addresses (ARCHITECTURE §B10 Privacy). The guest yoga label reuses `sessionQuestion`; no new RSVP string. "Maréa" is written with the precomposed é (U+00E9). The day-pass, Britt and credit URLs returned 200 on Nov 7, 2026 (`dreamcatcherwed.com` redirects to `www.`). No phone, no email, no address but CityROCK's public one.
 - **Events, Brian's answers I-060–I-066 (Nov 6, 2026):** `optIn` and `privacy` are Brian's exact text (I-065); `waitlistNote` is kept as drafted, so the two promises flagged below are now Brian's and carry no `TODO(Brian)`. "News and offers" is a promise about use, not a fact claim; the opt-in box is unchecked by default and covers news and offers only (I-069): event emails (confirmation, can't-go, change, reminder) go to every RSVPer, invitations to future events may go to every `you` row that RSVPed (superseded Nov 7, 2026 by I-078: invitations only to opted-in rows), and only `you` rows that ticked the box may get news and offers (I-066; §B10 Privacy). New *(architect)* lines (I-064, the change-by-email path): `outcomeMaybe`, `maybeNote`, `changeTitle`, `changeText`, `changeSubject`, `changeLead`, `newAnswer`, `answerLine`, `changeLinkLine`, `changeIgnore`, `changeConfirmLead`, `changeConfirm`, `changeExpired`, `changeDoneTitle`, `spotFreedSubject`, `spotFreedText`; `cantLead` and `changeLine` now point to a repeat RSVP; `errDuplicate` is gone. They add one fact, the 6-hour link life, which is the script's cache time (§B10 Changes). No text states the guest ceiling (I-060: no limit on +1s). No licensed-only term, no "massage", no "treat/cure/diagnose/fix/heal/health", no phone, no email but `site.email`, no address.
