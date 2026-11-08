@@ -478,13 +478,13 @@ Brian's Partiful description with Marea's edits on P1 (`650 hours`, Brian confir
 
 **This event made possible by…** (cream band, last section; `credits`, E4, I-079; replaces the Host section, its `Your host` H2 and its photo alt)
 - **H2** (Marea; the ellipsis is the single character `…`, as in `Sending…`): `This event made possible by…`
-- Entries, in this order, each one link (new tab): the image, then `{name}` (bold), then `{role}` on its own line below, smaller (E5, I-085: no comma; the role's first letter is capitalised now that it stands alone). Names are Marea's; roles `Host` and `Graphic design` are Marea's, capitalised; `Venue` and `Yoga instruction` are Brian's (I-085, replacing Marea's `venue space donated` and `yoga class generously provided`):
+- Entries, in this order, each one link (new tab): the image, then `{name}` (bold), then `{role}` on its own line below, smaller (E5, I-085: no comma; the role's first letter is capitalised now that it stands alone). Names are Marea's; roles `Host` and `Brand design` are Marea's, capitalised; `Venue` and `Yoga instruction` are Brian's (I-085, replacing Marea's `venue space donated` and `yoga class generously provided`):
   1. `Maréa` / `Host` → `https://dreamcatcherwed.com` · photo `marea-thumb.jpg`
   2. `CityROCK` / `Venue` → `https://climbcityrock.com` · logo `cityrock-logo.png` (transparent since E5)
   3. `Britt Maddy` / `Yoga instruction` → `https://www.instagram.com/brittandspirit/` · photo `britt-thumb.jpg`
-  4. `JohnMark` / `Graphic design` → `https://johnmark.co` (Marea typed `JohnMark.co`; written as an https URL with a lowercase host) · logo `johnmark-logo.png` (transparent since E5)
+  4. `John-Mark` / `Brand design` → `https://johnmark.co` (Marea typed `JohnMark.co`; written as an https URL with a lowercase host) · logo `johnmark-logo.png` (transparent since E5)
   5. `John Marshall` / `Tai Chi instruction` → `https://ransfordengineering.com` (E8, I-089: Maréa's entry, Brian's role) · photo `john-thumb.jpg`, framed, `alt: ''` (from the photo Maréa uploads on her reviewer page, I-090; a plain green placeholder tile until it is there). From about 4:00 pm on Nov 22 the role is `Chai Tea ceremony` (I-091, Brian: Event-day swap below)
-- Each link's accessible name is the alt, the name and the role, in that order (`CityROCK Venue`, `Rantala Creative JohnMark Graphic design`).
+- Each link's accessible name is the alt, the name and the role, in that order (`CityROCK Venue`, `Rantala Creative John-Mark Brand design`).
 - Image alts: → Alt text (unchanged in E5).
 
 **Event-day swap** (E8, I-091; Brian's joke, a timed deploy at about 4:00 pm MT on Sun Nov 22, 2026 (23:00 UTC); ARCHITECTURE §B10 E8–E11). Two strings change on the page together, or neither does:

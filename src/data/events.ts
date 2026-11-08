@@ -166,7 +166,7 @@ export function launchParty(limit: number, chaiNote: string | null = null): Site
           alt: '',
         },
         // Marea typed "JohnMark.co"; the logo is his Rantala Creative mark, so its alt gives the words on it
-        { name: 'JohnMark', role: 'Graphic design', url: 'https://johnmark.co', image: 'launch-party/johnmark-logo.png', alt: 'Rantala Creative', logo: true },
+        { name: 'John-Mark', role: 'Brand design', url: 'https://johnmark.co', image: 'launch-party/johnmark-logo.png', alt: 'Rantala Creative', logo: true },
         // I-089 (Marea's entry, Brian's role, Nov 8, 2026): a framed photo (I-090); I-091: the role swaps with the note
         { name: 'John Marshall', role: chaiNote ? CHAI_ROLE : TAI_CHI_ROLE, url: 'https://ransfordengineering.com', image: 'launch-party/john-thumb.jpg', alt: '' },
       ],

@@ -119,7 +119,7 @@ test('1a. launch party data equals the copy deck', () => {
       { name: 'Maréa', role: 'Host', url: 'https://dreamcatcherwed.com', image: 'launch-party/marea-thumb.jpg', alt: '' },
       { name: 'CityROCK', role: 'Venue', url: 'https://climbcityrock.com', image: 'launch-party/cityrock-logo.png', alt: '', logo: true },
       { name: 'Britt Maddy', role: 'Yoga instruction', url: 'https://www.instagram.com/brittandspirit/', image: 'launch-party/britt-thumb.jpg', alt: '' },
-      { name: 'JohnMark', role: 'Graphic design', url: 'https://johnmark.co', image: 'launch-party/johnmark-logo.png', alt: 'Rantala Creative', logo: true },
+      { name: 'John-Mark', role: 'Brand design', url: 'https://johnmark.co', image: 'launch-party/johnmark-logo.png', alt: 'Rantala Creative', logo: true },
       { name: 'John Marshall', role: 'Tai Chi instruction', url: 'https://ransfordengineering.com', image: 'launch-party/john-thumb.jpg', alt: '' }, // E8, I-089
     ],
   }); // E5, I-085: roles on their own line, capitalised; the two logos are transparent (logo: true)
@@ -571,7 +571,7 @@ test('9d. built page: links open in a new tab; five credits in order with images
 
   const credits = [...html.matchAll(/<a\b[^>]*class="[^"]*\bcredit\b[^"]*"[^>]*>([\s\S]*?)<\/a>/g)];
   assert.equal(credits.length, 5); // E8, I-089
-  const want = ['Maréa Host', 'CityROCK Venue', 'Britt Maddy Yoga instruction', 'JohnMark Graphic design', `John Marshall ${live.credits!.items[4].role}`];
+  const want = ['Maréa Host', 'CityROCK Venue', 'Britt Maddy Yoga instruction', 'John-Mark Brand design', `John Marshall ${live.credits!.items[4].role}`];
   credits.forEach((m, i) => {
     const item = live.credits!.items[i];
     assert.equal(attr(m[0], 'href'), item.url);
