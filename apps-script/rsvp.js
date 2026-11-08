@@ -8,6 +8,7 @@
 //
 // Entry points: doGet (spots left, or the change-confirm page), doPost (an RSVP, a change request, or a confirmed
 // change), sendDueReminders (a 15-minute trigger), setup (run once by hand).
+// I-087 (E7): all mail goes through GmailApp from the events alias (see send_); the alias is never written here.
 
 var SITE_ORIGIN = 'https://ohmprecisionbodywork.com';
 var SLUG_RE = /^[a-z0-9-]{1,40}$/;
@@ -422,18 +423,43 @@ function noticeBlocks_(ev) {
   });
 }
 
-function send_(ev, to, subject, blocks) {
+// I-087: the one send point. MailApp is rejected for outside addresses, so mail goes through GmailApp, from the
+// events alias when it is a Gmail send-as address of this account. A missing or rejected alias never blocks mail.
+var ALIAS_LOG = 'Mail: the events alias is not a Gmail send-as address; sent from the account address';
+
+// The feed's sender.from when it is one of this account's Gmail aliases (ignoring case), else ''.
+function fromAlias_(ev) {
+  var from = ev.sender && ev.sender.from;
+  if (typeof from !== 'string' || !from) return '';
   try {
-    MailApp.sendEmail({
-      to: to,
-      subject: subject,
-      body: blocks.filter(Boolean).join('\n\n'),
-      name: ev.sender.name,
-      replyTo: ev.sender.replyTo,
-    });
+    var aliases = GmailApp.getAliases();
+    for (var i = 0; i < aliases.length; i++) {
+      if (String(aliases[i]).toLowerCase() === from.toLowerCase()) return from;
+    }
+  } catch (err) {
+    return '';
+  }
+  return '';
+}
+
+function send_(ev, to, subject, blocks) {
+  var body = blocks.filter(Boolean).join('\n\n');
+  var opts = { name: ev.sender.name, replyTo: ev.sender.replyTo };
+  var from = fromAlias_(ev);
+  if (from) opts.from = from;
+  else Logger.log(ALIAS_LOG);
+  try {
+    GmailApp.sendEmail(to, subject, body, opts);
     return true;
   } catch (err) {
-    return false; // a mail failure never undoes an RSVP
+    if (!from) return false; // a mail failure never undoes an RSVP
+  }
+  Logger.log(ALIAS_LOG);
+  try {
+    GmailApp.sendEmail(to, subject, body, { name: opts.name, replyTo: opts.replyTo });
+    return true;
+  } catch (err) {
+    return false;
   }
 }
 
@@ -533,7 +559,7 @@ function mailSpotFreed_(ev, freed) {
   var t = ev.text;
   var v = vars_(ev);
   var w = words_(ev.session.label);
-  send_(ev, ev.sender.replyTo, fill_(t.spotFreedSubject, merge_(v, { session: w.session })), [
+  send_(ev, ev.sender.contact || ev.sender.replyTo, fill_(t.spotFreedSubject, merge_(v, { session: w.session })), [
     fill_(t.spotFreedText, { session: w.session, n: freed }),
     fill_(t.detailsLine, v),
   ]);
@@ -595,7 +621,7 @@ function errorPage_(ev, error, fields) {
   var t = ev.text;
   if (error === 'closed') return page_(ev, t.closed, '');
   if (error === 'invalid') return page_(ev, t.errInvalid, '');
-  var line = esc_(t.errServer).replace('{email}', '<a href="mailto:' + esc_(ev.sender.replyTo) + '" target="_top">' + esc_(ev.sender.replyTo) + '</a>');
+  var line = esc_(t.errServer).replace('{email}', '<a href="mailto:' + esc_(ev.sender.contact || ev.sender.replyTo) + '" target="_top">' + esc_(ev.sender.contact || ev.sender.replyTo) + '</a>');
   return page_(ev, '', '<p>' + line + '</p>');
 }
 
@@ -980,6 +1006,20 @@ function setup() {
   ScriptApp.newTrigger('sendDueReminders').timeBased().everyMinutes(15).create();
   Logger.log('Sheet reachable: ' + (ss ? 'yes' : 'no'));
   Logger.log('Remaining daily mail quota: ' + MailApp.getRemainingDailyQuota());
+  ss.getSheets().forEach(function (sh) {
+    var slug = sh.getName();
+    if (!SLUG_RE.test(slug)) return;
+    var ev;
+    try {
+      ev = loadEvent_(slug);
+    } catch (err) {
+      return; // a network error on the feed skips the tab; setup still reaches the tips line
+    }
+    if (!ev) return;
+    if (!ev.sender.from) Logger.log('From alias for ' + slug + ': not in the feed yet');
+    else if (fromAlias_(ev)) Logger.log('From alias for ' + slug + ': ready');
+    else Logger.log('From alias for ' + slug + ': not a Gmail send-as address (mail goes from the account address)');
+  });
   var tipsId = PropertiesService.getScriptProperties().getProperty('TIPS_SHEET_ID');
   if (!tipsId) Logger.log('TIPS_SHEET_ID not set (no tips)');
   else CacheService.getScriptCache().remove('tips'); // read the sheet now, not a result cached in the last five minutes

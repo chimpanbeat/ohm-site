@@ -366,14 +366,15 @@ test('7. feed', () => {
   assert.deepEqual(feed.session, { key: 'yoga', label: 'Yoga', limit: 20, waitlist: true, time: '2–3 pm' });
   assert.deepEqual(feed.reminderInfo.map((b) => b.title), ['What to wear', 'Parking']);
   assert.deepEqual(feed.notices, [{ title: party.notices[0].title, text: party.notices[0].text, url: party.notices[0].link!.url }]);
-  assert.deepEqual(feed.sender, { name: site.name, replyTo: site.email });
+  assert.deepEqual(feed.sender, { name: site.name, from: site.eventsEmail, replyTo: site.eventsEmail, contact: site.email });
+  assert.notEqual(site.eventsEmail, site.email);
   assert.equal(feed.text, rsvpText);
   assert.equal(feed.tips, true, 'E6: the launch party has tips');
   assert.equal(feedFor({ ...party, rsvp: { ...party.rsvp!, tips: undefined } }, siteUrl).tips, false, 'no rsvp.tips: false');
   assert.equal(feedFor({ ...party, rsvp: { ...party.rsvp!, tips: false } }, siteUrl).tips, false);
   const json = JSON.stringify(feed);
   assert.ok(!('showGoing' in feed) && !json.includes('showGoing'));
-  assert.equal(json.split('@').length - 1, 1, 'the only @ is the reply-to address');
+  assert.deepEqual(json.match(/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g)!.sort(), [site.email, site.eventsEmail, site.eventsEmail].sort(), 'the only addresses');
 });
 
 test('8. source: event facts live in events.ts only; no hex in the components', () => {

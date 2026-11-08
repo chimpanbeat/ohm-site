@@ -166,7 +166,8 @@ export interface EventFeed {
   notices: { title: string; text: string; url?: string }[];
   /** E6: true = the Apps Script returns tips on the status reply and adds one to each reminder. */
   tips: boolean;
-  sender: { name: string; replyTo: string };
+  /** I-087: `from` is a Gmail send-as alias; `contact` receives the spot-freed note and is the error-page mailto. */
+  sender: { name: string; from: string; replyTo: string; contact: string };
   text: typeof rsvpText;
 }
 
@@ -201,7 +202,7 @@ export function feedFor(event: SiteEvent, siteUrl: string): EventFeed {
       .filter((n) => n.inEmails)
       .map((n) => ({ title: n.title, text: n.text, ...(n.link && { url: n.link.url }) })),
     tips: rsvp.tips === true,
-    sender: { name: site.name, replyTo: site.email },
+    sender: { name: site.name, from: site.eventsEmail, replyTo: site.eventsEmail, contact: site.email },
     text: rsvpText,
   };
 }

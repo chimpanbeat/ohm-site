@@ -97,7 +97,7 @@ function makeEnv(tweak?: (feed: any) => void) {
   const clock = { now: CLOCK0 };
   const log: string[] = [];
   // tips: the cells of column A of the tips sheet, header first (E6); tipsFail: openById(TIPS_ID) throws; tipsTab: the tab's name.
-  const state: any = { lockBusy: false, realSheets: false, failSetValues: false, failMail: false, quota: 1500, fetches: 0, feedStatus: 200, tips: ['Tip'], tipsFail: false, tipsTab: 'Sheet1' };
+  const state: any = { lockBusy: false, realSheets: false, failSetValues: false, failMail: false, rejectFrom: false, aliasesFail: false, aliases: ['other@example.com', feed.sender.from], quota: 1500, fetches: 0, feedStatus: 200, tips: ['Tip'], tipsFail: false, tipsTab: 'Sheet1' };
   const mails: Record<string, string>[] = [];
   const sheets = new Map<string, FakeSheet>();
   const cacheStore = new Map<string, { v: string; exp: number }>();
@@ -177,17 +177,29 @@ function makeEnv(tweak?: (feed: any) => void) {
       }),
     },
     MailApp: {
-      sendEmail: (m: Record<string, string>) => {
-        if (state.failMail) throw new Error('mail down');
-        mails.push(plain(m));
-        state.quota--;
+      sendEmail: () => {
+        log.push('MailApp.sendEmail');
+        throw new Error('MailApp is rejected for outside addresses');
       },
       getRemainingDailyQuota: () => state.quota,
+    },
+    GmailApp: {
+      sendEmail: (to: string, subject: string, body: string, opts: Record<string, string>) => {
+        if (state.failMail) throw new Error('mail down');
+        if (opts && opts.from && state.rejectFrom) throw new Error('from rejected');
+        mails.push(plain({ to, subject, body, ...opts }));
+        state.quota--;
+      },
+      getAliases: () => {
+        if (state.aliasesFail) throw new Error('no aliases');
+        return state.aliases.slice();
+      },
     },
     UrlFetchApp: {
       fetch: (url: string) => {
         state.fetches++;
         fetched.push(url);
+        if (state.fetchThrows) throw new Error('network down');
         const ok = state.feedStatus === 200 && url === `${site.deploy.site}/events/${feed.slug}.json`;
         return { getResponseCode: () => (ok ? 200 : 404), getContentText: () => (ok ? JSON.stringify(feed) : 'not found') };
       },
@@ -261,6 +273,7 @@ function makeEnv(tweak?: (feed: any) => void) {
     jsonReplies,
     htmlReplies,
     fetched,
+    cache: cacheStore,
     api,
     /** POST → the parsed JSON reply. */
     post(params: Record<string, string>) {
@@ -518,6 +531,7 @@ test('5. change request: nothing written, one mail to the stored address, 3 per 
   assert.equal(m.subject, fill(T.changeSubject, { title: env.feed.title }));
   assert.equal(m.name, env.feed.sender.name);
   assert.equal(m.replyTo, env.feed.sender.replyTo);
+  assert.equal(m.from, env.feed.sender.from);
 
   env.post(params({ email: 'alex@example.com', status: 'maybe' }));
   env.post(params({ email: 'alex@example.com', status: 'maybe' }));
@@ -623,7 +637,7 @@ test('7. change assignment: keep, renamed, maybe to going, going to cant, spot-f
   assert.equal(cellOf('Cyrus')![COL.cell], 'waitlist');
   assert.equal(Number(cellOf('Cyrus')![COL.wait]), 3, 'next Waitlist #');
   assert.equal(cellOf('Cy'), undefined);
-  const freed = env.mails.slice(mails0).filter((m) => m.to === env.feed.sender.replyTo);
+  const freed = env.mails.slice(mails0).filter((m) => m.to === env.feed.sender.contact);
   assert.equal(freed.length, 1, 'one spot-freed mail');
   assert.equal(freed[0].subject, fill(T.spotFreedSubject, { session: 'yoga', title: env.feed.title }));
   assert.equal(freed[0].body, [fill(T.spotFreedText, { session: 'yoga', n: 1 }), fill(T.detailsLine, vars(env.feed))].join('\n\n'));
@@ -652,7 +666,7 @@ test('7. change assignment: keep, renamed, maybe to going, going to cant, spot-f
   assert.equal(annRows[0][COL.cell], '');
   const sent = env.mails.slice(m1);
   assert.ok(sent.some((m) => m.to === 'ann@example.com' && m.subject === fill(T.cantSubject, { title: env.feed.title })), "can't-go note");
-  const f2 = sent.filter((m) => m.to === env.feed.sender.replyTo);
+  const f2 = sent.filter((m) => m.to === env.feed.sender.contact);
   assert.equal(f2.length, 1);
   assert.ok(f2[0].body.includes(fill(T.spotFreedText, { session: 'yoga', n: 2 })));
 
@@ -664,7 +678,7 @@ test('7. change assignment: keep, renamed, maybe to going, going to cant, spot-f
   assert.equal(e2.status().session.spotsLeft, 1);
   change(e2, 'hal@example.com', { name: 'Hal', email: 'hal@example.com', guests: [['Ivy', 'no']] });
   assert.equal(e2.status().session.spotsLeft, 2);
-  assert.ok(!e2.mails.some((m) => m.to === e2.feed.sender.replyTo), 'no spot-freed mail');
+  assert.ok(!e2.mails.some((m) => m.to === e2.feed.sender.contact), 'no spot-freed mail');
 });
 
 // ---- 8. Opt-in ---------------------------------------------------------------------------------------------------
@@ -808,7 +822,7 @@ test('13. emails: going, all confirmed, can\'t go, change, a mail error still sa
   assert.equal(m.to, 'alex@example.com');
   assert.equal(m.subject, fill(T.confirmSubject, { title: env.feed.title }));
   assert.equal(m.name, site.name);
-  assert.equal(m.replyTo, site.email);
+  assert.equal(m.replyTo, site.eventsEmail);
   assert.equal(m.body, expectConfirm(env.feed, 'Alex Rivera', 'going', [['Alex Rivera', 'confirmed'], ['Sam', 'waitlist']], { waitlist: true }));
 
   const e2 = makeEnv();
@@ -998,7 +1012,7 @@ test('20. no calendar button on the change-done page; the error page shows the s
   assert.ok(done.includes(T.changeDoneTitle) && !done.includes(env.feed.icsUrl), 'no calendar button after a change');
   env.state.lockBusy = true;
   const err = env.postHtml(params({ name: 'Bob', email: 'bob@example.com' }));
-  assert.ok(err.includes(`href="mailto:${env.feed.sender.replyTo}"`) && /<a[^>]*mailto[^>]*target="_top"/.test(err), 'mailto link');
+  assert.ok(err.includes(`href="mailto:${env.feed.sender.contact}"`) && /<a[^>]*mailto[^>]*target="_top"/.test(err), 'mailto link');
   assert.equal(err.split('Something went wrong').length - 1, 1, 'the line appears once');
 });
 
@@ -1162,7 +1176,7 @@ test("S4. the confirmation, can't-go, change and spot-freed mails never carry a 
   rsvp(env, { name: 'Cal', email: 'cal@example.com', status: 'maybe' });
   rsvp(env, { name: 'Dee', email: 'dee@example.com', status: 'cant' });
   change(env, 'ann@example.com', { name: 'Ann', email: 'ann@example.com', status: 'cant' });
-  assert.ok(env.mails.some((m) => m.to === env.feed.sender.replyTo), 'the spot-freed note went to Brian');
+  assert.ok(env.mails.some((m) => m.to === env.feed.sender.contact), 'the spot-freed note went to Brian');
   assert.ok(env.mails.length >= 6, `mails: ${env.mails.length}`);
   for (const m of env.mails) assert.ok(!/Self-care|Zebra/.test(m.subject + m.body), `a tip in "${m.subject}"`);
   assert.equal(tipOpens(env), 0, 'none of these paths read the tips sheet');
@@ -1188,3 +1202,138 @@ test('S5. setup logs how many tips it read, never a tip or the sheet id', () => 
   for (const e of [env, unset, down]) for (const l of e.logger) assert.ok(!/Secret tip/.test(l) && !l.includes(TIPS_ID), `a tip or id in the log: ${l}`);
 });
 
+
+// ---- G. E7: mail through Gmail from the events alias (I-087) -----------------------------------------------------
+
+const noAt = (env: Env) => assert.ok(env.logger.every((l) => !l.includes('@')), `an address in the log: ${env.logger.join(' | ')}`);
+const FALLBACK = 'Mail: the events alias is not a Gmail send-as address; sent from the account address';
+
+test('G1. every mail goes through GmailApp from the alias; the spot-freed note goes to the contact', () => {
+  const env = makeEnv((f) => {
+    f.session.limit = 1;
+  });
+  rsvp(env, { name: 'Ann', email: 'ann@example.com' });
+  rsvp(env, { name: 'Bob', email: 'bob@example.com' });
+  rsvp(env, { name: 'Cal', email: 'cal@example.com', status: 'cant' });
+  change(env, 'ann@example.com', { name: 'Ann', email: 'ann@example.com', status: 'cant' });
+  env.clock.now = REMINDER_AT;
+  env.api.sendDueReminders();
+  assert.ok(env.mails.length >= 6);
+  for (const m of env.mails) {
+    assert.equal(m.from, site.eventsEmail);
+    assert.equal(m.replyTo, site.eventsEmail);
+    assert.equal(m.name, site.name);
+  }
+  assert.ok(env.mails.some((m) => m.to === site.email), 'the spot-freed note went to the contact');
+  assert.ok(!env.log.includes('MailApp.sendEmail'));
+});
+
+test('G2. the alias matches ignoring case', () => {
+  const env = makeEnv();
+  env.state.aliases = [env.feed.sender.from.toUpperCase()];
+  rsvp(env, { email: 'ann@example.com' });
+  assert.equal(env.mails[0].from, env.feed.sender.from);
+});
+
+test('G3. no alias, or getAliases throwing: mail goes without from, with the log line once per mail', () => {
+  for (const set of [(e: Env) => { e.state.aliases = []; }, (e: Env) => { e.state.aliasesFail = true; }]) {
+    const env = makeEnv();
+    set(env);
+    const r = rsvp(env, { email: 'ann@example.com' });
+    assert.equal(r.ok, true);
+    assert.deepEqual(r, rsvp(makeEnv(), { email: 'ann@example.com' }), 'same JSON reply as with the alias');
+    assert.equal(env.mails.length, 1);
+    assert.ok(!('from' in env.mails[0]));
+    assert.equal(env.mails[0].name, site.name);
+    assert.equal(env.mails[0].replyTo, site.eventsEmail);
+    assert.equal(env.logger.filter((l) => l === FALLBACK).length, 1);
+    noAt(env);
+  }
+});
+
+test('G4. a rejected from retries once without it; a failed mail stamps nothing and retries next run', () => {
+  const env = makeEnv();
+  env.state.rejectFrom = true;
+  rsvp(env, { email: 'ann@example.com' });
+  assert.equal(env.mails.length, 1);
+  assert.ok(!('from' in env.mails[0]));
+  assert.ok(env.logger.includes(FALLBACK));
+  noAt(env);
+
+  const e2 = makeEnv();
+  rsvp(e2, { name: 'Ann', email: 'ann@example.com' });
+  rsvp(e2, { name: 'Bob', email: 'bob@example.com' });
+  const sent0 = e2.mails.length;
+  e2.clock.now = REMINDER_AT;
+  e2.state.failMail = true;
+  e2.api.sendDueReminders();
+  assert.equal(e2.mails.length, sent0);
+  assert.ok(e2.data().every((x) => !x[COL.reminder]), 'nothing stamped');
+  e2.state.failMail = false;
+  e2.api.sendDueReminders();
+  assert.equal(e2.mails.length, sent0 + 2);
+  assert.ok(e2.data().every((x) => x[COL.reminder]));
+  e2.api.sendDueReminders();
+  assert.equal(e2.mails.length, sent0 + 2, 'stamped once');
+});
+
+test('G5. an E6-shape feed (no from, no contact) still works', () => {
+  const env = makeEnv((f) => {
+    delete f.sender.from;
+    delete f.sender.contact;
+    f.session.limit = 1;
+  });
+  rsvp(env, { name: 'Ann', email: 'ann@example.com' });
+  rsvp(env, { name: 'Bob', email: 'bob@example.com' });
+  change(env, 'ann@example.com', { name: 'Ann', email: 'ann@example.com', status: 'cant' });
+  assert.ok(env.mails.length >= 3);
+  for (const m of env.mails) assert.ok(!('from' in m));
+  assert.ok(env.mails.some((m) => m.to === env.feed.sender.replyTo && /spot/i.test(m.subject + m.body)), 'spot-freed to replyTo');
+  env.state.lockBusy = true;
+  const err = env.postHtml(params({ name: 'Bob', email: 'bob@example.com' }));
+  assert.ok(err.includes(`href="mailto:${env.feed.sender.replyTo}"`), 'error-page mailto = replyTo');
+});
+
+test('G6. setup logs the alias state per event tab', () => {
+  const env = makeEnv();
+  rsvp(env, { email: 'ann@example.com' });
+  env.api.setup();
+  assert.ok(env.logger.includes('From alias for launch-party: ready'), env.logger.join(' | '));
+  assert.ok(env.logger.some((l) => l.startsWith('Remaining daily mail quota')));
+  noAt(env);
+
+  const none = makeEnv();
+  rsvp(none, { email: 'ann@example.com' });
+  none.state.aliases = [];
+  none.api.setup();
+  assert.ok(none.logger.includes('From alias for launch-party: not a Gmail send-as address (mail goes from the account address)'), none.logger.join(' | '));
+
+  const old = makeEnv((f) => {
+    delete f.sender.from;
+  });
+  rsvp(old, { email: 'ann@example.com' });
+  old.api.setup();
+  assert.ok(old.logger.includes('From alias for launch-party: not in the feed yet'), old.logger.join(' | '));
+
+  const empty = makeEnv();
+  empty.api.setup();
+  assert.ok(!empty.logger.some((l) => l.startsWith('From alias for')));
+
+  // a network error on the feed skips the tab; setup still logs the tips
+  const net = makeEnv();
+  rsvp(net, { email: 'ann@example.com' });
+  net.cache.clear();
+  net.state.fetchThrows = true;
+  net.api.setup();
+  assert.ok(!net.logger.some((l) => l.startsWith('From alias for')));
+  assert.ok(net.logger.some((l) => l.startsWith('Tips read:')), net.logger.join(' | '));
+});
+
+test('G7. source: GmailApp.sendEmail only inside send_; no MailApp.sendEmail', () => {
+  const text = readFileSync(new URL('../apps-script/rsvp.js', import.meta.url), 'utf8');
+  assert.ok(!/MailApp\.sendEmail/.test(text));
+  const start = text.indexOf('function send_');
+  const end = text.indexOf('// people:', start);
+  const all = [...text.matchAll(/GmailApp\.sendEmail/g)].map((m) => m.index!);
+  assert.ok(all.length >= 1 && all.every((i) => i > start && i < end), 'only inside send_');
+});
