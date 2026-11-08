@@ -22,7 +22,8 @@
     "event-images": "node scripts/make-event-credits.mjs",
     "check:dist": "node scripts/check-dist.mjs",
     "check:secrets": "node tools/check-secrets.mjs",
-    "check": "npm run build && npm test && npm run check:wording && npm run check:contrast && npm run check:dist && npm run check:secrets",
+    "check:reviewer": "node tools/check-reviewer.mjs",
+    "check": "npm run build && npm test && npm run check:wording && npm run check:contrast && npm run check:dist && npm run check:secrets && npm run check:reviewer",
     "shots": "node tools/shots.mjs",
     "metrics": "node tools/method-metrics.mjs"
   },

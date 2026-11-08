@@ -6,7 +6,7 @@ Static Astro site for Ohm Precision Bodywork, on GitHub Pages. It routes visitor
 - Method: Brian's build method v3.2 · Tier: M
 - Minimum Claude Code version: v2.1.295
 - Master list: https://claude.ai/artifact/XPbTteP3rZmMcVaUswE63N ("Ohm site: master list") · Brief tab: its "Brief" tab
-- Reviewer page: https://claude.ai/artifact/NKGLuNPVBXftpsfyFFZ6RB ("Launch Party Invite Review", Maréa). Answers live in its db collection `checks`, one doc per card id (`verdict` ok or change, `note`, `at`); `extra` is her free note; `photo-john` holds the asset id of John Marshall's photo (I-090). At each E8–E11 boundary, add that step's cards to `CARDS3` (one per visible change, ids `e8-…`, written like the round-two cards) and republish the page.
+- Reviewer page: https://claude.ai/artifact/NKGLuNPVBXftpsfyFFZ6RB ("Launch Party Invite Review", Maréa). Answers live in its db collection `checks`, one doc per card id (`verdict` ok or change, `note`, `at`); `extra` is her free note; `photo-john` holds the asset id of John Marshall's photo (I-090). The page source is `tools/reviewer/page.html`. At each E8–E11 boundary, add that step's cards to `CARDS3` in that file (one per visible change, ids `e8-…`, written like the round-two cards), run `npm run check:reviewer` (script must parse, ids unique), then republish that file to the URL above. Never rebuild the page from the live copy.
 - Check command: `npm run check` (build, test, check:wording, check:contrast, check:dist, check:secrets)
 - Repo: **public**. Never commit `.env`, the KML, client data, anything under `brief/` except `BRIEF.md`, the office street address, business-plan financials or PocketSuite admin details. The public business email carries `secrets-scan: allow`.
 - Planning chats live in the claude.ai Project "Ohm Site". They read this repo and never write to it; changes reach Code as master-list Items (I-###).
@@ -27,7 +27,7 @@ Rules live in .claude/ (settings, hooks, agents, skills); the spec's Guardrails 
 | `.github/workflows/` | `check.yml` runs the check command on every push; `deploy.yml` builds and deploys Pages on push to `main` |
 | `src/data/` | `site.ts` (business facts), `wording.ts` (licensure wording), `zones.geojson` |
 | `scripts/` | Zones, OSM, terrain, icons, Ω tracing, and the wording, contrast and dist checks |
-| `tools/` | Method metrics, secrets scan, screenshots (`npm run shots`) |
+| `tools/` | Method metrics, secrets scan, screenshots (`npm run shots`), reviewer page source and check (`tools/reviewer/`) |
 
 ## Commands
 - `npm run dev`: dev server on http://localhost:4321/ (port 4321 is required by the Google key referrer).

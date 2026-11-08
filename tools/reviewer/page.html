@@ -1,0 +1,358 @@
+<title>Launch Party Invite Review</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap">
+<style>
+:root {
+  --bg: #f3f6f2;
+  --surface: #ffffff;
+  --ink: #1f2a24;
+  --muted: #566359;
+  --line: #d5ded6;
+  --green: #2f5d46;
+  --on-green: #ffffff;
+  --green-soft: #e2eee6;
+  --clay: #a4532f;
+  --clay-soft: #f7e6dc;
+  --quote: #eef3ee;
+  --focus: #2b5fb3;
+  --font-display: "Fraunces", Georgia, serif;
+  --font-body: "Figtree", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141b17; --surface: #1d2721; --ink: #e8efe9; --muted: #a2b1a6; --line: #34443a;
+    --green: #8fc9a6; --on-green: #14201a; --green-soft: #243a2d; --clay: #eea27c; --clay-soft: #3d281d;
+    --quote: #18221c; --focus: #8db4f0; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141b17; --surface: #1d2721; --ink: #e8efe9; --muted: #a2b1a6; --line: #34443a;
+  --green: #8fc9a6; --on-green: #14201a; --green-soft: #243a2d; --clay: #eea27c; --clay-soft: #3d281d;
+  --quote: #18221c; --focus: #8db4f0; color-scheme: dark;
+}
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 1.0625rem; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 1.75rem 4rem; }
+.wrap { max-width: 40rem; margin-inline: auto; display: flex; flex-direction: column; gap: 1.5rem; }
+h1, h2 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; margin: 0; }
+h1 { font-size: 2rem; line-height: 1.15; }
+h2 { font-size: 1.35rem; }
+p { margin: 0; }
+.lead { color: var(--muted); max-width: 34rem; }
+.top { display: flex; flex-direction: column; gap: 0.9rem; }
+.open { display: inline-flex; align-items: center; justify-content: center; align-self: flex-start; min-height: 3rem; padding: 0.4rem 1.3rem; border-radius: 0.5rem; background: var(--green); color: var(--on-green); font-weight: 700; text-decoration: none; }
+.open:hover { text-decoration: underline; }
+.open-note { color: var(--muted); font-size: 0.95rem; overflow-wrap: anywhere; }
+.progress { display: flex; flex-direction: column; gap: 0.4rem; font-weight: 600; }
+.bar { height: 0.55rem; border-radius: 99px; background: var(--green-soft); overflow: hidden; }
+.bar span { display: block; height: 100%; width: 0; background: var(--green); transition: width .25s; }
+.status-msg { background: var(--clay-soft); border-radius: 0.5rem; padding: 0.7rem 0.9rem; font-size: 1rem; }
+.cards { display: flex; flex-direction: column; gap: 1rem; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 0.75rem; padding: 1.1rem; display: flex; flex-direction: column; gap: 0.8rem; min-width: 0; }
+.card header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.4rem 0.8rem; }
+.where { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+.pill { margin-left: auto; font-size: 0.85rem; font-weight: 700; padding: 0.05rem 0.7rem; border-radius: 99px; border: 2px solid var(--line); color: var(--muted); }
+.pill.ok { background: var(--green-soft); border-color: var(--green-soft); color: var(--green); }
+.pill.change { background: var(--clay-soft); border-color: var(--clay-soft); color: var(--clay); }
+.asked { color: var(--muted); font-size: 1rem; }
+.asked b { color: var(--ink); }
+blockquote { margin: 0; background: var(--quote); border-radius: 0.5rem; padding: 0.8rem 1rem; display: flex; flex-direction: column; gap: 0.35rem; overflow-wrap: anywhere; min-width: 0; }
+blockquote .t { font-weight: 700; }
+blockquote ul { margin: 0; padding-left: 1.2rem; }
+blockquote .sub { color: var(--muted); font-size: 0.95rem; }
+.see { font-weight: 600; }
+a { color: var(--green); }
+.choices { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+button, .filebtn { font: inherit; font-weight: 700; cursor: pointer; border-radius: 0.5rem; min-height: 3rem; padding: 0.4rem 1.2rem; border: 2px solid var(--green); background: var(--green); color: var(--on-green); box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; }
+button.choice { background: var(--surface); color: var(--ink); border-color: var(--line); }
+button.choice[aria-pressed="true"].ok { background: var(--green); color: var(--on-green); border-color: var(--green); }
+button.choice[aria-pressed="true"].change { background: var(--clay); color: var(--surface); border-color: var(--clay); }
+button.choice[aria-pressed="true"]::before { content: "\2713\00a0"; }
+button:disabled { opacity: 0.55; cursor: not-allowed; }
+label.field { font-weight: 600; font-size: 1rem; }
+textarea { width: 100%; box-sizing: border-box; font: inherit; color: var(--ink); background: var(--surface); border: 2px solid var(--line); border-radius: 0.5rem; padding: 0.7rem; min-height: 5.5rem; resize: vertical; }
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.8rem; }
+.saved { font-weight: 600; color: var(--green); min-height: 1.4rem; font-size: 0.95rem; }
+.saved.err { color: var(--clay); }
+.hint { color: var(--muted); font-size: 0.95rem; }
+.empty { color: var(--muted); background: var(--surface); border: 1px dashed var(--line); border-radius: 0.75rem; padding: 1rem 1.1rem; }
+.file-in { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+.file-in:focus-visible + .filebtn { outline: 3px solid var(--focus); outline-offset: 2px; }
+.preview { display: flex; align-items: center; gap: 1rem; }
+.preview img { width: 6rem; height: 6rem; object-fit: cover; border-radius: 0.5rem; border: 1px solid var(--line); background: var(--quote); }
+details.past { border-top: 1px solid var(--line); padding-top: 1rem; }
+details.past summary { cursor: pointer; font-weight: 700; color: var(--muted); min-height: 2.75rem; display: flex; align-items: center; }
+details.past .cards { margin-top: 1rem; }
+a:focus-visible, textarea:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+@media (max-width: 30rem) { h1 { font-size: 1.7rem; } .choices button { flex: 1 1 100%; } .row button, .row .filebtn { width: 100%; } }
+</style>
+
+<main class="wrap">
+  <section class="top">
+    <h1>Launch Party page: check the updates</h1>
+    <p class="lead">Hi Maréa. Thank you, your second round is all in. I'm now making the next batch of changes: your schedule and credits notes, the chai tea surprise for the day, and a few extras for the RSVP part of the page. The schedule, credits and parking changes, the new RSVP result and tip cards, the floating RSVP buttons, the schedule timeline, the countdown, the credit hover and the sharper top banner are live now (round three below); more cards appear as each part goes live, so check back. First, one thing I need from you: John Marshall's photo.</p>
+    <a class="open" id="open-live" href="https://ohmprecisionbodywork.com/events/launch-party" target="_blank" rel="noopener">Open the live event page</a>
+    <p class="open-note">ohmprecisionbodywork.com/events/launch-party (the page has a new address; the old one still works). It opens in a new tab, so you can switch back here to answer. Each card has its own link that jumps to the right spot on the page.</p>
+    <p class="status-msg" id="dbmsg" hidden></p>
+  </section>
+
+  <article class="card" id="card-photo">
+    <header><span class="where">Photo · John Marshall</span><span class="pill" id="p-photo">Not yet</span></header>
+    <p>His entry in <b>This event made possible by…</b> needs a photo. A clear head-and-shoulders shot works best. I'll crop it into the same small frame as the other photos, and it will link to ransfordengineering.com, as you asked.</p>
+    <div class="preview" id="photo-preview" hidden><img id="photo-img" alt="The photo you added for John Marshall"><span class="hint" id="photo-cap">Got it. You can choose a different one if you like.</span></div>
+    <div class="row" id="photo-row">
+      <input type="file" id="photo-in" class="file-in" accept="image/jpeg,image/png,image/webp">
+      <label for="photo-in" class="filebtn" id="photo-btn">Choose a photo</label>
+      <span class="saved" id="m-photo" role="status"></span>
+    </div>
+    <p class="hint" id="photo-off" hidden>Uploading needs edit access to this page. Ask Brian to give you access, or text him the photo.</p>
+  </article>
+
+  <section class="top" aria-labelledby="round3-h">
+    <h2 id="round3-h">Round three</h2>
+    <div class="progress" aria-live="polite" id="progress" hidden><span id="count"></span><div class="bar"><span id="barfill"></span></div></div>
+    <div id="cards3" class="cards"></div>
+  </section>
+
+  <details class="past">
+    <summary>Round two: all checked, thank you</summary>
+    <div id="cards2" class="cards"></div>
+  </details>
+</main>
+
+<script>
+(function () {
+  var LIVE = "https://ohmprecisionbodywork.com/events/launch-party";
+  var CARDS3 = [
+    { id: "e8-yoga", where: "Schedule · yoga", see: "", seeLabel: "See the schedule",
+      asked: "After yoga with Britt, add the emojis 🧘 🪷",
+      html: '<p>The yoga item in the schedule now reads <span class="t">Restorative Yoga with Britt 🧘 🪷</span>.</p>' },
+    { id: "e8-taichi", where: "Schedule · Tai Chi", see: "", seeLabel: "See the schedule",
+      asked: "Remove \"optional\" from Tai Chi. Reword \"Tai Chi led by John Marshall ☯️ 🥋\"",
+      html: '<p>The bullet under Activities and merch now reads <span class="t">Tai Chi led by John Marshall ☯️ 🥋</span>, with no "Optional".</p><p><b>The chai tea surprise is set up:</b> on Nov 22, a few minutes after 4:00 pm, the site updates by itself and this bullet becomes <span class="t">Chai tea led by John Marshall 🍵🫖</span>. John Marshall\'s role in the credits changes to <span class="t">Chai Tea ceremony</span> at the same moment. Until then you will only see the Tai Chi wording.</p>' },
+    { id: "e8-john", where: "Bottom of the page", see: "", seeLabel: "See the credits",
+      asked: "List John Marshall at the bottom of the event made possible by list. His photo should link to https://ransfordengineering.com.",
+      html: '<p><span class="t">John Marshall</span> is now the fifth entry in <b>This event made possible by…</b>, with <span class="t">Tai Chi instruction</span> under his name, and it links to ransfordengineering.com.</p><p class="sub">His photo frame shows a plain green square until his photo is in. Add it with the photo card at the top of this page.</p>' },
+    { id: "e8-parking", where: "Details · Parking", see: "#parking", seeLabel: "See Parking",
+      asked: "(Brian) Link the words about the free parking to the map pin.",
+      html: '<p>In Parking, the words <span class="t">free parking along Wahsatch</span> are now a link that opens the map pin in a new tab. The rest of the sentence is unchanged.</p><p class="sub">The reminder email keeps the same parking sentence, as plain text.</p>' },
+    { id: "e8-url", where: "Page address", see: "", seeLabel: "Open the page",
+      asked: "(Brian) Give event pages their own address under /events.",
+      html: '<p>The page now lives at <span class="t">ohmprecisionbodywork.com/events/launch-party</span>. The old address, ohmprecisionbodywork.com/launch-party, still works and forwards to the new one, so links already sent in confirmation emails or texts keep working.</p>' },
+    { id: "e9-answer", where: "RSVP · after sending", see: "#rsvp", seeLabel: "See the RSVP section",
+      asked: "(Brian) After someone RSVPs, show what they answered and a friendly line, and tidy away the form's heading and intro.",
+      html: '<p>After an RSVP goes through, the RSVP heading, the intro line and the yoga spots line disappear, and the card says what they chose and a line to match:</p><ul><li><span class="t">RSVP: Going</span> · Can\'t wait to see you there!</li><li><span class="t">RSVP: Maybe</span> · Hope to see you there! 🤞</li><li><span class="t">RSVP: Can\'t go</span> · Sorry you can\'t make it! 🥲</li></ul><p>The yoga line(s) follow underneath, as before.</p><p class="sub">You only see this after sending an RSVP. Sending one is a real RSVP and emails a confirmation, so only try it if you want to.</p>' },
+    { id: "e9-waiver", where: "RSVP · waiver button", see: "#rsvp", seeLabel: "See the RSVP section",
+      asked: "(Brian) Add a waiver button to the RSVP result for people who are coming.",
+      html: '<p>For Going and Maybe, the result card now has two buttons side by side: <span class="t">Add to calendar</span> and <span class="t">Fill out the waiver</span>. The waiver button opens the CityROCK waiver in a new tab, the same link as the waiver notice lower on the page. Can\'t go shows no buttons.</p>' },
+    { id: "e9-motion", where: "RSVP · confetti and emoji", see: "#rsvp", seeLabel: "See the RSVP section",
+      asked: "(Brian) A little celebration when someone RSVPs.",
+      html: '<p><b>Going:</b> a short burst of confetti in the Ohm colours over the result card, gone in about a second.</p><p><b>Maybe:</b> the 🤞 pops in and wiggles twice. <b>Can\'t go:</b> the 🥲 fades in, droops a little and rights itself.</p><p class="sub">Phones or computers set to reduce motion skip the confetti, and the emoji just sits still.</p>' },
+    { id: "e9-tip", where: "RSVP · self-care tip", see: "#rsvp", seeLabel: "See the RSVP section",
+      asked: "(Brian) Drop \"of the day\" from the self-care tip, give the card more contrast, and make the tip spin in like a slot machine.",
+      html: '<p>The card under the RSVP result is now titled <span class="t">Self-care tip</span> and looks like the cards on the Pricing page: dark green with a terracotta top edge and a line under the title. The tip scrolls past like a slot machine and lands on one; <span class="t">Another tip</span> spins again.</p><p class="sub">The reminder email on Sat Nov 21 says <span class="t">Self-care tip:</span> before its tip, without "of the day".</p>' },
+    { id: "e10-bar", where: "RSVP · floating buttons", see: "", seeLabel: "Open the page",
+      asked: "(Brian) Keep the RSVP answer buttons in reach while people read the page.",
+      html: '<p>While you read, three buttons, <span class="t">Going</span>, <span class="t">Maybe</span> and <span class="t">Can\'t go</span>, stay pinned to the bottom of the screen. Tapping one jumps to the RSVP form with that answer already picked and your cursor in the Name box.</p><p class="sub">The buttons go away while the RSVP form is on screen, after someone sends an RSVP, and once RSVPs close (Sun Nov 22 at 2:00 pm).</p>' },
+    { id: "e10-entrance", where: "Whole page · scrolling", see: "", seeLabel: "Open the page",
+      asked: "(Brian) Let the sections fade up into view as you scroll, like the home page.",
+      html: '<p>Each section below the top banner (Description and Schedule, Details, RSVP, the waiver notice and the credits) fades up gently the first time it scrolls into view. Some browsers just show everything at once, and nothing moves on phones or computers set to reduce motion.</p>' },
+    { id: "e10-timeline", where: "Schedule", see: "", seeLabel: "See the schedule",
+      asked: "(Brian) Make the schedule a timeline: a dot at each time, and show what is happening now.",
+      html: '<p>The schedule now has a round dot at each time, joined by a line. The line into the optional climb is dashed and its dot is hollow. The text is unchanged.</p><p><b>On Nov 22:</b> the item happening at that moment gets a bigger dot with a soft glow, and it moves on by itself as the day goes.</p>' },
+    { id: "e10-countdown", where: "Top of the page", see: "", seeLabel: "See the top of the page",
+      asked: "(Brian) A countdown under the date.",
+      html: '<p>Under the date at the top you will see <span class="t">In 14 days</span> (counting down), then <span class="t">Tomorrow</span>, then <span class="t">Today!</span> on Nov 22. After the party ends the line is blank.</p>' },
+    { id: "e10-credits", where: "Bottom of the page", see: "", seeLabel: "See the credits",
+      asked: "(Brian) Make the credits feel like links.",
+      html: '<p>In <b>This event made possible by…</b>, pointing at an entry (or tabbing to it) lifts it slightly with a soft shadow, so it reads as a link. It does not move on phones or computers set to reduce motion, but the shadow still shows.</p>' },
+    { id: "e11-banner", where: "Top of the page · banner", see: "", seeLabel: "See the top of the page",
+      asked: "(Brian) Make the banner at the top sharper on computers.",
+      html: '<p>The graphic at the top is crisper on a computer screen: the Ohm mark is now drawn as a clean shape instead of part of a picture, over a cleaned-up background. The look and the words are the same, just sharper, especially when you zoom in.</p><p class="sub">Please check that the mark and the lettering still look right to you.</p>' }
+  ];
+  var CARDS2 = [
+    { id: "title", where: "Top of the page", see: "", seeLabel: "See the top of the page",
+      asked: "Remove 'Ohm Launch party' since it's already in the graphic at the top. On the web version, crop the graphic a bit to make the text bigger.",
+      html: '<p>The heading under the graphic now reads <span class="t">A Celebration of Self-Care</span>.</p><p><b>Updated:</b> on a computer, the graphic now fills the full width of the page, with its left edge lined up with the heading, and the words are bigger still (about 1.8 times the original). On a phone you still see the full mark.</p><p class="sub">Link previews and the calendar file still use the full name, Ohm Launch Party: A Celebration of Self-Care.</p>' },
+    { id: "description", where: "About the event", see: "",
+      asked: "650 hours. Reword this sentence \"... and passed his state test to become a licensed neuromuscular massage therapist\".",
+      html: '<p>The invitation text now sits under the buttons, before the schedule. The first paragraph says: <span class="t">Last month, he completed 650 hours of studies and passed his state test to become a licensed neuromuscular massage therapist! 🎉</span></p><p>Britt\'s name in the second paragraph links to her Instagram, @brittandspirit.</p>' },
+    { id: "host", where: "Your name and photo", see: "",
+      asked: "Add the accent to my name, Maréa. My photo should be a little thumbnail.",
+      html: '<p>Your name is spelled <span class="t">Maréa</span> everywhere on the page. Your photo is now a small thumbnail in the new section at the bottom (see the last item).</p>' },
+    { id: "schedule", where: "Schedule", see: "",
+      asked: "\"Restorative Yoga with Britt\". Add \"mats provided, or bring your own\" (remove it from the what to wear section). Under launch party, add the bullet \"activities and merch\". Change the last bullet to \"Day pass purchase required\" with a link to CityROCK's page on day pass purchases. <b>Second review:</b> \"Let's change it to 'harness and shoe rentals available' since they're an extra charge. Under 'activities and merch' please add 'Optional Tai Chi by John Marshall'.\"",
+      html: '<p><b>Updated:</b> the last bullet now says <span class="t">Harness and shoe rentals available</span>, and <span class="t">Optional Tai Chi by John Marshall</span> is the bullet right under Activities and merch. The page also has headings now: Description, Schedule, Details (What to wear, Parking, Raffle) and RSVP.</p><ul><li><span class="t">2–3 pm</span> Restorative Yoga with Britt<br><span class="sub">No supplies or experience needed · Mats provided, or bring your own · Water bottle and stretchy clothes recommended · Limited to first 20 sign-ups</span></li><li><span class="t">3–6 pm</span> Self Care Launch Party<br><span class="sub">Open house style, come and go as you please · Refreshments provided · Activities and merch · Optional Tai Chi by John Marshall</span></li><li><span class="t">6–8 pm</span> Optional: climb at the gym until close<br><span class="sub">Day pass purchase required (links to climbcityrock.com/day-passes) · Harness and shoe rentals available</span></li></ul><p class="sub">What to wear no longer mentions mats.</p>' },
+    { id: "rsvp", where: "RSVP form", see: "#rsvp", seeLabel: "See the RSVP form",
+      asked: "Under \"add a guest\" it just shows yes or no. You need to add something that says yoga. Reword the sentence \"I only use your name and email for Ohm...\". <b>Second review:</b> \"We just need a little bit of space between the name box and the yoga? Yes or no selection.\"",
+      html: '<p><b>Updated:</b> each guest card now has a clear gap between the Name box and the yoga question. Tap "Add a guest" to see it.</p><p>Each guest now has the question <span class="t">Joining yoga (2–3 pm)?</span> above Yes and No.</p><p>The line under the Send button now says: <span class="t">I\'ll only use your name and email for event reminders. You\'ll also receive Ohm news and offers if you check the box.</span></p><p class="sub">The confirmation and reminder emails are not changed in this round.</p>' },
+    { id: "waiver", where: "Waiver notice", see: "#waiver", seeLabel: "See the waiver notice",
+      asked: "It kind of blends in with the footer. We need it to not be dark green and look more like it's part of the main event page.",
+      html: '<p>The "Important: Waiver Required" notice is now a light box with a green outline and a terracotta top edge, so it stands apart from the dark footer. The text and the "Fill out the waiver" link are unchanged.</p>' },
+    { id: "credits", where: "Bottom of the page", see: "",
+      asked: "Move my host details to the bottom of the page and create a section that says \"this event made possible by...\", with a logo or photo for each.",
+      html: '<p>The Host section is gone. The last section is titled <span class="t">This event made possible by…</span> and has four linked entries, each with a small image.</p><p><b>Updated:</b> each name is bold with its role on its own line underneath, smaller and without a comma. The CityROCK and JohnMark logos now have see-through backgrounds, so they sit on the page with no box around them. The two photos keep their frame.</p><ul><li>Maréa, Host (dreamcatcherwed.com)</li><li>CityROCK, Venue (climbcityrock.com, logo)</li><li>Britt Maddy, Yoga instruction (Instagram, photo)</li><li>JohnMark, Graphic design (johnmark.co, logo)</li></ul><p class="sub">Please check the spelling, the links and that each image looks right.</p>' }
+  ];
+  var $ = function (id) { return document.getElementById(id); };
+  var state = {}, refs = {}, db = null, assets = null;
+
+  function fmt(iso) { try { return new Date(iso).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }); } catch (e) { return ""; } }
+
+  function buildCards(list, box) {
+    list.forEach(function (c, i) {
+      var a = document.createElement("article"); a.className = "card"; a.id = "card-" + c.id;
+      var see = c.seeLabel ? '<p class="see"><a href="' + LIVE + c.see + '" target="_blank" rel="noopener">' + c.seeLabel + ' ↗</a></p>' : "";
+      a.innerHTML = '<header><span class="where">' + (i + 1) + " of " + list.length + " · " + c.where + '</span><span class="pill" id="p-' + c.id + '">Not yet</span></header>' +
+        '<p class="asked"><b>You asked:</b> ' + c.asked + '</p><blockquote>' + c.html + '</blockquote>' + see +
+        '<div class="choices"><button type="button" class="choice ok" id="ok-' + c.id + '" aria-pressed="false">Looks right</button>' +
+        '<button type="button" class="choice change" id="ch-' + c.id + '" aria-pressed="false">Needs another change</button></div>' +
+        '<div id="nb-' + c.id + '" hidden><label class="field" for="n-' + c.id + '">What would you like instead?</label><textarea id="n-' + c.id + '"></textarea></div>' +
+        '<div class="row"><button type="button" id="s-' + c.id + '" hidden>Save</button><span class="saved" id="m-' + c.id + '" role="status"></span></div>';
+      box.appendChild(a);
+      state[c.id] = { verdict: null, note: "", dirty: false };
+      var r = refs[c.id] = { pill: $("p-" + c.id), ok: $("ok-" + c.id), ch: $("ch-" + c.id), nb: $("nb-" + c.id), ta: $("n-" + c.id), save: $("s-" + c.id), msg: $("m-" + c.id) };
+      r.ok.addEventListener("click", function () { pick(c.id, "ok"); save(c.id); });
+      r.ch.addEventListener("click", function () { pick(c.id, "change"); r.ta.focus(); });
+      r.ta.addEventListener("input", function () { state[c.id].dirty = true; r.save.hidden = false; r.msg.textContent = ""; });
+      r.save.addEventListener("click", function () { save(c.id); });
+    });
+  }
+
+  function build() {
+    var box3 = $("cards3");
+    if (CARDS3.length) {
+      buildCards(CARDS3, box3);
+      $("progress").hidden = false;
+    } else {
+      var e = document.createElement("p"); e.className = "empty";
+      e.textContent = "Nothing to check yet.";
+      box3.appendChild(e);
+    }
+    var x = document.createElement("article"); x.className = "card"; x.id = "card-extra";
+    x.innerHTML = '<header><span class="where">Anything else</span></header><label class="field" for="n-extra">Anything else you spotted, or anything still missing?</label><p class="hint">Optional.</p><textarea id="n-extra"></textarea><div class="row"><button type="button" id="s-extra">Save</button><span class="saved" id="m-extra" role="status"></span></div>';
+    box3.appendChild(x);
+    refs.extra = { ta: $("n-extra"), save: $("s-extra"), msg: $("m-extra") };
+    state.extra = { note: "", dirty: false };
+    refs.extra.ta.addEventListener("input", function () { state.extra.dirty = true; refs.extra.msg.textContent = ""; });
+    refs.extra.save.addEventListener("click", function () { saveExtra(); });
+    buildCards(CARDS2, $("cards2"));
+  }
+
+  function pick(id, v) {
+    state[id].verdict = v; paint(id);
+    if (v === "change") refs[id].save.hidden = false;
+  }
+  function paint(id) {
+    var s = state[id], r = refs[id];
+    r.ok.setAttribute("aria-pressed", String(s.verdict === "ok"));
+    r.ch.setAttribute("aria-pressed", String(s.verdict === "change"));
+    r.nb.hidden = s.verdict !== "change";
+    r.pill.textContent = s.verdict === "ok" ? "Looks right" : s.verdict === "change" ? "Change requested" : "Not yet";
+    r.pill.className = "pill" + (s.verdict ? " " + s.verdict : "");
+    if (s.verdict !== "change") r.save.hidden = !s.dirty;
+    counts();
+  }
+  function counts() {
+    if (!CARDS3.length) return;
+    var n = CARDS3.filter(function (c) { return state[c.id].verdict; }).length;
+    $("count").textContent = n + " of " + CARDS3.length + " checked" + (n === CARDS3.length ? ". Thank you!" : "");
+    $("barfill").style.width = (100 * n / CARDS3.length) + "%";
+  }
+  function flash(el, t, err) { el.textContent = t; el.className = "saved" + (err ? " err" : ""); }
+
+  function errText(e) {
+    var c = e && e.code;
+    if (c === "permission_denied" || c === "not_granted" || c === "invalid_argument") return "Your account can't save here yet. Please tell Brian so he can change your access. Your note is still in the box.";
+    if (c === "revoked") return "This page lost access. Please reload it.";
+    return "That didn't save. Check your connection and try again." + (c ? " (" + c + ")" : "");
+  }
+  function save(id) {
+    var s = state[id], r = refs[id];
+    if (!db) { flash(r.msg, "Can't save right now. Reload the page and try again.", true); return; }
+    r.save.disabled = true;
+    var note = r.ta.value.trim();
+    db.collection("checks").doc(id).set({ kind: "card", verdict: s.verdict, note: s.verdict === "change" ? note : "", at: new Date().toISOString() })
+      .then(function () { s.dirty = false; s.note = note; r.save.hidden = true; r.save.disabled = false; flash(r.msg, "Saved " + fmt(new Date().toISOString())); },
+        function (e) { r.save.disabled = false; flash(r.msg, errText(e), true); });
+  }
+  function saveExtra() {
+    var r = refs.extra;
+    if (!db) { flash(r.msg, "Can't save right now. Reload the page and try again.", true); return; }
+    r.save.disabled = true;
+    db.collection("checks").doc("extra").set({ kind: "extra", note: r.ta.value.trim(), at: new Date().toISOString() })
+      .then(function () { state.extra.dirty = false; r.save.disabled = false; flash(r.msg, "Saved " + fmt(new Date().toISOString())); },
+        function (e) { r.save.disabled = false; flash(r.msg, errText(e), true); });
+  }
+
+  var PHOTO_DOC = "photo-john";
+  function showPhoto(src, at) {
+    var img = $("photo-img");
+    img.onerror = function () { $("photo-preview").hidden = false; img.hidden = true; $("photo-cap").textContent = "Photo received" + (at ? " " + fmt(at) : "") + ". The preview can't show in this view."; };
+    img.hidden = false;
+    img.src = src;
+    $("photo-preview").hidden = false;
+    $("photo-cap").textContent = "Got it" + (at ? ", " + fmt(at) : "") + ". You can choose a different one if you like.";
+    $("photo-btn").textContent = "Choose a different photo";
+    var p = $("p-photo"); p.textContent = "Received"; p.className = "pill ok";
+  }
+  function photoUpErr(e) {
+    var c = e && e.code;
+    if (c === "too_large") return "That file is too big. Please pick one under 20 MB.";
+    if (c === "unsupported_type") return "Please pick a JPG, PNG or WebP photo.";
+    if (c === "rate_limited") return "Too many tries at once. Wait a minute and try again.";
+    if (c === "not_granted" || c === "capability_disabled" || c === "capability_removed") return "Uploading isn't available in this view. Please text Brian the photo.";
+    if (c === "quota_or_state") return "This page can't take more files right now. Please text Brian the photo.";
+    return "That didn't upload. Check your connection and try again." + (c ? " (" + c + ")" : "");
+  }
+  function wirePhoto() {
+    var input = $("photo-in"), msg = $("m-photo");
+    input.addEventListener("change", function () {
+      var f = input.files && input.files[0];
+      if (!f) return;
+      var types = ["image/jpeg", "image/png", "image/webp"];
+      if (types.indexOf(f.type) < 0) { flash(msg, "Please pick a JPG, PNG or WebP photo.", true); input.value = ""; return; }
+      if (f.size > 20 * 1024 * 1024) { flash(msg, "That file is too big. Please pick one under 20 MB.", true); input.value = ""; return; }
+      if (!assets || !db) { flash(msg, "Can't upload right now. Reload the page and try again.", true); return; }
+      flash(msg, "Uploading…");
+      assets.upload(f, { type: f.type }).then(function (res) {
+        var at = new Date().toISOString();
+        return db.collection("checks").doc(PHOTO_DOC).set({ kind: "photo", asset: res.id, at: at }).then(function () {
+          showPhoto(res.url, at); flash(msg, "Saved " + fmt(at)); input.value = "";
+        }, function (e) { flash(msg, errText(e), true); });
+      }, function (e) { flash(msg, photoUpErr(e), true); input.value = ""; });
+    });
+  }
+
+  function apply(snap) {
+    snap.docs.forEach(function (d) {
+      var v = d.data() || {};
+      if (d.id === "extra") {
+        if (!state.extra.dirty) refs.extra.ta.value = v.note || "";
+        return;
+      }
+      if (d.id === PHOTO_DOC) {
+        if (typeof v.asset === "string" && /^[0-9a-f]{32}$/.test(v.asset)) showPhoto("/_blob/" + v.asset, v.at);
+        return;
+      }
+      var s = state[d.id]; if (!s) return;
+      if (!s.dirty) { s.verdict = v.verdict || null; s.note = v.note || ""; refs[d.id].ta.value = s.note; paint(d.id); }
+    });
+    counts();
+  }
+
+  function photoOff() { $("photo-row").hidden = true; $("photo-off").hidden = false; }
+
+  build();
+  counts();
+  wirePhoto();
+  var m = $("dbmsg");
+  if (!window.claude || !window.claude.use) { m.hidden = false; m.textContent = "Answers can't be saved in this view. Ask Brian for the link again."; photoOff(); return; }
+  window.claude.use("db").then(function (d) {
+    if (!d) { m.hidden = false; m.textContent = "Please sign in to save your answers. You can still read everything."; photoOff(); return; }
+    db = d;
+    db.collection("checks").onSnapshot(apply, function () { m.hidden = false; m.textContent = "Your saved answers couldn't load. Reload the page."; });
+    window.claude.use("assets").then(function (a) { assets = a; if (!a) photoOff(); }, photoOff);
+  }, function () { m.hidden = false; m.textContent = "Answers can't be saved in this view."; photoOff(); });
+})();
+</script>
