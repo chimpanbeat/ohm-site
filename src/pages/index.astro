@@ -7,6 +7,8 @@ import { w } from '../data/wording.ts';
 import { href } from '../lib/url.ts';
 import graphic from '../assets/graphic-green-full.png';
 
+// One block per sentence: each fits on one line, or breaks into its two words (2 or 4 lines, never 3).
+const heroSentences = w('heroLine').split(/(?<=\.)\s+/);
 const minPrice = Math.min(...Object.values(site.rates).map((r) => r.price));
 ---
 
@@ -26,7 +28,7 @@ const minPrice = Math.min(...Object.values(site.rates).map((r) => r.price));
       fetchpriority="high"
     />
     <div class="container hero-text">
-      <h1>{w('heroLine')}</h1>
+      <h1>{heroSentences.map((t) => <span class="hero-sentence">{t}</span>)}</h1>
       <p class="subline">Neuromuscular therapy in Colorado Springs, for active people who want to move, perform and feel their best.</p>
       <div class="cta-row">
         <BookCta />
@@ -119,7 +121,12 @@ const minPrice = Math.min(...Object.values(site.rates).map((r) => r.price));
   .hero-text h1 {
     max-width: 7em;
   }
+  .hero-sentence {
+    display: block;
+  }
+  /* Same column width as the 768px+ rule (60% of the container) so nothing jumps at 768; the rem floor keeps phones readable. */
   .subline {
+    max-width: max(60%, 20rem);
     font-size: 1.15rem;
   }
   .cta-row {
@@ -162,17 +169,24 @@ const minPrice = Math.min(...Object.values(site.rates).map((r) => r.price));
       opacity: 0.5;
       mask-image: linear-gradient(to right, transparent, black 35%);
     }
-    .hero-text h1 {
-      max-width: 40%;
-    }
-    /* Wider than the H1 so it sets in two lines from about 1024px up; balanced so the lines are even. */
+    /* Stays in the left column beside the art at every desktop width; balanced so the lines are even. */
     .hero-text .subline {
-      max-width: min(36rem, 52%);
+      max-width: min(36rem, 60%);
       text-wrap: balance;
     }
     .info {
       grid-template-columns: repeat(3, 1fr);
       gap: var(--s-8);
+    }
+  }
+  /* Two-line headline from about 920px; below that (down to 768px) it sets in 4 lines. */
+  @media (min-width: 57.5rem) {
+    .hero-sentence {
+      white-space: nowrap;
+    }
+    .hero-text h1 {
+      /* Two states only: from here up each sentence stays on one line (2 lines); below, the 7em cap gives 4. */
+      max-width: none;
     }
   }
 </style>
