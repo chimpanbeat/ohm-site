@@ -510,7 +510,7 @@ test('9b. built page: hero, timeline, links, notice', { skip: skipBuilt }, () =>
   const hero = html.match(/<section\b[\s\S]*?<\/section>/)![0];
   assert.ok(hero.includes('<picture'), 'hero is a picture');
   assert.match(text(hero), /Sunday, Nov 22, 2026 · 2:00–6:00 pm/);
-  assert.ok(hero.includes('href="#rsvp"'), 'the hero has the RSVP button (E2)');
+  assert.ok(!hero.includes('href="#rsvp"'), 'Brian, Nov 9: no RSVP button in the hero (the floating bar and the form are enough)');
 
   const ol = html.match(/<ol\b[^>]*class="[^"]*\btimeline\b[^"]*"[\s\S]*?<\/ol>/)![0];
   const times = [...ol.matchAll(/<time\b[^>]*\bdatetime="([^"]*)"/g)].map((m) => m[1]);

@@ -11,8 +11,8 @@ const spans = items.map((li) => ({ start: li.dataset.start ?? '', end: li.datase
 
 type Strings = { days: string; tomorrow: string; today: string };
 
-const FLIP_MS = 160; // one flip: the top flap falls, then the bottom flap lands
-const STEP_MS = 70; // pause between flips of a rolling tile
+const FLIP_MS = 110; // one flip: the top flap falls, then the bottom flap lands
+const STEP_MS = 30; // pause between flips of a rolling tile
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
@@ -48,15 +48,15 @@ async function flipOnce(tile: HTMLElement, next: string): Promise<void> {
   tile.classList.remove('is-flipping');
 }
 
-// Roll a tile through its pool (digits, or letters) from a random start until it lands on `target` after at least `min` flips.
-async function roll(tile: HTMLElement, target: string, min: number, delay: number): Promise<void> {
-  const pool = /\d/.test(target) ? '0123456789' : 'ABCDEFGHIJKLMNOPQRSTUVWXYZ!';
+// Roll a tile through its pool (digits, or letters) and land on `target` after exactly `steps` flips, so the board always
+// settles in about a second (Brian, Nov 9: it sometimes ran long when it waited for a random start to come round).
+async function roll(tile: HTMLElement, target: string, steps: number, delay: number): Promise<void> {
+  const pool = /d/.test(target) ? '0123456789' : 'ABCDEFGHIJKLMNOPQRSTUVWXYZ!';
   if (reduced || !pool.includes(target)) return setChar(tile, target);
   await sleep(delay);
-  let i = Math.floor(Math.random() * pool.length);
-  for (let n = 0; n < min || pool[i % pool.length] !== target; n++) {
-    i++;
-    await flipOnce(tile, pool[i % pool.length]);
+  const at = pool.indexOf(target);
+  for (let n = steps; n > 0; n--) {
+    await flipOnce(tile, pool[(((at - n + 1) % pool.length) + pool.length) % pool.length]);
     await sleep(STEP_MS);
   }
 }
@@ -97,7 +97,7 @@ function paintCountdown(nowMs: number): void {
   if (after?.trim()) parts.push(word(after));
   board.replaceChildren(...parts);
   line.replaceChildren(sr, board);
-  tiles.forEach((tile, i) => void roll(tile, target[i], 6 + i * 3, i * 120));
+  tiles.forEach((tile, i) => void roll(tile, target[i], 5 + i * 2, i * 100));
 }
 
 function paintTimeline(nowMs: number): void {

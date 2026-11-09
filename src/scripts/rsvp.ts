@@ -7,13 +7,13 @@ import { confettiPieces, createRsvp, reelFor, type RawFields, type ResultView, t
 
 // E9 (§A3, the eleventh to thirteenth exceptions): the script only adds a node or a class; CSS moves it. One check.
 // E15 (Brian, Nov 8): a bigger burst over the whole viewport, and a first tip that spins long and lands after the
-// confetti is gone (confetti: up to 450 ms of delay + 3400 ms; first reel: 4400 ms from the same moment).
+// confetti is gone (confetti: up to 450 ms of delay + 3400 ms; first reel: 6600 ms from the same moment, Nov 9).
 const CONFETTI = 110;
 const CONFETTI_MS = 3400;
 const REEL_ITEMS = 6;
 const REEL_MS = 900;
-const REEL_FIRST_ITEMS = 36;
-const REEL_FIRST_MS = 4400;
+const REEL_FIRST_ITEMS = 52;
+const REEL_FIRST_MS = 6600; // Brian, Nov 9: was 4400; the confetti (up to 3850 ms) was still falling when the reel stopped
 const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // Removes a decoration when its last animation ends, or after `ms` if no animation runs (so nothing is left behind).
@@ -81,7 +81,10 @@ function start(form: HTMLFormElement): void {
     const instant = reduceMotion();
     // Brian, Nov 9: the card sits just under the header (4rem plus a little air), not 28% down, so the whole card and
     // the tip below it show without scrolling. The confetti's origin is kept low enough to still show (see confetti()).
-    const top = Math.max(0, window.scrollY + result.getBoundingClientRect().top - 96);
+    // Brian, Nov 9: far enough that the dark details section above the RSVP band is off the screen: the band's own top edge
+    // goes just under the header.
+    const band = result.closest('section') ?? result;
+    const top = Math.max(0, window.scrollY + band.getBoundingClientRect().top - 64);
     window.scrollTo({ top, behavior: instant ? 'auto' : 'smooth' });
     if (instant || Math.abs(top - window.scrollY) < 2) return Promise.resolve();
     return new Promise((resolve) => {

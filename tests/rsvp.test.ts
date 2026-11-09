@@ -686,10 +686,7 @@ test('6. dist: section order, two scripts, the hero RSVP button', { skip: skipBu
   const scripts = [...h.matchAll(/<script\b([^>]*)>/gi)].filter((m) => !/ld\+json/i.test(m[1]) && !isAnalyticsScript(m[1]));
   assert.equal(scripts.length, 2, 'rsvp.ts and event.ts (E10)');
   const hero = h.match(/<section\b[\s\S]*?<\/section>/)![0];
-  const btn = hero.match(/<a\b[^>]*\bhref="#rsvp"[^>]*>[\s\S]*?<\/a>/)![0];
-  assert.match(btn, /\bbtn\b/);
-  assert.equal(text(btn), rsvpText.heading);
-  assert.ok(hero.indexOf(btn) < hero.indexOf('.ics'), 'RSVP before Add to calendar');
+  assert.ok(!hero.includes('href="#rsvp"') && !hero.includes('.ics'), 'Brian, Nov 9: no RSVP or calendar buttons in the hero');
   assert.match(section(), new RegExp(`<h2\\b[^>]*>\\s*${rsvpText.heading}\\s*</h2>`));
 });
 

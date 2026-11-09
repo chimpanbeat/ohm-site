@@ -1,9 +1,8 @@
 ---
 import { getImage } from 'astro:assets';
 import { rsvpText, type SiteEvent } from '../../data/events.ts';
-import { dateLabel, timeLabel, mapsUrl, googleCalUrl } from '../../lib/events.ts';
+import { dateLabel, timeLabel, mapsUrl } from '../../lib/events.ts';
 import { eventAsset, eventMark } from '../../lib/event-assets.ts';
-import { href } from '../../lib/url.ts';
 
 interface Props {
   event: SiteEvent;
@@ -11,7 +10,6 @@ interface Props {
 
 const { event } = Astro.props;
 const tz = event.timeZone;
-const googleUrl = googleCalUrl(event, new URL(href('/'), Astro.site).href); // E14
 // E10 (I-101): the countdown line exists only in a build made before the event ends; client script 6 fills it.
 const showCountdown = Date.now() < Date.parse(event.end);
 const wide = eventAsset(event.graphics.wide);
@@ -84,11 +82,6 @@ const narrowSizes = `(min-width: 30rem) ${narrow.width}px, 100vw`;
   <a href={mapsUrl(event.venue)} target="_blank" rel="noopener">{event.venue.name}, {event.venue.address}</a>
 </p>
 </div>
-<p class="event-actions">
-  {event.rsvp && <a class="btn" href="#rsvp">{rsvpText.heading}</a>}
-  <a class="btn btn--quiet" href={googleUrl} target="_blank" rel="noopener">{rsvpText.calendarGoogle}</a>
-  <a class="btn btn--quiet" href={href(`/events/${event.slug}.ics`)} download>{rsvpText.calendar}</a>
-</p>
 
 <style>
   .event-banner {
@@ -257,12 +250,6 @@ const narrowSizes = `(min-width: 30rem) ${narrow.width}px, 100vw`;
   }
   .event-where {
     margin-top: var(--s-2);
-  }
-  .event-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--s-3);
-    margin-top: var(--s-6);
   }
   /* Wide banner, full column (E5, I-085; E11, I-104): banner-bg.png is already the 31:10 view of header-green.png
      (source x 190-810, y 125-325, art filled in, scrim baked in), so the picture only fills a 31:10 box the width of the
