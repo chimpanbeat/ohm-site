@@ -53,16 +53,18 @@ const notices = event.notices.filter((n): n is typeof n & { link: NonNullable<ty
       <label>{t.honeypot}<input type="text" name="website" tabindex="-1" autocomplete="off" value="" /></label>
     </div>
 
-    <p class="field">
-      <label for="rsvp-name">{t.name}</label>
-      <input id="rsvp-name" type="text" name="name" autocomplete="name" required />
-      <span class="rsvp-error" id="err-name" data-error-for="name" hidden></span>
-    </p>
-    <p class="field">
-      <label for="rsvp-email">{t.email}</label>
-      <input id="rsvp-email" type="email" name="email" autocomplete="email" required />
-      <span class="rsvp-error" id="err-email" data-error-for="email" hidden></span>
-    </p>
+    <div class="rsvp-pair">
+      <p class="field">
+        <label for="rsvp-name">{t.name}</label>
+        <input id="rsvp-name" type="text" name="name" autocomplete="name" required />
+        <span class="rsvp-error" id="err-name" data-error-for="name" hidden></span>
+      </p>
+      <p class="field">
+        <label for="rsvp-email">{t.email}</label>
+        <input id="rsvp-email" type="email" name="email" autocomplete="email" required />
+        <span class="rsvp-error" id="err-email" data-error-for="email" hidden></span>
+      </p>
+    </div>
 
     <fieldset class="group">
       <legend>{t.status}</legend>
@@ -193,7 +195,7 @@ const notices = event.notices.filter((n): n is typeof n & { link: NonNullable<ty
 
 <style>
   .rsvp {
-    max-width: 36rem;
+    max-width: 50rem; /* matches the waiver card's right edge */
   }
   /* A class that sets `display` would otherwise beat the hidden attribute (.btn is inline-flex). */
   .rsvp [hidden] {
@@ -217,7 +219,7 @@ const notices = event.notices.filter((n): n is typeof n & { link: NonNullable<ty
   /* Brian, Nov 9: a tighter form (16px between questions, was 24px), so the page stays short with guests added */
   .rsvp-form {
     display: grid;
-    gap: var(--s-4);
+    gap: 0.625rem; /* Brian, Nov 9: green gap cut by a third (was 16px) */
     margin-top: var(--s-4);
   }
   fieldset {
@@ -272,8 +274,11 @@ const notices = event.notices.filter((n): n is typeof n & { link: NonNullable<ty
     display: inline-flex;
     align-items: center;
     gap: var(--s-2);
-    min-height: 44px;
+    min-height: 32px; /* Brian, Nov 9: question-to-answer gap about halved */
     font-weight: 400;
+  }
+  .group > legend {
+    margin-bottom: 0;
   }
   .choice input {
     flex: none;
@@ -298,6 +303,10 @@ const notices = event.notices.filter((n): n is typeof n & { link: NonNullable<ty
   .rsvp-pair {
     display: grid;
     gap: var(--s-2);
+  }
+  /* the primary pair's fields are <p>s; a global `p + p` margin pushed the email down */
+  .rsvp-pair > .field {
+    margin: 0;
   }
   .rsvp-foot {
     display: flex;
