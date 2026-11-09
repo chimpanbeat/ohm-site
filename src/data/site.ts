@@ -105,6 +105,13 @@ export const site = {
   },
 
   /**
+   * The footer credit `Brand design by John-Mark` (Brian, Nov 9, 2026): name, role and URL exactly as the launch party's
+   * credit in src/data/events.ts. events.ts takes no imports (Node type stripping), so it repeats these three strings;
+   * tests/footer.test.ts fails if the two drift. Nothing else about John-Mark goes here.
+   */
+  brandCredit: { name: 'John-Mark', role: 'Brand design', url: 'https://johnmark.co' },
+
+  /**
    * The RSVP web app (Apps Script, Ohm Workspace account): one deployment serves every event (ARCHITECTURE §B10).
    * Public by design (Brian, I-049, Nov 6 2026). If I-058 deploys a new project, only this line changes.
    * The form posts here and nothing else on the site makes this request.

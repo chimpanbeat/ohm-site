@@ -19,6 +19,9 @@ const year = new Date().getFullYear();
       <p class="site-footer__legal">
         &copy; {year} {site.legalName}
       </p>
+      <p class="site-footer__credit">
+        {site.brandCredit.role} by <a href={site.brandCredit.url} target="_blank" rel="noopener">{site.brandCredit.name}<span class="visually-hidden"> (opens in a new tab)</span></a>
+      </p>
     </div>
   </div>
 </footer>
@@ -36,6 +39,10 @@ const year = new Date().getFullYear();
   }
   .site-footer__legal {
     margin-top: var(--s-2);
+  }
+  /* Sits with the © line as one small group (Nov 9, 2026); same colour and size as the rest of the footer. */
+  .site-footer__credit {
+    margin-top: var(--s-1);
   }
   @media (min-width: 48rem) {
     .site-footer {

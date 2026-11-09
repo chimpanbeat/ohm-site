@@ -1,7 +1,8 @@
 ---
 // The floating RSVP bar (E10, I-097; ARCHITECTURE §B10 E8–E11): Going / Maybe / Can't go pinned to the bottom of the
 // screen. Hidden until src/scripts/rsvp.ts shows it (RSVPs open, no result, the #rsvp section below the viewport), so
-// it stays hidden without JS. The labels are rsvpText's; no new copy. No motion.
+// it stays hidden without JS. The labels are rsvpText's; no new copy. Brian, Nov 9: it slides down out of view and back up
+// (a class and a transform; `hidden` is only the no-JS state).
 import { rsvpText as t, type SiteEvent } from '../../data/events.ts';
 
 interface Props {
@@ -40,13 +41,32 @@ const statuses = ['going', 'maybe', 'cant'] as const;
   .rsvp-bar[hidden] {
     display: none;
   }
+  .rsvp-bar {
+    transition:
+      transform 0.35s ease,
+      visibility 0s;
+  }
+  /* Off: slid below the screen, then out of the tab order once the slide has finished */
+  .rsvp-bar--off {
+    transform: translateY(100%);
+    visibility: hidden;
+    transition:
+      transform 0.35s ease,
+      visibility 0s 0.35s;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .rsvp-bar,
+    .rsvp-bar--off {
+      transition: none;
+    }
+  }
   .rsvp-bar__btn {
     flex: 1;
     max-width: 12rem;
     padding-inline: var(--s-3);
   }
   /* Focus never lands under the bar (WCAG 2.4.11) */
-  html:has(.rsvp-bar:not([hidden])) {
+  html:has(.rsvp-bar:not([hidden], .rsvp-bar--off)) {
     scroll-padding-bottom: 5rem;
   }
 </style>

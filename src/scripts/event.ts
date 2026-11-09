@@ -49,7 +49,7 @@ async function flipOnce(tile: HTMLElement, next: string): Promise<void> {
 }
 
 // Roll a tile through its pool (digits, or letters) and land on `target` after exactly `steps` flips, so the board always
-// settles in about two seconds (Brian, Nov 9: it sometimes ran long when it waited for a random start to come round).
+// settles in about a second and a half (Brian, Nov 9: it sometimes ran long when it waited for a random start to come round).
 async function roll(tile: HTMLElement, target: string, steps: number, delay: number): Promise<void> {
   const pool = /\d/.test(target) ? '0123456789' : 'ABCDEFGHIJKLMNOPQRSTUVWXYZ!';
   if (reduced || !pool.includes(target)) return setChar(tile, target);
@@ -97,7 +97,7 @@ function paintCountdown(nowMs: number): void {
   if (after?.trim()) parts.push(word(after));
   board.replaceChildren(...parts);
   line.replaceChildren(sr, board);
-  tiles.forEach((tile, i) => void roll(tile, target[i], 7 + i, i * 150));
+  tiles.forEach((tile, i) => void roll(tile, target[i], 5 + i, i * 100));
 }
 
 function paintTimeline(nowMs: number): void {

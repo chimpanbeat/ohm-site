@@ -252,7 +252,11 @@ function start(form: HTMLFormElement): void {
   let barOff = false; // closed, or a result is showing
   const syncBar = () => {
     const hide = barOff || !sectionBelow;
-    if (bar && bar.hidden !== hide) bar.hidden = hide;
+    if (!bar) return;
+    // Brian, Nov 9: slide, don't pop. The first call takes the bar out of its no-JS `hidden` state with the class already
+    // set, so it starts off-screen without a slide.
+    bar.classList.toggle('rsvp-bar--off', hide);
+    if (bar.hidden) bar.hidden = false;
   };
   if (bar && section && 'IntersectionObserver' in window) {
     // The observer fires when the section enters or leaves the viewport; a jump from above to below it (an anchor, a

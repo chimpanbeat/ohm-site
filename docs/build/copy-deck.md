@@ -15,6 +15,9 @@ Written by Opus in step 4A (2026-10-05). **This is the only source of visible te
 ## Global
 Header, Footer, OfficeCard, ZonePicker and ZoneCard keep their current text (ARCHITECTURE §B3) except for the changes below.
 
+**Changes Nov 9, 2026 (Brian: footer brand credit):**
+- **Footer** (right column, its own `<p>` directly after the © line, last in the footer): `{site.brandCredit.role} by [{site.brandCredit.name}]({site.brandCredit.url})` → `Brand design by John-Mark`. Only `John-Mark` is the link; it opens in a new tab (`rel="noopener"`) and carries a visually hidden ` (opens in a new tab)`, so its accessible name is `John-Mark (opens in a new tab)`. Name, role and URL are the launch party's credit (→ Events, credits item 4). Nothing else is said about John-Mark.
+
 **Changes Oct 29 (Brian: Central zone renamed, travel-fee note shortened):**
 - `site.zones.central.name` is `Central & Southwest` (was `Central`; key `central` unchanged). It renders, through the name only, in the ZonePicker button, the ZoneCard heading (`You're in my Central & Southwest area.`), the `/book/central` title and description (`Book in Central & Southwest`), the map label (two lines: `Central &` / `Southwest`) and the map `<desc>`. No other text changes.
 - `{site.travelFee.note}` is `Flat, per visit.` (→ Travel-fee note). The group rule is stated once on Pricing, in the Travel info dropdown (moved from the intro in step V; the section was `Travel fee` until later that day).
@@ -131,7 +134,8 @@ No splash on Home (9A batch 5: it's on `/hello`, below).
 
 **Cream band: office vs mobile** (9A: now first)
 - **H2:** `At my office or at your place`
-- **P:** `Sessions are at my office or at your place. The office is in {site.officeArea}, and I'm there {site.office.days}. For mobile sessions I come to you, with a ${site.travelFee.amount} travel fee*, and the days depend on your part of town. The booking page works out which area you're in and sends you to the right booking link.` (The `*` is `<span aria-hidden="true">*</span>`.)
+- **P:** `The office is in {site.officeArea}, and I'm there {site.office.days}. For mobile sessions I come to you, with a ${site.travelFee.amount} travel fee*, and the days depend on your part of town.` (The `*` is `<span aria-hidden="true">*</span>`.)
+  (Nov 9, 2026, Brian: the first sentence `Sessions are at my office or at your place.` is dropped; it repeated the H2. The last sentence, `The booking page works out which area you're in and sends you to the right booking link.`, left the page in eceeb13 and is now out of the deck too.)
 - **Footnote P** (small text, directly after): `* See [rates and the travel fee](/pricing).`
 
 **Cream band: specialties** (9A: was "Session types")
