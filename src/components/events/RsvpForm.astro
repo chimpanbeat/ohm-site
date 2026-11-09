@@ -104,6 +104,7 @@ const notices = event.notices.filter((n): n is typeof n & { link: NonNullable<ty
           <div class="guest" data-guest={n} hidden={n > NOJS_GUEST_ROWS}>
             <fieldset class="group">
               <legend>{fill(t.guestLegend, { n })}</legend>
+              <div class="rsvp-pair">
               <span class="field">
                 <label for={`rsvp-g${n}name`}>{t.guestName}</label>
                 <input id={`rsvp-g${n}name`} type="text" name={`g${n}name`} autocomplete="off" />
@@ -114,6 +115,8 @@ const notices = event.notices.filter((n): n is typeof n & { link: NonNullable<ty
                 <input id={`rsvp-g${n}email`} type="email" name={`g${n}email`} autocomplete="off" placeholder={t.guestEmailHint} />
                 <span class="rsvp-error" id={`err-g${n}email`} data-error-for={`g${n}email`} hidden />
               </span>
+              </div>
+              <div class="rsvp-foot">
               {session && (
                 <fieldset class="group" data-going-only>
                   <legend>{question}</legend>
@@ -131,6 +134,7 @@ const notices = event.notices.filter((n): n is typeof n & { link: NonNullable<ty
               <button type="button" class="link-button guest-remove" hidden>
                 {fill(t.removeGuest, { n })}
               </button>
+              </div>
             </fieldset>
           </div>
         ))
@@ -210,10 +214,11 @@ const notices = event.notices.filter((n): n is typeof n & { link: NonNullable<ty
     border-radius: var(--radius);
     font-weight: 600;
   }
+  /* Brian, Nov 9: a tighter form (16px between questions, was 24px), so the page stays short with guests added */
   .rsvp-form {
     display: grid;
-    gap: var(--s-6);
-    margin-top: var(--s-6);
+    gap: var(--s-4);
+    margin-top: var(--s-4);
   }
   fieldset {
     min-width: 0;
@@ -278,19 +283,38 @@ const notices = event.notices.filter((n): n is typeof n & { link: NonNullable<ty
   }
   .help {
     display: block;
-    margin-bottom: var(--s-3);
+    margin-bottom: var(--s-2);
   }
   .guest {
-    padding: var(--s-4);
+    padding: var(--s-3) var(--s-4);
     border: 1px solid var(--line-light);
     border-radius: var(--radius);
   }
   .guest + .guest {
-    margin-top: var(--s-3);
+    margin-top: var(--s-2);
   }
   /* E5, I-086: the name is a span.field and the yoga question the next fieldset, so the old `.group + .group` never matched */
-  .guest .field + .group {
-    margin-top: var(--s-4);
+  /* A guest's name and email sit side by side from 36rem; the yoga question and the remove link share one row. */
+  .rsvp-pair {
+    display: grid;
+    gap: var(--s-2);
+  }
+  .rsvp-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0 var(--s-6);
+    margin-top: var(--s-2);
+  }
+  .rsvp-foot .link-button {
+    margin-left: auto;
+  }
+  @media (min-width: 36rem) {
+    .rsvp-pair {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--s-4);
+    }
   }
   .link-button {
     min-height: 44px;
@@ -304,7 +328,7 @@ const notices = event.notices.filter((n): n is typeof n & { link: NonNullable<ty
   }
   .guest-add {
     display: block;
-    margin-top: var(--s-2);
+    margin-top: var(--s-1);
   }
   .rsvp-form .btn {
     justify-self: start;

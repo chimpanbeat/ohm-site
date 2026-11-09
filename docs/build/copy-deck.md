@@ -15,6 +15,10 @@ Written by Opus in step 4A (2026-10-05). **This is the only source of visible te
 ## Global
 Header, Footer, OfficeCard, ZonePicker and ZoneCard keep their current text (ARCHITECTURE §B3) except for the changes below.
 
+**Changes Nov 9, 2026 (Brian: footer Book link removed; outbound links open in a new tab):**
+- **Footer:** the right column's `Book a session` link is removed (the CTA band above the footer and the header's Book button already cover it). The right column is now `Client policies`, then a gap, then the © line and `Brand design by John-Mark` as one group. Nothing replaces it.
+- **New-tab hint:** every button or standalone link to another site carries a visually hidden ` (opens in a new tab)` after its visible text, so its accessible name is e.g. `Book at the office (opens in a new tab)`. It applies to `Book at the office` (OfficeCard), `Book in this area` (ZoneCard), `Send a request` and `Chat with me` (ContactButtons), `Chat with me` in the `/book` boundary line, `OpenStreetMap contributors` in the map credit and `John-Mark` in the footer. Inline links inside a client-policies sentence open in a new tab too but carry no hint (the sentence text stays exactly the policy text). No visible text changes.
+
 **Changes Nov 9, 2026 (Brian: footer brand credit):**
 - **Footer** (right column, its own `<p>` directly after the © line, last in the footer): `{site.brandCredit.role} by [{site.brandCredit.name}]({site.brandCredit.url})` → `Brand design by John-Mark`. Only `John-Mark` is the link; it opens in a new tab (`rel="noopener"`) and carries a visually hidden ` (opens in a new tab)`, so its accessible name is `John-Mark (opens in a new tab)`. Name, role and URL are the launch party's credit (→ Events, credits item 4). Nothing else is said about John-Mark.
 
@@ -314,7 +318,7 @@ The policy text is the Client Policies doc v1.4 (Oct 29, 2026, Brian, final), cl
 - **CTA:** `<BookCta />`
 
 **Link lines elsewhere**
-- **Footer** (right column, after `Book a session`): `<p>[Client policies](/client-policies)</p>`
+- **Footer** (right column, first; the footer's `Book a session` link was removed Nov 9, 2026): `<p>[Client policies](/client-policies)</p>`
 - **Services** (small `<p>`, directly after the `* See rates and the travel fee.` footnote, same style): `Cancellations, packages and payment are covered in my [client policies](/client-policies).`
 - **Pricing** (`<p>`, after the Travel info dropdown, outside it, after P (3) `When I come to you…`; step V): `Cancellations, packages and payment are covered in my [client policies](/client-policies).`
 - **Book** (`/book` only, `<p>` directly after `<Credentials />`, before `#where`): `Booking means you agree to my [client policies](/client-policies).`
@@ -525,7 +529,7 @@ Brian's Partiful description with Marea's edits on P1 (`650 hours`, Brian confir
 | `optIn` | `Yes, send me Ohm news and offers.` (Brian, I-065: the label of an unchecked checkbox, `optin`, just above the submit button) |
 | `submit` | `Send RSVP` |
 | `sending` | `Sending…` |
-| `privacy` | `I'll only use your name and email for event reminders. If you add a guest's email, I'll use it only to send them the event details. You'll also receive Ohm news and offers if you check the box.` (Brian, Nov 9, 2026: the guest-email sentence added with the guest emails; Brian and Marea, I-078, Nov 7, 2026, was `I'll only use your name and email for event reminders. You'll also receive Ohm news and offers if you check the box.`; before that I-065's `I only use your name and email for Ohm. News and offers only if you check the box.`: under the form, after the submit button) |
+| `privacy` | `I'll use your name and email only to send event details and reminders. If you add a guest's email, I'll use it only to send them the same.` (Brian, Nov 9, 2026, second change: no longer mentions the news-and-offers box, which keeps its own `optIn` label; was `I'll only use your name and email for event reminders. If you add a guest's email, I'll use it only to send them the event details. You'll also receive Ohm news and offers if you check the box.`; before that, Brian, Nov 9, 2026: the guest-email sentence added with the guest emails; Brian and Marea, I-078, Nov 7, 2026, was `I'll only use your name and email for event reminders. You'll also receive Ohm news and offers if you check the box.`; before that I-065's `I only use your name and email for Ohm. News and offers only if you check the box.`: under the form, after the submit button) |
 | `spotsLeft` | `{n} {session} spots left` |
 | `spotLeft` | `1 {session} spot left` |
 | `fullWaitlist` | `{Session} is full. Answer yes to join the waitlist.` |

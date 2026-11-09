@@ -114,6 +114,29 @@ for (const file of walk(DIST)) {
   }
 }
 
+// Brian, Nov 9: every link to another site opens in a new tab, with rel="noopener" (never noreferrer-only: PocketSuite and
+// John-Mark may want the referrer). Checked on every built page, so a new outbound link can't miss the rule. Own-site
+// links, mailto: and tel: are not outbound. (The site's own domain and the Pages host count as ours.)
+{
+  const own = new Set([new URL(site.url ?? 'https://ohmprecisionbodywork.com').host]);
+  for (const file of walk(DIST)) {
+    const html = readFileSync(file, 'utf8');
+    for (const m of html.matchAll(/<a\b[^>]*>/g)) {
+      const tag = m[0];
+      const url = tag.match(/\shref="(https?:\/\/[^"]+)"/)?.[1];
+      if (!url) continue;
+      let host;
+      try {
+        host = new URL(url.replace(/&amp;/g, '&')).host;
+      } catch {
+        continue;
+      }
+      if (own.has(host) || host.endsWith('.github.io')) continue;
+      if (!/\starget="_blank"/.test(tag) || !/\srel="[^"]*\bnoopener\b/.test(tag)) fail(`${rel(file)}: outbound link to ${host} must have target="_blank" rel="noopener".`);
+    }
+  }
+}
+
 if (problems.length) {
   console.error('check:dist FAILED:');
   for (const p of problems) console.error(`  - ${p}`);

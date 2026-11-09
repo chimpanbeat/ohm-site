@@ -630,7 +630,8 @@ test('6. dist: the form posts to site.rsvpUrl with slug and mode=html, required 
 
 test('6. dist: ten guest rows, three visible, no text names a limit', { skip: skipBuilt }, () => {
   const f = form();
-  const rows = [...f.matchAll(/<div\b[^>]*\bclass="[^"]*\bguest\b[^"]*"[^>]*>[\s\S]*?<\/div>/g)].map((m) => m[0]);
+  // (the row now holds two inner divs, so it runs to the end of its own fieldset: `</fieldset></div>`)
+  const rows = [...f.matchAll(/<div\b[^>]*\bclass="[^"]*\bguest\b[^"]*"[^>]*>[\s\S]*?<\/fieldset>\s*<\/div>/g)].map((m) => m[0]);
   assert.equal(rows.length, 10);
   rows.forEach((row, i) => {
     const n = i + 1;
@@ -718,7 +719,8 @@ test('6. dist: in every guest card the name field is followed directly by the yo
   const rows = [...form().matchAll(/<div\b[^>]*\bclass="[^"]*\bguest\b[^"]*"[^>]*>[\s\S]*?<button\b[^>]*guest-remove/g)].map((m) => m[0]);
   assert.equal(rows.length, 10);
   rows.forEach((row, i) => {
-    assert.match(row, /<span class="field"[^>]*>[\s\S]*?<\/span><\/span>\s*<fieldset class="group"[^>]*><legend/, `guest ${i + 1}: span.field then the session fieldset`);
+    // Brian, Nov 9: the name and email share a row (.rsvp-pair), then the yoga question and remove link share the next (.rsvp-foot)
+    assert.match(row, /<div class="rsvp-pair"[^>]*><span class="field"[\s\S]*?<\/span><\/span><\/div>\s*<div class="rsvp-foot"[^>]*><fieldset class="group"[^>]*><legend/, `guest ${i + 1}: the name/email pair, then the foot with the session fieldset`);
     assert.ok(!/<\/fieldset>\s*<span class="field"/.test(row), `guest ${i + 1}: the name is not after the yoga fieldset`);
   });
 });
@@ -726,7 +728,7 @@ test('6. dist: in every guest card the name field is followed directly by the yo
 test('source: the guest card spacing rule matches the markup (E5, I-086)', () => {
   const src = readFileSync(join(root, 'src/components/events/RsvpForm.astro'), 'utf8');
   assert.ok(!src.includes('.guest .group + .group'), 'the rule that never matched is gone');
-  assert.match(src, /\.guest \.field \+ \.group\s*\{\s*margin-top: var\(--s-4\);\s*\}/);
+  assert.match(src, /\.rsvp-foot\s*\{[^}]*margin-top: var\(--s-2\);/); // Nov 9: the foot row carries the gap above the yoga question
 });
 
 // The whole <div …>…</div> whose opening tag matches `open` (nested divs counted), or null.

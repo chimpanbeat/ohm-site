@@ -3,8 +3,8 @@ import { site, mailHref } from '../data/site.ts';
 ---
 
 <p class="contact-buttons">
-  <a class="btn" href={site.contact.lead}>Send a request</a>
-  <a class="btn btn--quiet" href={site.contact.chat}>Chat with me</a>
+  <a class="btn" href={site.contact.lead} target="_blank" rel="noopener">Send a request<span class="visually-hidden"> (opens in a new tab)</span></a>
+  <a class="btn btn--quiet" href={site.contact.chat} target="_blank" rel="noopener">Chat with me<span class="visually-hidden"> (opens in a new tab)</span></a>
 </p>
 <p class="contact-email">Or email <a href={mailHref}>{site.email}</a>.</p>
 

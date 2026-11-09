@@ -42,7 +42,7 @@ const key = import.meta.env.PUBLIC_GOOGLE_MAPS_KEY ?? '';
         <div id="zone-result" aria-live="polite"></div>
         <ServiceMap />
         <p class="boundary">
-          Near a boundary or can't find your address? <a href={site.contact.chat}>Chat with me</a> or <a href={mailHref}>send me an email</a>. Boundaries are approximate.
+          Near a boundary or can't find your address? <a href={site.contact.chat} target="_blank" rel="noopener">Chat with me<span class="visually-hidden"> (opens in a new tab)</span></a> or <a href={mailHref}>send me an email</a>. Boundaries are approximate.
         </p>
       </section>
 

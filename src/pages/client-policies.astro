@@ -8,6 +8,9 @@ import { href } from '../lib/url.ts';
 
 const host = new URL(site.deploy.customDomain).host;
 const runs = (t: Rich) => (typeof t === 'string' ? [t] : t);
+// Brian, Nov 9: a link to another site opens in a new tab (check:dist enforces it on every page)
+const outbound = (u: string) => /^https?:\/\//.test(u) && new URL(u).host !== host;
+const ext = (u: string) => (outbound(u) ? { target: '_blank', rel: 'noopener' } : {});
 ---
 
 <Base
@@ -37,7 +40,7 @@ const runs = (t: Rich) => (typeof t === 'string' ? [t] : t);
                 if (b.type === 'paragraph') {
                   return (
                     <p>
-                      {runs(b.text).map((r) => (typeof r === 'string' ? r : <a href={r.href}>{r.text}</a>))}
+                      {runs(b.text).map((r) => (typeof r === 'string' ? r : <a href={r.href} {...ext(r.href)}>{r.text}</a>))}
                     </p>
                   );
                 }
@@ -47,7 +50,7 @@ const runs = (t: Rich) => (typeof t === 'string' ? [t] : t);
                       {b.items.map((i) => (
                         <li>
                           {i.lead && <strong>{i.lead} </strong>}
-                          {runs(i.text).map((r) => (typeof r === 'string' ? r : <a href={r.href}>{r.text}</a>))}
+                          {runs(i.text).map((r) => (typeof r === 'string' ? r : <a href={r.href} {...ext(r.href)}>{r.text}</a>))}
                           {typeof i.text === 'string' && i.text.includes('processing surcharge') && <ColoradoNotice />}
                         </li>
                       ))}

@@ -13,8 +13,7 @@ const year = new Date().getFullYear();
       <p><a href={mailHref}>{site.email}</a></p>
       <p>{site.serviceAreaSummary}</p>
     </div>
-    <div>
-      <p><a href={href('/book')}>Book a session</a></p>
+    <div class="site-footer__col">
       <p><a href={href('/client-policies')}>Client policies</a></p>
       <p class="site-footer__legal">
         &copy; {year} {site.legalName}
@@ -37,12 +36,13 @@ const year = new Date().getFullYear();
     display: grid;
     gap: var(--s-4);
   }
-  .site-footer__legal {
-    margin-top: var(--s-2);
+  /* Same rhythm in both columns (Nov 9, 2026): lines inside a group touch at the line height, groups are --s-4 apart. The
+     global `p + p` gap is too big, so the more specific rule below zeroes it; the © line starts the second group. */
+  .site-footer__col :where(p + p) {
+    margin-top: 0;
   }
-  /* Sits with the © line as one small group (Nov 9, 2026); same colour and size as the rest of the footer. */
-  .site-footer__credit {
-    margin-top: var(--s-1);
+  .site-footer__col .site-footer__legal {
+    margin-top: var(--s-4);
   }
   @media (min-width: 48rem) {
     .site-footer {
@@ -51,9 +51,6 @@ const year = new Date().getFullYear();
     .site-footer__grid {
       grid-template-columns: 1fr 1fr;
       gap: var(--s-8);
-    }
-    .site-footer__legal {
-      margin-top: var(--s-4);
     }
   }
 </style>

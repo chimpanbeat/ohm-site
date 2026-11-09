@@ -26,8 +26,8 @@ const book = z.linkKey ? bookingUrl(z.linkKey) : null;
           Travel fee ${site.travelFee.amount}. {site.travelFee.note}
         </p>
         <p class="action">
-          <a class="btn" href={book}>
-            Book in this area
+          <a class="btn" href={book} target="_blank" rel="noopener">
+            Book in this area<span class="visually-hidden"> (opens in a new tab)</span>
           </a>
         </p>
       </>

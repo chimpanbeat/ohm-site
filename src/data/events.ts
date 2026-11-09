@@ -254,7 +254,7 @@ export const rsvpText = {
   optIn: 'Yes, send me Ohm news and offers.',
   submit: 'Send RSVP',
   sending: 'Sending…',
-  privacy: "I'll only use your name and email for event reminders. If you add a guest's email, I'll use it only to send them the event details. You'll also receive Ohm news and offers if you check the box.",
+  privacy: "I'll use your name and email only to send event details and reminders. If you add a guest's email, I'll use it only to send them the same.",
   spotsLeft: '{n} {session} spots left',
   spotLeft: '1 {session} spot left',
   fullWaitlist: '{Session} is full. Answer yes to join the waitlist.',
