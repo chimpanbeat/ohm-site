@@ -37,16 +37,6 @@ const description = `${dateLabel(event.start, event.timeZone)}, ${timeLabel(even
 
   <RsvpBar event={event} />
 
-  {
-    event.rsvp && (
-      <section class="section band-light" id="rsvp">
-        <div class="container rise">
-          <RsvpForm event={event} />
-        </div>
-      </section>
-    )
-  }
-
   <!-- E10 (I-098, fifteenth exception): the entrance class `rise` on each later section's container, never the hero's -->
   <section class="section band-light">
     <div class="container rise">
@@ -63,6 +53,16 @@ const description = `${dateLabel(event.start, event.timeZone)}, ${timeLabel(even
           {event.info.map((block) => (
             <EventInfo block={block} />
           ))}
+        </div>
+      </section>
+    )
+  }
+
+  {
+    event.rsvp && (
+      <section class="section band-light" id="rsvp">
+        <div class="container rise">
+          <RsvpForm event={event} />
         </div>
       </section>
     )

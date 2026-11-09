@@ -75,11 +75,13 @@ function start(form: HTMLFormElement): void {
   const tipNext = tipCard.querySelector<HTMLButtonElement>('.rsvp-tip__next')!;
 
   // ---- E9 decorations: confetti for Going (I-099), the emoji's one-shot class (I-105), the tip reel (I-095).
-  // E15: scroll the result to a fixed spot (28% down the viewport, so there is room above for the burst and the tip card
+  // E15: scroll the result to a fixed spot (Nov 9: just under the header, 96px, so the card and its tip fit on screen; was 28% down, for the burst
   // below stays in view), then resolve once the page has stopped moving. Reduced motion jumps instead of gliding.
   function scrollToResult(): Promise<void> {
     const instant = reduceMotion();
-    const top = Math.max(0, window.scrollY + result.getBoundingClientRect().top - Math.round(window.innerHeight * 0.28));
+    // Brian, Nov 9: the card sits just under the header (4rem plus a little air), not 28% down, so the whole card and
+    // the tip below it show without scrolling. The confetti's origin is kept low enough to still show (see confetti()).
+    const top = Math.max(0, window.scrollY + result.getBoundingClientRect().top - 96);
     window.scrollTo({ top, behavior: instant ? 'auto' : 'smooth' });
     if (instant || Math.abs(top - window.scrollY) < 2) return Promise.resolve();
     return new Promise((resolve) => {
