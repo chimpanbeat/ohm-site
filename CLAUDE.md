@@ -40,4 +40,5 @@ Rules live in .claude/ (settings, hooks, agents, skills); the spec's Guardrails 
 - The visitor's address never leaves the browser except in the Google request: no logging, storage, URL params or analytics.
 - Unknown facts become `TODO(Brian):` plus an open todo in the master list. Never invent facts, copy claims, testimonials or credentials.
 - `noindex` until launch (`indexable` = `licensed && deploy.live` in `site.ts`).
+- Off-site links: when a step builds or changes anything Brian shares off-site (event pages, QR codes, print, texts, emails, social, partner referrals, the Google Business Profile link), propose the UTM-tagged link(s) in the report to Brian. Conventions: `docs/runbooks/analytics.md` (I-116).
 - Stack rules, each marked check or convention: ARCHITECTURE §D.
