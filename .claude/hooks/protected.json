@@ -4,6 +4,7 @@
     "src/data/wording.ts",
     "src/data/client-policies.ts",
     "src/data/events.ts",
+    "src/data/analytics.ts",
     "apps-script/rsvp.js",
     "src/lib/geo.ts",
     "src/styles/tokens.css",
