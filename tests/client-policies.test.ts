@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { isAnalyticsScript } from './fixtures/analytics-scripts.ts';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -256,7 +257,7 @@ test('15. only Book, the zone pages (terrain, I-054), the policies, /hello and H
       const p = join(d, n);
       if (statSync(p).isDirectory()) walk(p);
       else if (n.endsWith('.html')) {
-        const scripts = [...readFileSync(p, 'utf8').matchAll(/<script\b([^>]*)>/gi)].filter((m) => !/application\/ld\+json/.test(m[1]));
+        const scripts = [...readFileSync(p, 'utf8').matchAll(/<script\b([^>]*)>/gi)].filter((m) => !/application\/ld\+json/.test(m[1]) && !isAnalyticsScript(m[1]));
         if (scripts.length) withScript.push(p.slice(dist.length + 1).replaceAll('\\', '/'));
       }
     }

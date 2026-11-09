@@ -1,5 +1,6 @@
 import { test, mock } from 'node:test';
 import assert from 'node:assert/strict';
+import { isAnalyticsScript } from './fixtures/analytics-scripts.ts';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -682,7 +683,7 @@ test('6. dist: section order, two scripts, the hero RSVP button', { skip: skipBu
   const iNotice = h.indexOf('Important: Waiver Required');
   const iInfo = h.indexOf('What to wear');
   assert.ok(iInfo > 0 && iRsvp > iInfo && iNotice > iRsvp, 'info, then RSVP, then the notice');
-  const scripts = [...h.matchAll(/<script\b([^>]*)>/gi)].filter((m) => !/ld\+json/i.test(m[1]));
+  const scripts = [...h.matchAll(/<script\b([^>]*)>/gi)].filter((m) => !/ld\+json/i.test(m[1]) && !isAnalyticsScript(m[1]));
   assert.equal(scripts.length, 2, 'rsvp.ts and event.ts (E10)');
   const hero = h.match(/<section\b[\s\S]*?<\/section>/)![0];
   const btn = hero.match(/<a\b[^>]*\bhref="#rsvp"[^>]*>[\s\S]*?<\/a>/)![0];

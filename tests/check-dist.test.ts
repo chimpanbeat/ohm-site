@@ -6,13 +6,17 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { site } from '../src/data/site.ts';
+import { analytics } from '../src/data/analytics.ts';
 
 const base = site.deploy.base.replace(/\/+$/, '');
 const origin = site.deploy.site.replace(/\/+$/, '');
 const script = fileURLToPath(new URL('../scripts/check-dist.mjs', import.meta.url));
 
-const HELLO = `<!doctype html><html><head><meta name="robots" content="noindex"><link rel="canonical" href="${origin}${base}/hello"><script type="application/ld+json">{}</script></head><body><main><a href="${base}/">Enter</a></main></body></html>`;
-const HOME = `<!doctype html><html><body><a href="${base}/book">Book</a></body></html>`;
+// A1: every page except /body-map carries the Umami tag once.
+const UMAMI = `<script defer src="${analytics.scriptSrc}" data-website-id="${analytics.websiteId}" data-domains="${analytics.domain}"></script>`;
+const HELLO = `<!doctype html><html><head><meta name="robots" content="noindex"><link rel="canonical" href="${origin}${base}/hello"><script type="application/ld+json">{}</script>${UMAMI}</head><body><main><a href="${base}/">Enter</a></main></body></html>`;
+const HOME = `<!doctype html><html><head>${UMAMI}</head><body><a href="${base}/book">Book</a></body></html>`;
+const BODY_MAP = `<!doctype html><html><head><title>Body map</title></head><body><main>Body map</main></body></html>`;
 const SITEMAP = `<urlset><url><loc>${origin}${base}/</loc></url></urlset>`;
 const ROBOTS = 'User-agent: *\nAllow: /\n';
 
@@ -73,6 +77,55 @@ test('check:dist allows one inline script on hello.html', () => {
   const t = good();
   t['hello.html'] = HELLO.replace('</body>', '<script>1</script></body>');
   assert.equal(run(t).status, 0);
+});
+
+test('check:dist allows the Umami tag on hello.html but not the bundled click script (A1)', () => {
+  assert.equal(run(good()).status, 0);
+  const t = good();
+  t['hello.html'] = HELLO.replace('</body>', '<script type="module" src="/_astro/Base.astro_astro_type_script_index_0_lang.abc123.js"></script></body>');
+  const r = run(t);
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /script src/);
+});
+
+test('check:dist passes when body-map.html does not exist yet (I-115)', () => {
+  assert.equal(run(good()).status, 0);
+});
+
+test('check:dist passes a body-map.html with no analytics (I-115)', () => {
+  const t = good();
+  t['body-map.html'] = BODY_MAP;
+  assert.equal(run(t).status, 0);
+});
+
+for (const [name, snippet] of [
+  ['the Umami script host', UMAMI],
+  ['a data-website-id', '<div data-website-id="x"></div>'],
+  ['a data-umami attribute', '<a data-umami-event="book">x</a>'],
+  ['the analytics rules meta', '<meta name="analytics-rules" content="{}">'],
+  ['Base\'s bundled click script', '<script type="module" src="/_astro/Base.astro_astro_type_script_index_0_lang.abc123.js"></script>'],
+]) {
+  for (const file of ['body-map.html', 'body-map/index.html']) {
+    test(`check:dist fails when ${file} has ${name} (I-115)`, () => {
+      const t = good();
+      t[file] = BODY_MAP.replace('</head>', `${snippet}</head>`);
+      const r = run(t);
+      assert.equal(r.status, 1, r.stdout + r.stderr);
+      assert.match(r.stderr, /body-map/);
+    });
+  }
+}
+
+test('check:dist fails when a page lacks the Umami tag, or has the wrong data-domains (A1)', () => {
+  const t = good();
+  t['index.html'] = '<!doctype html><html><body><a href="/book">Book</a></body></html>';
+  let r = run(t);
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /index\.html has 0 Umami tags/);
+  t['index.html'] = HOME.replace(`data-domains="${analytics.domain}"`, 'data-domains="localhost"');
+  r = run(t);
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /data-domains/);
 });
 
 test('check:dist allows the whole-site Disallow: / used before launch', () => {

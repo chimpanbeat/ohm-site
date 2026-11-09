@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { isAnalyticsScript } from './fixtures/analytics-scripts.ts';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -67,7 +68,7 @@ test('dist: script inventory per page', { skip }, () => {
   for (const f of walk(dist, /\.html$/)) {
     const rel = relative(dist, f).split(sep).join('/');
     const html = readFileSync(f, 'utf8');
-    const n = [...html.matchAll(/<script\b([^>]*)>/gi)].filter((m) => !/application\/ld\+json/i.test(m[1])).length;
+    const n = [...html.matchAll(/<script\b([^>]*)>/gi)].filter((m) => !/application\/ld\+json/i.test(m[1]) && !isAnalyticsScript(m[1])).length;
     assert.equal(n, want[rel] ?? 0, `${rel} scripts`);
   }
 });

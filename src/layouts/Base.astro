@@ -4,7 +4,10 @@ import '../styles/tokens.css';
 import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { site, indexable } from '../data/site.ts';
+import { site, indexable, bookingUrl } from '../data/site.ts';
+import { analytics } from '../data/analytics.ts';
+import { policiesPdfPath } from '../data/client-policies.ts';
+import { isExcluded, type Rules } from '../lib/analytics.ts';
 import { href } from '../lib/url.ts';
 import dmSansUrl from '../assets/fonts/dm-sans-latin-var.woff2?url';
 import sairaUrl from '../assets/fonts/saira-semi-condensed-latin-700.woff2?url';
@@ -17,9 +20,10 @@ interface Props {
   ogAlt?: string;
   noindex?: boolean;
   bare?: boolean; // /hello only: no skip link, Header or Footer
+  analytics?: boolean; // false on pages that must never load analytics; /body-map is also blocked by path (I-115)
 }
 
-const { title, description, ogImage, ogAlt, noindex = false, bare = false } = Astro.props;
+const { title, description, ogImage, ogAlt, noindex = false, bare = false, analytics: analyticsProp = true } = Astro.props;
 // build.format is 'file': drop '.html' / 'index.html' so canonicals match the clean URLs we link to.
 const canonical = new URL(Astro.url.pathname.replace(/(?:index)?\.html$/, ''), Astro.site);
 
@@ -39,6 +43,14 @@ if (ogImage) {
   const img = await getImage({ src: ogImage, width: w, height: h, fit: 'cover', format: 'jpeg' });
   social = { url: new URL(img.src, Astro.site), width: w, height: h };
 }
+
+// Umami (A1). Off on the excluded pages (I-115) whatever a page passes; the rest of the tags are built from site data.
+const withAnalytics = analyticsProp && !isExcluded(Astro.url.pathname, analytics.excludedPaths, site.deploy.base);
+const analyticsRules: Rules = {
+  book: (['office', 'central', 'midnorth', 'north'] as const).map(bookingUrl),
+  contact: [site.contact.lead, site.contact.chat],
+  policies: href(policiesPdfPath),
+};
 
 // LocalBusiness JSON-LD (brief §11). No street address, ever.
 const prices = Object.values(site.rates).map((r) => r.price);
@@ -87,6 +99,12 @@ const jsonLd: Record<string, unknown> = {
     {ogAlt && <meta name="twitter:image:alt" content={ogAlt} />}
 
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    {withAnalytics && (
+      <>
+        <script defer src={analytics.scriptSrc} data-website-id={analytics.websiteId} data-domains={analytics.domain}></script>
+        {!bare && <meta name="analytics-rules" content={JSON.stringify(analyticsRules)} />}
+      </>
+    )}
   </head>
   <body>
     {!bare && <a class="skip-link" href="#main">Skip to content</a>}
@@ -95,5 +113,6 @@ const jsonLd: Record<string, unknown> = {
       <slot />
     </main>
     {!bare && <Footer />}
+    {withAnalytics && !bare && <script>import '../scripts/analytics.ts';</script>}
   </body>
 </html>

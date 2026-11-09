@@ -4,6 +4,7 @@
 import { readdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { site, indexable } from '../src/data/site.ts';
+import { analytics } from '../src/data/analytics.ts';
 
 const args = process.argv.slice(2);
 const flag = args.indexOf('--dist');
@@ -29,6 +30,8 @@ const read = (name) => {
   return existsSync(p) ? readFileSync(p, 'utf8') : null;
 };
 
+const isAnalyticsScript = (attrs) => attrs.includes(analytics.scriptSrc); // /hello is bare: the Umami tag only, no click script
+
 const problems = [];
 const fail = (msg) => problems.push(msg);
 
@@ -53,7 +56,10 @@ if (hello === null) {
   let inline = 0;
   for (const m of hello.matchAll(/<script\b([^>]*)>/gi)) {
     if (/\btype="application\/ld\+json"/i.test(m[1])) continue;
-    if (/\bsrc\s*=/i.test(m[1])) fail('hello.html has a <script src> (only one inline script is allowed).');
+    if (/\bsrc\s*=/i.test(m[1])) {
+      // A1: /hello is tracked. The Umami tag is the only src script allowed.
+      if (!isAnalyticsScript(m[1])) fail('hello.html has a <script src> other than the analytics scripts (only one inline script is allowed).');
+    }
     else inline++;
   }
   if (inline > 1) fail(`hello.html has ${inline} inline scripts (at most one is allowed).`);
@@ -82,6 +88,31 @@ for (const file of walk(DIST)) {
 }
 const index = read('index.html');
 if (index !== null && /class="hello"|omega-|splash/i.test(index)) fail('index.html contains class="hello", "omega-" or "splash" (Home has no splash).');
+
+// A1 / I-115: /body-map never loads analytics (it carries health information). Passes when the file does not exist yet.
+const ANALYTICS_MARKERS = [new URL(analytics.scriptSrc).hostname, 'data-website-id', 'data-umami', 'analytics-rules', analytics.websiteId];
+for (const name of ['body-map.html', 'body-map/index.html']) {
+  const html = read(name);
+  if (html === null) continue;
+  for (const marker of ANALYTICS_MARKERS) {
+    if (html.includes(marker)) fail(`${name} contains "${marker}" (/body-map must load no analytics, I-115).`);
+  }
+  if (/<script\b[^>]*\bsrc="[^"]*\/Base\.astro_astro_type_script[^"]*\.js"/i.test(html)) fail(`${name} loads Base's analytics script (I-115).`);
+}
+
+// A1: every other page carries the Umami tag exactly once, with the website ID and data-domains set to the production hostname only.
+const UMAMI_TAG = /<script\b[^>]*\bsrc="([^"]*)"[^>]*>/gi;
+for (const file of walk(DIST)) {
+  const name = rel(file);
+  if (/^body-map(\/index)?\.html$/.test(name)) continue;
+  const html = readFileSync(file, 'utf8');
+  if (/http-equiv="refresh"/i.test(html) && !/<main\b/i.test(html)) continue; // redirect stubs
+  const tags = [...html.matchAll(UMAMI_TAG)].filter((m) => m[1] === analytics.scriptSrc).map((m) => m[0]);
+  if (tags.length !== 1) fail(`${name} has ${tags.length} Umami tags (expected 1).`);
+  else if (!tags[0].includes(`data-domains="${analytics.domain}"`) || !tags[0].includes(`data-website-id="${analytics.websiteId}"`)) {
+    fail(`${name}: the Umami tag needs data-website-id and data-domains="${analytics.domain}".`);
+  }
+}
 
 if (problems.length) {
   console.error('check:dist FAILED:');

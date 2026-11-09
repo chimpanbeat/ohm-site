@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { isAnalyticsScript } from './fixtures/analytics-scripts.ts';
 import { existsSync, mkdtempSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
@@ -537,7 +538,7 @@ test('9b. built page: hero, timeline, links, notice', { skip: skipBuilt }, () =>
   assert.ok(body.includes(party.notices[0].text));
   assert.equal([...html.matchAll(/<form\b/g)].length, 1, 'the RSVP form (E2)');
   // E2: JSON-LD plus the RSVP client script; E10 adds client script 6 (event.ts).
-  const scripts = [...html.matchAll(/<script\b([^>]*)>/g)].filter((m) => !/application\/ld\+json/.test(m[1]));
+  const scripts = [...html.matchAll(/<script\b([^>]*)>/g)].filter((m) => !/application\/ld\+json/.test(m[1]) && !isAnalyticsScript(m[1]));
   assert.equal(scripts.length, 2, 'two non-JSON-LD scripts');
 });
 

@@ -2,6 +2,7 @@
 // A thin DOM layer: the logic is createRsvp() in src/lib/rsvp.ts. The form works without it (a plain post to the
 // Apps Script with mode=html); this adds spots left, the guest rows, validation and the in-page result.
 // The only request is to the form's own action. Nothing is stored, logged or put in the URL.
+import { trackEvent } from '../lib/analytics.ts';
 import { confettiPieces, createRsvp, reelFor, type RawFields, type ResultView, type RsvpConfig, type RsvpState, type RsvpText } from '../lib/rsvp.ts';
 
 // E9 (§A3, the eleventh to thirteenth exceptions): the script only adds a node or a class; CSS moves it. One check.
@@ -345,6 +346,7 @@ function start(form: HTMLFormElement): void {
     e.preventDefault();
     const fields: RawFields = {};
     for (const [key, value] of new FormData(form)) if (typeof value === 'string') fields[key] = value;
+    trackEvent('rsvp'); // name and page only, never the fields
     await rsvp.submit(fields);
     const s = rsvp.state;
     if (s.focus) form.querySelector<HTMLElement>(`[name="${s.focus}"]`)?.focus();
