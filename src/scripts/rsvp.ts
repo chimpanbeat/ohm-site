@@ -7,13 +7,13 @@ import { confettiPieces, createRsvp, reelFor, type RawFields, type ResultView, t
 
 // E9 (§A3, the eleventh to thirteenth exceptions): the script only adds a node or a class; CSS moves it. One check.
 // E15 (Brian, Nov 8): a bigger burst over the whole viewport, and a first tip that spins long and lands after the
-// confetti is gone (confetti: up to 450 ms of delay + 3400 ms; first reel: 6600 ms from the same moment, Nov 9).
+// confetti is gone (confetti: up to 450 ms of delay + 3400 ms; first reel: 5000 ms from the same moment, Nov 9).
 const CONFETTI = 110;
 const CONFETTI_MS = 3400;
 const REEL_ITEMS = 6;
 const REEL_MS = 900;
-const REEL_FIRST_ITEMS = 52;
-const REEL_FIRST_MS = 6600; // Brian, Nov 9: was 4400; the confetti (up to 3850 ms) was still falling when the reel stopped
+const REEL_FIRST_ITEMS = 40;
+const REEL_FIRST_MS = 5000; // Brian, Nov 9: 4400 was too short (confetti still falling), 6600 too long
 const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // Removes a decoration when its last animation ends, or after `ms` if no animation runs (so nothing is left behind).

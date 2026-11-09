@@ -11,8 +11,8 @@ const spans = items.map((li) => ({ start: li.dataset.start ?? '', end: li.datase
 
 type Strings = { days: string; tomorrow: string; today: string };
 
-const FLIP_MS = 110; // one flip: the top flap falls, then the bottom flap lands
-const STEP_MS = 30; // pause between flips of a rolling tile
+const FLIP_MS = 160; // one flip: the top flap falls (80 ms), then the bottom flap lands (80 ms): must match the CSS
+const STEP_MS = 80; // pause between flips of a rolling tile
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
@@ -49,9 +49,9 @@ async function flipOnce(tile: HTMLElement, next: string): Promise<void> {
 }
 
 // Roll a tile through its pool (digits, or letters) and land on `target` after exactly `steps` flips, so the board always
-// settles in about a second (Brian, Nov 9: it sometimes ran long when it waited for a random start to come round).
+// settles in about two seconds (Brian, Nov 9: it sometimes ran long when it waited for a random start to come round).
 async function roll(tile: HTMLElement, target: string, steps: number, delay: number): Promise<void> {
-  const pool = /d/.test(target) ? '0123456789' : 'ABCDEFGHIJKLMNOPQRSTUVWXYZ!';
+  const pool = /\d/.test(target) ? '0123456789' : 'ABCDEFGHIJKLMNOPQRSTUVWXYZ!';
   if (reduced || !pool.includes(target)) return setChar(tile, target);
   await sleep(delay);
   const at = pool.indexOf(target);
@@ -97,7 +97,7 @@ function paintCountdown(nowMs: number): void {
   if (after?.trim()) parts.push(word(after));
   board.replaceChildren(...parts);
   line.replaceChildren(sr, board);
-  tiles.forEach((tile, i) => void roll(tile, target[i], 5 + i * 2, i * 100));
+  tiles.forEach((tile, i) => void roll(tile, target[i], 7 + i, i * 150));
 }
 
 function paintTimeline(nowMs: number): void {
