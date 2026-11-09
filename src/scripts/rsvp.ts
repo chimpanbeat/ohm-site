@@ -99,7 +99,9 @@ function start(form: HTMLFormElement): void {
     box.className = 'rsvp-confetti';
     box.setAttribute('aria-hidden', 'true');
     box.style.setProperty('--ox', `${Math.round(at.left + at.width / 2)}px`);
-    box.style.setProperty('--oy', `${Math.round(at.top + 56)}px`);
+    // Brian, Nov 9: the card now sits near the header, so keep the burst's start at least 40% down the viewport or the
+    // pieces rise off the top of the screen.
+    box.style.setProperty('--oy', `${Math.round(Math.max(at.top + 56, window.innerHeight * 0.4))}px`);
     for (const p of confettiPieces(CONFETTI, Math.random)) {
       const i = document.createElement('i');
       i.className = `c${p.colour} s${p.shape}`;

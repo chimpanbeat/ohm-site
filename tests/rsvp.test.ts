@@ -682,7 +682,7 @@ test('6. dist: section order, two scripts, the hero RSVP button', { skip: skipBu
   const iRsvp = h.indexOf('id="rsvp"');
   const iNotice = h.indexOf('Important: Waiver Required');
   const iInfo = h.indexOf('What to wear');
-  assert.ok(iInfo > 0 && iRsvp > iInfo && iNotice > iRsvp, 'info, then RSVP, then the notice');
+  assert.ok(iRsvp > 0 && iInfo > iRsvp && iNotice > iInfo, 'RSVP, then info, then the notice'); // Brian, Nov 9: the RSVP card is under the header
   const scripts = [...h.matchAll(/<script\b([^>]*)>/gi)].filter((m) => !/ld\+json/i.test(m[1]) && !isAnalyticsScript(m[1]));
   assert.equal(scripts.length, 2, 'rsvp.ts and event.ts (E10)');
   const hero = h.match(/<section\b[\s\S]*?<\/section>/)![0];

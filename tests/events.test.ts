@@ -555,17 +555,17 @@ test('9c. built page: header alt, description, section order (E4)', { skip: skip
 
   const at = (re: RegExp) => html.search(re);
   const order = [
+    at(/id="rsvp"/), // Brian, Nov 9: the RSVP card sits right under the header
     at(/<h2\b[^>]*>Description<\/h2>/),
     at(/A year and a half ago/),
     at(/<h2\b[^>]*>Schedule<\/h2>/),
     at(/<h2\b[^>]*>Details<\/h2>/),
     at(/<h3\b[^>]*>What to wear<\/h3>/),
-    at(/id="rsvp"/),
     at(/Important: Waiver Required/),
     at(/This event made possible by…/),
   ];
   assert.ok(order.every((n) => n > 0), `a section is missing: ${order}`);
-  assert.deepEqual([...order].sort((a, b) => a - b), order, 'description, schedule, details, RSVP, notice, credits in that order');
+  assert.deepEqual([...order].sort((a, b) => a - b), order, 'RSVP, description, schedule, details, notice, credits in that order');
   assert.ok(!html.includes('Your host'));
   assert.ok(!/Own day pass required|Mats provided, own mats welcome|Harness and shoes provided/.test(html));
 });
@@ -575,14 +575,14 @@ test('9c2. built page: heading outline and schedule notes (E5)', { skip: skipBui
   const main = html.match(/<main\b[\s\S]*?<\/main>/)![0];
   const heads = [...main.matchAll(/<h([1-3])\b[^>]*>([\s\S]*?)<\/h\1>/g)].map((m) => ({ level: Number(m[1]), text: text(m[2]) }));
   const h2s = heads.filter((h) => h.level === 2).map((h) => h.text);
-  assert.deepEqual(h2s, ['Description', 'Schedule', 'Details', 'RSVP', 'Important: Waiver Required', 'This event made possible by…']);
+  assert.deepEqual(h2s, ['RSVP', 'Description', 'Schedule', 'Details', 'Important: Waiver Required', 'This event made possible by…']);
   const between = (a: string, b: string) => {
     const i = heads.findIndex((h) => h.level === 2 && h.text === a);
     const j = heads.findIndex((h) => h.level === 2 && h.text === b);
     return heads.slice(i + 1, j).filter((h) => h.level === 3).map((h) => h.text);
   };
   assert.deepEqual(between('Schedule', 'Details'), party.timeline.map((i) => i.title));
-  assert.deepEqual(between('Details', 'RSVP'), ['What to wear', 'Parking', 'Raffle']);
+  assert.deepEqual(between('Details', 'Important: Waiver Required'), ['What to wear', 'Parking', 'Raffle']);
   heads.forEach((h, i) => {
     if (i > 0) assert.ok(h.level <= heads[i - 1].level + 1, `heading "${h.text}" skips a level`);
   });

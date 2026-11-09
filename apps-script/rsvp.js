@@ -510,11 +510,19 @@ function url_(url) {
   return { runs: [{ text: url, href: url }] };
 }
 
-// A template line whose {key} is a URL, linked (calendarLine, detailsLine, changeLinkLine).
+// A template line whose {key} is a URL, linked (detailsLine).
 function urlLine_(template, vars, key, url) {
   var links = {};
   links[key] = { text: url, href: url };
   return tpl_(template, vars, links);
+}
+
+// Brian, Nov 9: the confirm link in the change and guest-removal emails is the words changeLinkWords ("open this link")
+// inside changeLinkLine's {changeLink}; the text body puts the URL on the next line. An older feed (no changeLinkWords,
+// changeLinkLine ending in {changeUrl}): the bare URL, as before.
+function confirmLinkLine_(t, changeUrl) {
+  if (!t.changeLinkWords) return urlLine_(t.changeLinkLine, {}, 'changeUrl', changeUrl);
+  return tpl_(t.changeLinkLine, {}, { changeLink: { text: t.changeLinkWords, href: changeUrl } });
 }
 
 function lineText_(l) {
@@ -778,14 +786,23 @@ function questionsLine_(ev) {
   return host && phone ? fill_(t.questionsHost, { host: host, hostPhone: phone }) : t.questions;
 }
 
+// The confirmation's blocks, shared by the RSVPer's confirmation and the guest email (Brian, Nov 9: the same format):
+// hi, the lead, the details, the change line and the page, When/Where, the calendar links, the notices, the book
+// block, the questions line and See you there.
+function confirmBlocks_(ev, name, lead, details, changeLine) {
+  var t = ev.text;
+  var v = vars_(ev);
+  return [fill_(t.hi, { name: name }), lead]
+    .concat(details)
+    .concat([[changeLine, url_(ev.pageUrl)], [fill_(t.when, v), fill_(t.where, v)], calendarLines_(ev, v)])
+    .concat(noticeBlocks_(ev, true))
+    .concat([bookBlock_(ev), questionsLine_(ev), t.seeYou]);
+}
+
 function mailConfirmation_(ev, to, name, status, people, assigned) {
   var t = ev.text;
   var v = vars_(ev);
-  var blocks = [fill_(t.hi, { name: name }), fill_(t.confirmLead, v).trim()]
-    .concat(detailsBlocks_(ev, status, people, assigned))
-    .concat([[t.changeLine, url_(ev.pageUrl)], [fill_(t.when, v), fill_(t.where, v)], calendarLines_(ev, v)])
-    .concat(noticeBlocks_(ev, true))
-    .concat([bookBlock_(ev), questionsLine_(ev), t.seeYou]);
+  var blocks = confirmBlocks_(ev, name, fill_(t.confirmLead, v).trim(), detailsBlocks_(ev, status, people, assigned), t.changeLine);
   send_(ev, to, fill_(t.confirmSubject, v), mail_(ev, blocks));
 }
 
@@ -800,16 +817,17 @@ function mailCant_(ev, to, name) {
 // E13: an email that can't be built (a feed older than the script, say) is skipped like one that can't be sent.
 var BUILD_LOG = 'Mail: an email could not be built from the feed; nothing sent';
 
-// Brian, Nov 9: a guest the RSVPer gave an address gets the event details once (Going or Maybe): who RSVPed them, when,
-// where, the calendar links, the notices and the event page. A feed older than the script (no guestLead): no guest mail.
-function mailGuest_(ev, to, guestName, inviter) {
+// Brian, Nov 9: a guest the RSVPer gave an address gets the event details once (Going or Maybe), in the confirmation's
+// format: guestLead for the lead, guestChangeLine for the change line, and the details of this guest alone: the RSVP's
+// status and, for a Going on a session event, the guest's own session answer from their cell (never the RSVPer's name
+// or the other guests). A feed older than the script (no guestLead): no guest mail.
+function mailGuest_(ev, to, guestName, inviter, status, cell) {
   var t = ev.text;
   if (!t.guestLead) return;
   var v = merge_(vars_(ev), { inviter: inviter });
+  var details = detailsBlocks_(ev, status, [{ name: guestName }], [{ cell: cell }]);
   // Brian, Nov 9: guestChangeLine tells the guest how to cancel (RSVP again with this address); no remove links
-  var blocks = [fill_(t.hi, { name: guestName }), fill_(t.guestLead, v).trim(), [fill_(t.when, v), fill_(t.where, v)], calendarLines_(ev, v)]
-    .concat(noticeBlocks_(ev, true))
-    .concat([[urlLine_(t.detailsLine, v, 'pageUrl', ev.pageUrl)], t.guestChangeLine || '', questionsLine_(ev), t.seeYou]);
+  var blocks = confirmBlocks_(ev, guestName, fill_(t.guestLead, v).trim(), details, t.guestChangeLine || t.changeLine);
   send_(ev, to, fill_(t.confirmSubject, v), mail_(ev, blocks));
 }
 
@@ -821,7 +839,7 @@ function mailGuestRemove_(ev, to, guestName, inviter, changeUrl) {
     ev,
     to,
     fill_(t.guestRemoveSubject, v),
-    mail_(ev, [fill_(t.hi, { name: guestName }), fill_(t.guestRemoveLead, v), [urlLine_(t.changeLinkLine, {}, 'changeUrl', changeUrl), t.guestRemoveIgnore]]),
+    mail_(ev, [fill_(t.hi, { name: guestName }), fill_(t.guestRemoveLead, v), [confirmLinkLine_(t, changeUrl), t.guestRemoveIgnore]]),
   );
 }
 
@@ -851,11 +869,11 @@ function mailOutcome_(ev, to, n, people, assigned, known) {
   }
   if (n.status === 'cant') return;
   var skip = (known || []).concat([to]);
-  (n.guests || []).forEach(function (g) {
+  (n.guests || []).forEach(function (g, i) {
     if (!g.email || skip.indexOf(g.email) !== -1) return;
     skip.push(g.email);
     try {
-      mailGuest_(ev, g.email, g.name, n.name);
+      mailGuest_(ev, g.email, g.name, n.name, n.status, assigned[i + 1].cell); // guest i is people[i + 1]
     } catch (err) {
       Logger.log(BUILD_LOG);
     }
@@ -898,7 +916,7 @@ function mailChange_(ev, to, storedName, n, changeUrl) {
       fill_(t.hi, { name: storedName }),
       fill_(t.changeLead, v),
       answer,
-      [urlLine_(t.changeLinkLine, {}, 'changeUrl', changeUrl), t.changeIgnore],
+      [confirmLinkLine_(t, changeUrl), t.changeIgnore],
     ]),
   );
 }

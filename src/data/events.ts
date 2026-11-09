@@ -317,7 +317,8 @@ export const rsvpText = {
   changeLead: 'Someone asked to change your RSVP to {title} using this email address. If it was you, confirm the new answer below.',
   newAnswer: 'New answer: {status}',
   answerLine: '{name} — {Session}: {answer}', // E15: a dash like outcomeLine and guestLine
-  changeLinkLine: 'To make the change, open this link and press Confirm change within 6 hours: {changeUrl}',
+  changeLinkLine: 'To make the change, {changeLink} and press Confirm change within 6 hours.', // Brian, Nov 9: {changeLink} = changeLinkWords, linked to the confirm URL (the text puts the URL on the next line)
+  changeLinkWords: 'open this link', // Brian, Nov 9: the confirm link's words (was a bare URL after changeLinkLine)
   changeIgnore: "If you didn't ask for this, ignore this email. Your RSVP stays as it is.",
   changeConfirmLead: 'Confirm this change to your RSVP:',
   changeConfirm: 'Confirm change',

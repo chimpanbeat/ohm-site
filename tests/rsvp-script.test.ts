@@ -372,6 +372,8 @@ const bookBlock = (f: Feed) => [T.bookHead, T.bookLink, f.bookUrl].join('\n'); /
 // E16: the words are the link; the text body puts each URL on the next line
 const calLines = (f: Feed) => [T.calendarGoogle, f.googleCalUrl, T.calendar, f.icsUrl].join('\n');
 const calendarBlock = (f: Feed) => calLines(f);
+// Brian, Nov 9: the confirm link is the words changeLinkWords; the text body puts the URL on the next line
+const linkLine = (url: string) => [fill(T.changeLinkLine, { changeLink: T.changeLinkWords }), url].join('\n');
 const hostLine = (env: Env) => (env.props.HOST_PHONE ? fill(T.questionsHost, { host: env.feed.mail.host, hostPhone: env.props.HOST_PHONE }) : T.questions);
 /** E13: people = [name, cell], you first. */
 function expectConfirm(env: Env, name: string, status: 'going' | 'maybe', people: [string, string][], opts: { waitlist?: boolean } = {}): string {
@@ -888,7 +890,7 @@ test('13. emails: going, all confirmed, can\'t go, change, a mail error still sa
       fill(T.hi, { name: 'Bo Park' }),
       fill(T.changeLead, vars(e2.feed)),
       fill(T.newAnswer, { status: T.maybe }),
-      [fill(T.changeLinkLine, { changeUrl: `${EXEC}?change=${token}` }), T.changeIgnore].join('\n'),
+      [linkLine(`${EXEC}?change=${token}`), T.changeIgnore].join('\n'),
       expectSig(e2),
     ].join('\n\n'),
   );
@@ -1541,9 +1543,11 @@ test('E13-9. the change email keeps its words, gains the signature, and its link
   const m = lastMail(env, 'bo@example.com');
   const token = env.token('bo@example.com');
   const url = `${EXEC}?change=${token}`;
-  assert.ok(m.body.includes(`To make the change, open this link and press Confirm change within 6 hours: ${url}\n${T.changeIgnore}\n\n${SIG_TEXT(SIG_PHONE)}`));
+  // Brian, Nov 9: "open this link" is the link; the text body puts the URL on the next line
+  assert.ok(m.body.includes(`To make the change, open this link and press Confirm change within 6 hours.\n${url}\n${T.changeIgnore}\n\n${SIG_TEXT(SIG_PHONE)}`));
   assert.ok(m.body.endsWith(SIG_TEXT(SIG_PHONE)) && !m.body.includes(T.seeYou) && !m.body.includes(T.bookHead));
-  assert.ok(m.htmlBody.includes(`within 6 hours: <a href="${url}">${url}</a><br>`), 'the link is a link');
+  assert.ok(m.htmlBody.includes(`To make the change, <a href="${url}">open this link</a> and press Confirm change within 6 hours.<br>`), 'the words are the link');
+  assert.ok(!m.htmlBody.includes(`>${url}<`), 'no bare URL in the HTML');
   const fromHtml = /href="[^"]*\?change=([0-9a-f-]+)"/.exec(m.htmlBody)![1];
   assert.equal(fromHtml, token);
   assert.ok(env.applyChange(fromHtml).includes(T.changeDoneTitle), 'the HTML link confirms the change');
@@ -1711,17 +1715,23 @@ const withEmails = (p: P, emails: (string | undefined)[]) => {
   });
   return o;
 };
-function expectGuest(env: Env, guest: string, inviter: string): string {
+/** Brian, Nov 9 (after testing): the confirmation's format, with guestLead, guestChangeLine and this guest's details
+ * alone: the RSVP's status and, for a Going on a session event, the guest's own answer from their cell. */
+function expectGuest(env: Env, guest: string, inviter: string, status: 'going' | 'maybe', cell: string): string {
   const f = env.feed;
   const v = vars(f);
+  const main = [T.detailsHead, fill(T.yourRsvp, { status: T[status] })];
+  if (f.session && status === 'going') main.push(fill(T.sessionAnswer, { Session: 'Yoga', answer: ANSWER[cell] }));
   return [
     fill(T.hi, { name: guest }),
     fill(T.guestLead, { ...v, inviter }).trim(),
+    main.join('\n'),
+    ...(f.session && cell === 'waitlist' ? [T.waitlistNote] : []),
+    [T.guestChangeLine, f.pageUrl].join('\n'), // Brian, Nov 9: how a guest changes or cancels (no remove links)
     [fill(T.when, v), fill(T.where, v)].join('\n'),
     calendarBlock(f),
     ...noticeBlocks(f),
-    fill(T.detailsLine, v),
-    T.guestChangeLine, // Brian, Nov 9: how a guest changes or cancels (no remove links)
+    bookBlock(f),
     hostLine(env),
     T.seeYou,
     expectSig(env),
@@ -1740,10 +1750,14 @@ test('G-1. a guest with an email gets the guest email (To, subject, body, HTML);
   assert.equal(g.subject, `You're on the list: ${party.title}`);
   assert.equal(g.replyTo, env.feed.sender.replyTo);
   assert.equal(g.from, env.feed.sender.from);
-  assert.equal(g.body, expectGuest(env, 'Sam', 'Alex Rivera'));
-  assert.ok(g.body.startsWith("Hi Sam,\n\nAlex Rivera RSVPed you to Ohm Launch Party. I'm looking forward to celebrating this milestone moment with you.\n\n"));
-  assert.ok(!g.body.includes(T.bookHead) && !g.body.includes(T.changeLine) && !g.body.includes('Yoga:'), 'no book block, change line or session answers');
+  assert.equal(g.body, expectGuest(env, 'Sam', 'Alex Rivera', 'going', 'no'));
+  assert.ok(g.body.startsWith("Hi Sam,\n\nAlex Rivera RSVPed you to Ohm Launch Party. I'm looking forward to celebrating this milestone moment with you.\n\nHere's all of the details:\nYour RSVP: Going\nYoga: No\n\n"));
+  // Brian, Nov 9 (after testing): the confirmation's format; Sam's own answer only, never the RSVPer or another guest
+  assert.ok(g.body.includes(T.bookHead) && g.body.includes(T.guestChangeLine) && !g.body.includes(T.changeLine));
+  assert.ok(!g.body.includes(T.guestsHead) && !/\bJo\b/.test(g.body) &&!g.body.includes('Alex Rivera —') && !g.body.includes(fill(T.detailsLine, vars(env.feed))));
   assert.ok(g.htmlBody.includes(`<a href="${esc(env.feed.pageUrl)}">`) && g.htmlBody.includes('Alex Rivera RSVPed you'));
+  assert.ok(g.htmlBody.includes(`Yoga: <strong style="color:#9C5739">No</strong>`), 'No in terracotta, as in the confirmation');
+  assert.ok(g.htmlBody.includes(`<a href="${esc(env.feed.bookUrl)}"`) && g.htmlBody.includes(esc(T.bookLink)), 'the book button');
   const rows = env.data();
   assert.deepEqual(rows.map((x) => [x[COL.who], x[COL.name], x[COL.email], x[COL.optin]]), [
     ['you', 'Alex Rivera', 'alex@example.com', ''],
@@ -1760,7 +1774,8 @@ test("G-2. Maybe mails the guest; Can't go mails no guest; a guest's address equ
   const env = makeEnv();
   env.post(withEmails({ name: 'Ann', email: 'ann@example.com', status: 'maybe', guests: [['Bea', ''], ['Cy', '']] }, ['bea@example.com']));
   assert.deepEqual(env.mails.map((m) => m.to), ['ann@example.com', 'bea@example.com']);
-  assert.equal(env.mails[1].body, expectGuest(env, 'Bea', 'Ann'));
+  assert.equal(env.mails[1].body, expectGuest(env, 'Bea', 'Ann', 'maybe', 'maybe'));
+  assert.ok(env.mails[1].body.includes('Your RSVP: Maybe\n\n') && !env.mails[1].body.includes('Yoga:'), 'a Maybe: the status only');
   const e2 = makeEnv();
   e2.post(withEmails({ name: 'Dan', email: 'dan@example.com', status: 'cant', guests: [['Eve', 'yes']] }, ['eve@example.com']));
   assert.deepEqual(e2.mails.map((m) => m.to), ['dan@example.com']);
@@ -1805,7 +1820,7 @@ const removeMail = (env: Env, guest: string, inviter: string, token: string) =>
   [
     fill(T.hi, { name: guest }),
     fill(T.guestRemoveLead, { ...vars(env.feed), inviter }),
-    [fill(T.changeLinkLine, { changeUrl: `${EXEC}?change=${token}` }), T.guestRemoveIgnore].join('\n'),
+    [linkLine(`${EXEC}?change=${token}`), T.guestRemoveIgnore].join('\n'),
     expectSig(env),
   ].join('\n\n');
 
@@ -1826,7 +1841,7 @@ test("G-5. a guest's address RSVPs Can't go: the same pending reply as a change,
   assert.equal(sent[0].subject, fill(T.guestRemoveSubject, { title: env.feed.title }));
   assert.equal(sent[0].body, removeMail(env, 'Bea', 'Ann', token));
   assert.ok(!sent[0].body.includes('Somebody'), 'the stored name, not the typed one');
-  assert.ok(sent[0].htmlBody.includes(`<a href="${esc(`${EXEC}?change=${token}`)}">`));
+  assert.ok(sent[0].htmlBody.includes(`<a href="${esc(`${EXEC}?change=${token}`)}">${esc(T.changeLinkWords)}</a>`), 'Brian, Nov 9: the words are the link');
   assert.equal(sent[0].from, env.feed.sender.from);
   // the no-JS reply is the same "check your email" page
   const page = env.postHtml(params({ name: 'X', email: 'bea@example.com', status: 'cant' }));
@@ -2021,4 +2036,53 @@ test('G-12. a confirmed change skips a new guest address another RSVP holds and 
   const m1 = env.mails.length;
   env.post(withEmails({ name: 'Jo', email: 'jo@example.com', guests: [['Cy', 'no']] }, ['cy@example.com']));
   assert.deepEqual(env.mails.slice(m1).map((m) => m.to), ['jo@example.com', 'cy@example.com']);
+});
+
+// ---- Brian, Nov 9, 2026 (after testing the live emails): the guest email in the confirmation's format --------------
+
+test("G-13. each guest's email carries that guest's own cell: Yes green, Waitlist with the note, No; no session: the status only", () => {
+  const env = makeEnv((f) => {
+    f.session.limit = 2;
+  });
+  // Ann takes spot 1, Bea spot 2, Cy is waitlisted, Dan answers no; only the guests with addresses are mailed
+  env.post(withEmails({ name: 'Ann', email: 'ann@example.com', guests: [['Bea', 'yes'], ['Cy', 'yes'], ['Dan', 'no']] }, ['bea@example.com', undefined, 'dan@example.com']));
+  const cy = makeEnv((f) => {
+    f.session.limit = 2;
+  });
+  cy.post(withEmails({ name: 'Ann', email: 'ann@example.com', guests: [['Bea', 'yes'], ['Cy', 'yes']] }, [undefined, 'cy@example.com']));
+  assert.deepEqual(env.mails.map((m) => m.to), ['ann@example.com', 'bea@example.com', 'dan@example.com']);
+  const [, bea, dan] = env.mails;
+  assert.equal(bea.body, expectGuest(env, 'Bea', 'Ann', 'going', 'confirmed'));
+  assert.ok(bea.htmlBody.includes('Your RSVP: Going<br>Yoga: <strong style="color:#125245">Yes</strong></p>'), 'Yes in green');
+  assert.ok(!bea.body.includes(T.waitlistNote), "Cy's waitlist is not Bea's");
+  assert.equal(dan.body, expectGuest(env, 'Dan', 'Ann', 'going', 'no'));
+  const c = cy.mails[1];
+  assert.equal(c.to, 'cy@example.com');
+  assert.equal(c.body, expectGuest(cy, 'Cy', 'Ann', 'going', 'waitlist'));
+  assert.ok(c.body.includes(`Your RSVP: Going\nYoga: Waitlist\n\n${T.waitlistNote}\n\n`));
+  for (const m of [bea, dan, c]) {
+    assert.ok(!m.body.includes(T.guestsHead) && !m.body.includes('Ann —') && !m.htmlBody.includes('<li>'), 'no guest list, no RSVPer line');
+  }
+  const plain = makeEnv((f) => {
+    f.session = null;
+  });
+  plain.post(withEmails({ name: 'Ann', email: 'ann@example.com', guests: [['Bea', 'yes']] }, ['bea@example.com']));
+  assert.equal(plain.mails[1].body, expectGuest(plain, 'Bea', 'Ann', 'going', ''));
+  assert.ok(plain.mails[1].body.includes("Here's all of the details:\nYour RSVP: Going\n\n") && !plain.mails[1].body.includes('Yoga'));
+});
+
+test('G-14. an older feed (changeLinkLine with {changeUrl}, no changeLinkWords) keeps the bare confirm URL in the change and guest-removal emails', () => {
+  const env = makeEnv((f) => {
+    delete f.text.changeLinkWords;
+    f.text.changeLinkLine = 'To make the change, open this link and press Confirm change within 6 hours: {changeUrl}';
+  });
+  env.post(withEmails({ name: 'Ann', email: 'ann@example.com', guests: [['Bea', 'no']] }, ['bea@example.com']));
+  rsvp(env, { name: 'Ann', email: 'ann@example.com', status: 'maybe' });
+  rsvp(env, { name: 'Bea', email: 'bea@example.com', status: 'cant' });
+  for (const to of ['ann@example.com', 'bea@example.com']) {
+    const url = `${EXEC}?change=${env.token(to)}`;
+    const m = [...env.mails].reverse().find((x) => x.to === to)!;
+    assert.ok(m.body.includes(`within 6 hours: ${url}\n`), `${to}: the URL in the line`);
+    assert.ok(m.htmlBody.includes(`within 6 hours: <a href="${url}">${url}</a>`), `${to}: linked as before`);
+  }
 });
