@@ -179,7 +179,7 @@ export interface EventFeed {
   googleCalUrl: string;
   session: { key: string; label: string; limit: number; waitlist: boolean; time: string } | null;
   reminderInfo: { title: string; text?: string; items?: string[] }[];
-  notices: { title: string; text: string; url?: string }[];
+  notices: { title: string; text: string; url?: string; urlLabel?: string }[];
   /** E6: true = the Apps Script returns tips on the status reply and adds one to each reminder. */
   tips: boolean;
   /** I-087: `from` is a Gmail send-as alias; `contact` receives the spot-freed note and is the error-page mailto. */
@@ -227,7 +227,7 @@ export function feedFor(event: SiteEvent, siteUrl: string): EventFeed {
       .map((b) => ({ title: b.title, ...(b.text !== undefined && { text: plainText(b.text, site.licensed ? 1 : 0) }), ...(b.items && { items: b.items }) })),
     notices: event.notices
       .filter((n) => n.inEmails)
-      .map((n) => ({ title: n.title, text: n.text, ...(n.link && { url: n.link.url }) })),
+      .map((n) => ({ title: n.title, text: n.text, ...(n.link && { url: n.link.url, urlLabel: n.link.label }) })),
     tips: rsvp.tips === true,
     sender: { name: site.name, from: site.eventsEmail, replyTo: site.eventsEmail, contact: site.email },
     bookUrl: bookUrl(siteUrl),

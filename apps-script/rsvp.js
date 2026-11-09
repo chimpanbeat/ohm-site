@@ -513,7 +513,7 @@ function buttonHtml_(b) {
     '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 16px"><tr>' +
     '<td bgcolor="' + MAIL_CTA + '" style="background:' + MAIL_CTA + ';border-radius:4px">' +
     '<a href="' + esc_(b.href) + '" style="display:inline-block;padding:12px 24px;font-family:Arial,sans-serif;font-size:16px;' +
-    'font-weight:bold;line-height:20px;color:' + MAIL_CTA_TEXT + ';text-decoration:none">' + esc_(b.text) + '</a>' +
+    'font-weight:bold;line-height:20px;color:' + MAIL_CTA_TEXT + ';text-decoration:none;background:' + MAIL_CTA + ';border-radius:4px">' + esc_(b.text) + '</a>' +
     '</td></tr></table>'
   );
 }
@@ -614,7 +614,8 @@ function mail_(ev, blocks) {
 // Each inEmails notice as a block: its title (a heading when `head`), its text, its link.
 function noticeBlocks_(ev, head) {
   return (ev.notices || []).map(function (n) {
-    return linesOf_([n.title ? (head ? { head: n.title } : n.title) : '', n.text, n.url ? url_(n.url) : '']);
+    // E16: a notice's link shows its label (the feed's urlLabel, e.g. "Fill out the waiver"), not the address
+    return linesOf_([n.title ? (head ? { head: n.title } : n.title) : '', n.text, n.url ? (n.urlLabel ? { runs: [{ text: n.urlLabel, href: n.url }] } : url_(n.url)) : '']);
   });
 }
 
@@ -629,8 +630,9 @@ function bookBlock_(ev) {
 // E14: the calendar links as one block: Google first when the feed has it, then the .ics. Older feeds: the .ics alone.
 function calendarLines_(ev, v) {
   var lines = [];
-  if (ev.googleCalUrl) lines.push(urlLine_(ev.text.calendarGoogleLine, v, 'googleUrl', ev.googleCalUrl));
-  lines.push(urlLine_(ev.text.calendarLine, v, 'icsUrl', ev.icsUrl));
+  // E16 (Brian, Nov 8): the words are the link (the button labels); the text body puts each URL on the next line
+  if (ev.googleCalUrl) lines.push({ runs: [{ text: ev.text.calendarGoogle, href: ev.googleCalUrl }] });
+  lines.push({ runs: [{ text: ev.text.calendar, href: ev.icsUrl }] });
   return lines;
 }
 

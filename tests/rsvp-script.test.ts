@@ -359,7 +359,7 @@ function change(env: Env, stored: string, p: P): string {
 const T = rsvpText as Record<string, string>;
 const vars = (f: Feed) => ({ title: f.title, eventName: f.mail.name, thanks: f.mail.thanks, dateLabel: f.dateLabel, timeLabel: f.timeLabel, venue: f.venue.name, address: f.venue.address, icsUrl: f.icsUrl, googleUrl: f.googleCalUrl, pageUrl: f.pageUrl });
 const OUT_KEY: Record<string, string> = { confirmed: 'confirmed', waitlist: 'waitlist', full: 'full', maybe: 'maybe', no: 'no' };
-const noticeBlocks = (f: Feed) => f.notices.map((n: any) => [n.title, n.text, n.url].filter(Boolean).join('\n'));
+const noticeBlocks = (f: Feed) => f.notices.map((n: any) => [n.title, n.text, n.urlLabel, n.url].filter(Boolean).join('\n'));
 // E13: the session answer each cell gives in the confirmation (a Maybe holds no spot: No)
 const ANSWER: Record<string, string> = { confirmed: T.yes, waitlist: T.sessionWaitlist, full: T.no, no: T.no, maybe: T.no };
 /** E13: the plain-text signature, from the feed and the env's SIGNATURE_PHONE as it is now. */
@@ -369,7 +369,9 @@ function expectSig(env: Env): string {
   return [`${s.name}${s.credentials ? `, ${s.credentials}` : ''}`, s.business, phone ? `${phone} • ${s.label}` : s.label].join('\n');
 }
 const bookBlock = (f: Feed) => [T.bookHead, T.bookLine, T.bookLink, f.bookUrl].join('\n'); // E14: the link is a button on its own line
-const calendarBlock = (f: Feed) => [fill(T.calendarGoogleLine, vars(f)), fill(T.calendarLine, vars(f))].join('\n');
+// E16: the words are the link; the text body puts each URL on the next line
+const calLines = (f: Feed) => [T.calendarGoogle, f.googleCalUrl, T.calendar, f.icsUrl].join('\n');
+const calendarBlock = (f: Feed) => calLines(f);
 const hostLine = (env: Env) => (env.props.HOST_PHONE ? fill(T.questionsHost, { host: env.feed.mail.host, hostPhone: env.props.HOST_PHONE }) : T.questions);
 /** E13: people = [name, cell], you first. */
 function expectConfirm(env: Env, name: string, status: 'going' | 'maybe', people: [string, string][], opts: { waitlist?: boolean } = {}): string {
@@ -411,7 +413,7 @@ function expectReminder(env: Env, name: string, people: [string, string][], mayb
     ...f.reminderInfo.map((b: any) => [b.title, b.text ?? '', ...(b.items ?? []).map((i: string) => `- ${i}`)].filter(Boolean).join('\n')),
     lines.join('\n'),
     ...noticeBlocks(f),
-    [fill(T.detailsLine, v), fill(T.calendarGoogleLine, v), fill(T.calendarLine, v)].join('\n'),
+    [fill(T.detailsLine, v), calLines(f)].join('\n'),
     expectSig(env),
   ]
     .filter(Boolean)
@@ -1397,9 +1399,9 @@ test('E13-1. the Going confirmation is Marea\'s copy, line for line; the subject
       'Guests:\n- Sam — Yoga: No',
       `To change your RSVP, register again on the event page with the same email address.\n${ORIGIN}/events/launch-party`,
       `When: Sunday, Nov 22, 2026, 2:00–6:00 pm\nWhere: ${party.venue.name}, ${party.venue.address}`,
-      `Add to Google Calendar: ${env.feed.googleCalUrl}\nAdd to another calendar: ${ORIGIN}/events/launch-party.ics`,
-      `Important: Waiver Required\n${waiver.text}\n${waiver.link!.url}`,
-      `Need to book a massage?\nBrian's site is now live!\nClick here to book\n${ORIGIN}/book`,
+      `Add to Google Calendar\n${env.feed.googleCalUrl}\nAdd to another calendar\n${ORIGIN}/events/launch-party.ics`,
+      `Important: Waiver Required\n${waiver.text}\n${waiver.link!.label}\n${waiver.link!.url}`,
+      `Ready to book a massage?\nBrian's site is now live!\nClick here to book\n${ORIGIN}/book`,
       `If you have any questions, reply to this email or text Maréa: ${HOST_NUM}.`,
       'See you there!',
       SIG_TEXT(SIG_PHONE),
@@ -1415,7 +1417,7 @@ test('E13-2. HTML: the headings bold and green, links from the feed only, names 
   const m = env.mails[0];
   const html = m.htmlBody;
   assert.ok(html && html.startsWith('<div>') && html.endsWith('</div>'), 'an htmlBody beside the plain body');
-  for (const head of ["Here's all of the details:", 'Guests:', 'Important: Waiver Required', 'Need to book a massage?']) {
+  for (const head of ["Here's all of the details:", 'Guests:', 'Important: Waiver Required', 'Ready to book a massage?']) {
     assert.ok(html.includes(`<strong style="color:#125245">${head.replace("'", '&#39;')}</strong>`), `heading ${head}`);
   }
   assert.ok(!m.body.includes('<strong'), 'the plain body has no markup');
@@ -1423,7 +1425,9 @@ test('E13-2. HTML: the headings bold and green, links from the feed only, names 
   assert.ok(html.includes(`<a href="${ORIGIN}/book" style="display:inline-block;padding:12px 24px;`) && html.includes('>Click here to book</a></td></tr></table>'), 'the book button');
   assert.ok(html.includes('bgcolor="#9C5739"') && html.includes('color:#F3F2F0;text-decoration:none'), 'the site button colours');
   assert.ok(!html.includes('now live! <a'), 'the link is no longer inside the sentence');
-  for (const url of [env.feed.pageUrl, env.feed.icsUrl, env.feed.googleCalUrl, env.feed.notices[0].url]) assert.ok(html.includes(`<a href="${esc(url)}">${esc(url)}</a>`), `link ${url}`);
+  assert.ok(html.includes(`<a href="${esc(env.feed.pageUrl)}">${esc(env.feed.pageUrl)}</a>`), 'the event page stays a plain URL');
+  // E16: the calendar and waiver links are words, not addresses
+  for (const [url, label] of [[env.feed.icsUrl, T.calendar], [env.feed.googleCalUrl, T.calendarGoogle], [env.feed.notices[0].url, env.feed.notices[0].urlLabel]]) assert.ok(html.includes(`<a href="${esc(url)}">${esc(label)}</a>`) && !html.includes(`>${esc(url)}</a>`), `link ${label}`);
   assert.ok(html.includes('Hi Kim &lt;b&gt;Lee&lt;/b&gt; &amp; Co,') && !html.includes('<b>Lee'), 'the name is escaped');
   assert.ok(html.includes('<li><strong style="color:inherit">https://evil.example</strong> — Yoga: <strong style="color:#125245">Yes</strong></li>') && !html.includes('href="https://evil.example'), 'a name is never a link');
   // E14: your own Yoga line, Yes green; the guests a real bulleted list; No terracotta
@@ -1522,7 +1526,7 @@ test("E13-8. Can't go: Marea's copy, the book block and the signature; subject u
     [
       'Hi Dan Lee,',
       `Thanks for letting me know you can't make it to Ohm Launch Party. We'll miss you! If your plans change, RSVP again on the event page with this email address.\n${ORIGIN}/events/launch-party`,
-      `Need to book a massage?\nBrian's site is now live!\nClick here to book\n${ORIGIN}/book`,
+      `Ready to book a massage?\nBrian's site is now live!\nClick here to book\n${ORIGIN}/book`,
       SIG_TEXT(SIG_PHONE),
     ].join('\n\n'),
   );
@@ -1645,9 +1649,9 @@ test('E14-5. the Google Calendar link sits before the .ics in the confirmation a
   const env = makeEnv();
   rsvp(env, { name: 'Ann', email: 'ann@example.com' });
   const m = env.mails[0];
-  const google = fill(T.calendarGoogleLine, { googleUrl: env.feed.googleCalUrl });
-  assert.ok(m.body.includes(`${google}\n${fill(T.calendarLine, { icsUrl: env.feed.icsUrl })}`));
-  assert.ok(m.htmlBody.includes(`Add to Google Calendar: <a href="${esc(env.feed.googleCalUrl)}">${esc(env.feed.googleCalUrl)}</a>`), 'a link in the HTML');
+  const google = `${T.calendarGoogle}\n${env.feed.googleCalUrl}`;
+  assert.ok(m.body.includes(`${google}\n${T.calendar}\n${env.feed.icsUrl}`));
+  assert.ok(m.htmlBody.includes(`<a href="${esc(env.feed.googleCalUrl)}">${T.calendarGoogle}</a>`), 'the words are the link in the HTML');
   env.clock.now = REMINDER_AT;
   env.api.sendDueReminders();
   assert.ok(lastMail(env, 'ann@example.com').body.includes(google));
@@ -1655,7 +1659,7 @@ test('E14-5. the Google Calendar link sits before the .ics in the confirmation a
     delete f.googleCalUrl;
   });
   rsvp(old, { name: 'Bea', email: 'bea@example.com' });
-  assert.ok(!old.mails[0].body.includes('Google') && old.mails[0].body.includes(fill(T.calendarLine, { icsUrl: old.feed.icsUrl })));
+  assert.ok(!old.mails[0].body.includes('Google') && old.mails[0].body.includes(`${T.calendar}\n${old.feed.icsUrl}`));
   const page = env.postHtml(params({ name: 'Cy', email: 'cy@example.com' }));
   assert.ok(page.includes(`href="${esc(env.feed.googleCalUrl)}"`) && page.includes(T.calendarGoogle), 'the no-JS done page has the Google button');
 });

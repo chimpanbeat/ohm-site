@@ -292,7 +292,7 @@ export const rsvpText = {
   guestsHead: 'Guests:', // E14 (Brian, Nov 8): a heading above the bulleted guest list
   guestLine: '{name} — {Session}: {answer}', // E14 (Brian, Nov 8): a guest's bullet; just the name for a Maybe or an event without a session
   sessionWaitlist: 'Waitlist', // E13, Brian (the answer word for a waitlisted person)
-  bookHead: 'Need to book a massage?', // E13, Marea
+  bookHead: 'Ready to book a massage?', // E13, Marea; Brian, Nov 8: was "Need to"
   bookLine: "Brian's site is now live!", // E13, Marea; E14 (Brian, Nov 8): the link moved to its own line, as a button
   bookLink: 'Click here to book', // E13, Marea; E14: the button's label, linked to the site's /book
   questions: 'If you have any questions, reply to this email.', // E13, Brian (HOST_PHONE unset)

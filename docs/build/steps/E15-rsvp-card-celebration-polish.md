@@ -10,11 +10,14 @@ Brian's Nov 8 asks after testing a two-guest RSVP.
 4. **First tip spin** is long (36 lines, 4.4 s from the same moment as the burst, so it lands after the confetti); "Another tip" keeps the short spin.
 5. **Credits** cards narrower (10 to 12 rem) so more fit on a row.
 6. Not a code change: the `undefined` guests and `{link}` in Brian's test email came from the script's 10-minute feed cache holding the feed from before the E14 deploy. The live feed is correct; a fresh RSVP after the cache expires is right.
+7. **Emails, same step (Brian, Nov 8):** the calendar links and the waiver link are words (`Add to Google Calendar`, `Add to another calendar`, the notice's `urlLabel` from the feed, e.g. `Fill out the waiver`) linked in the HTML; the plain-text body puts each URL on the line after its words. The event page address stays a plain URL. The book button's link also carries the terracotta fill itself, for mail apps that drop the table cell's fill.
 
 ## Files
 - apps-script/rsvp.js
 - src/data/events.ts
 - src/lib/rsvp.ts
+- src/lib/events.ts
+- tests/events.test.ts
 - src/scripts/rsvp.ts
 - src/components/events/RsvpForm.astro
 - src/components/events/EventCredits.astro

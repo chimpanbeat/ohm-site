@@ -557,7 +557,7 @@ Brian's Partiful description with Marea's edits on P1 (`650 hours`, Brian confir
 | `guestsHead` | `Guests:` (E14, Brian, Nov 8; a heading above the guest list; none when there are no guests. Brian wrote "Guest's:"; the apostrophe is read as a typo) |
 | `guestLine` | `{name} — {Session}: {answer}` (E14, Brian, Nov 8; one bullet per guest, answer coloured like `sessionAnswer`; a Maybe or an event without a session lists the name alone) |
 | `sessionWaitlist` | `Waitlist` (E13, Brian: the answer word for a waitlisted person) |
-| `bookHead` | `Need to book a massage?` (E13, Marea; a heading) |
+| `bookHead` | `Ready to book a massage?` (E13, Marea; a heading; Brian Nov 8: was "Need to") |
 | `bookLine` | `Brian's site is now live!` (E13, Marea; E14, Brian, Nov 8: the link left this line) |
 | `bookLink` | `Click here to book` (E13, Marea; E14: now a button on its own line, in the site's button colours (`--cta-bg`, `--cta-text`), linked to the site's `/book` (feed `bookUrl`); the plain-text email puts the words and then the URL on the next line) |
 | `questions` | `If you have any questions, reply to this email.` (E13, Brian: when the Script Property `HOST_PHONE` is unset or the event has no `rsvp.mail.host`) |

@@ -372,7 +372,7 @@ test('7. feed', () => {
   assert.equal(feed.icsUrl, `${origin}${base}/events/launch-party.ics`);
   assert.deepEqual(feed.session, { key: 'yoga', label: 'Yoga', limit: 20, waitlist: true, time: '2–3 pm' });
   assert.deepEqual(feed.reminderInfo.map((b) => b.title), ['What to wear', 'Parking']);
-  assert.deepEqual(feed.notices, [{ title: party.notices[0].title, text: party.notices[0].text, url: party.notices[0].link!.url }]);
+  assert.deepEqual(feed.notices, [{ title: party.notices[0].title, text: party.notices[0].text, url: party.notices[0].link!.url, urlLabel: party.notices[0].link!.label }]);
   assert.deepEqual(feed.sender, { name: site.name, from: site.eventsEmail, replyTo: site.eventsEmail, contact: site.email });
   assert.notEqual(site.eventsEmail, site.email);
   assert.equal(feed.text, rsvpText);
