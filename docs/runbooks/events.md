@@ -29,6 +29,15 @@ Do all of this signed in to the **Ohm Workspace account**, not a personal Google
 3. In the same signed-out window, open `site.rsvpUrl?slug=launch-party`: you should see `spotsLeft` and `full`, and no names or emails.
 4. Delete the test rows in the sheet (rows only, not the header).
 
+## Push the script with clasp (I-107)
+Replaces the paste-and-redeploy steps for every later update. Needs `clasp` logged in as the Ohm account (`clasp login`; `clasp show-authorized-user` must say `@ohmprecisionbodywork.com`), the Apps Script API switched on at script.google.com/home/usersettings, and `.apps-script-ids.json` (gitignored; copy `.apps-script-ids.example.json` and fill in the Script ID and the Deployment ID behind `site.rsvpUrl`). The repo holds neither ID.
+
+1. `npm run push:script -- --dry` stages the files in `.apps-script-build/` without touching Google.
+2. `npm run push:script -- "what changed"` pushes `apps-script/rsvp.js` (as `Code.js`) and `appsscript.json`, makes a new version, moves the existing deployment to it and checks it did. The `/exec` URL does not change.
+3. Keep the order in the step sections below (site deploy first, then the script). A push needs no `setup()` unless the section says a new permission is added.
+
+If it says it is not logged in as Ohm, run `clasp logout` then `clasp login`. If it says the API is off, do the user-settings switch above. To roll back, Deploy → Manage deployments → pencil → pick the older version.
+
 ## Self-care tips (I-082, I-084; after step E6)
 The tip card under the RSVP result and the tip line in each reminder email come from the Google Sheet **`Self Care tip of the day`**, tab `Sheet1`, column A, with `Tip` in row 1 and one tip per row. The script reads it; the site never stores the tips.
 
