@@ -1978,3 +1978,47 @@ test('G-10. a stale guest link (the RSVPer changed the RSVP first, 6 hours passe
   assert.deepEqual(env.data(), rows2);
   assert.equal(env.mails.length, m2);
 });
+
+// ---- Brian, Nov 9, 2026: at most one guest email per address per event (the cap) ---------------------------------
+
+test('G-11. a guest address any row of the tab already holds (another RSVP\'s guest or RSVPer) gets no guest email; the row still keeps it', () => {
+  const env = makeEnv();
+  env.post(withEmails({ name: 'Ann', email: 'ann@example.com', guests: [['Bea', 'no']] }, ['bea@example.com']));
+  rsvp(env, { name: 'Dee', email: 'dee@example.com' });
+  assert.deepEqual(env.mails.map((m) => m.to), ['ann@example.com', 'bea@example.com', 'dee@example.com']);
+  const before = env.mails.length;
+  // Fay lists Bea (already Ann's guest), Dee (an RSVPer), herself, a repeat, and one new address
+  env.post(
+    withEmails({ name: 'Fay', email: 'fay@example.com', guests: [['Bea', 'no'], ['Dee', 'no'], ['Gus', 'no'], ['Hal', 'no'], ['Ivy', 'no']] }, [
+      'BEA@example.com',
+      'dee@example.com',
+      'fay@example.com',
+      'gus@example.com',
+      'gus@example.com',
+    ]),
+  );
+  assert.deepEqual(env.mails.slice(before).map((m) => m.to), ['fay@example.com', 'gus@example.com'], 'only the new address');
+  const fay = env.data().filter((x) => x[COL.id] === env.data().find((y) => y[COL.email] === 'fay@example.com')![COL.id]);
+  assert.deepEqual(fay.map((x) => x[COL.email]), ['fay@example.com', 'bea@example.com', 'dee@example.com', 'fay@example.com', 'gus@example.com', 'gus@example.com'], 'every typed address is stored');
+  // a later RSVP listing Gus (now in Fay's rows) mails nobody but its RSVPer
+  const m1 = env.mails.length;
+  env.post(withEmails({ name: 'Jo', email: 'jo@example.com', guests: [['Gus', 'no']] }, ['gus@example.com']));
+  assert.deepEqual(env.mails.slice(m1).map((m) => m.to), ['jo@example.com']);
+});
+
+test('G-12. a confirmed change skips a new guest address another RSVP holds and mails a new one; once a row is gone the address can be mailed again', () => {
+  const env = makeEnv();
+  env.post(withEmails({ name: 'Ann', email: 'ann@example.com', guests: [['Bea', 'no']] }, ['bea@example.com']));
+  env.post(withEmails({ name: 'Dee', email: 'dee@example.com', guests: [['Eve', 'no']] }, ['eve@example.com']));
+  env.clock.now += MIN;
+  env.post(withEmails({ name: 'Dee', email: 'dee@example.com', guests: [['Eve', 'no'], ['Bea', 'no'], ['Cy', 'no']] }, ['eve@example.com', 'bea@example.com', 'cy@example.com']));
+  const before = env.mails.length;
+  env.applyChange(env.token('dee@example.com'));
+  assert.deepEqual(env.mails.slice(before).map((m) => m.to), ['dee@example.com', 'cy@example.com'], 'Eve (her own old row) and Bea (Ann\'s guest) are not mailed again');
+  // Brian deletes every row holding Cy by hand; a new RSVP listing Cy mails Cy again (the cap reads the tab as it is)
+  const all = env.sheet().rows;
+  for (let i = all.length - 1; i > 0; i--) if (all[i][COL.email] === 'cy@example.com') all.splice(i, 1);
+  const m1 = env.mails.length;
+  env.post(withEmails({ name: 'Jo', email: 'jo@example.com', guests: [['Cy', 'no']] }, ['cy@example.com']));
+  assert.deepEqual(env.mails.slice(m1).map((m) => m.to), ['jo@example.com', 'cy@example.com']);
+});

@@ -13,7 +13,8 @@
 // I-087 (E7): all mail goes through GmailApp from the events alias (see send_); the alias is never written here.
 // E13: mail to guests is HTML with a plain-text body, signed with Brian's reply signature (see mail_ and signature_).
 // Brian, Nov 9: each guest may have an optional email (g{n}email). It goes in that guest's row (Email column; Opt-in
-// stays blank) and gets one short guest email (see mailGuest_). Guests are not reminded; only `you` rows are.
+// stays blank) and gets one short guest email (see mailGuest_), at most one per address per event: an address any row of
+// the tab already holds gets none (emailsOf_). Guests are not reminded; only `you` rows are.
 // Brian, Nov 9 (guest self-removal): an RSVP from an address that only a guest row holds is a guest request (see
 // requestGuest_): the same "check your email" reply; Can't go mails that address a confirm link that deletes only
 // that guest row (applyGuest_); Going or Maybe changes nothing and mails a short "you're already on the list" note.
@@ -357,6 +358,16 @@ function findGuests_(rows, email) {
     if (r.who !== 'guest' || !r.email || r.email !== email) return;
     var you = youOf_(rows, r.id);
     if (you) out.push({ guest: r, you: you });
+  });
+  return out;
+}
+
+// Brian, Nov 9 (cap): every address any row of the tab holds (any RSVP, `you` or guest). A guest address in this list
+// was already mailed, or is an RSVPer, so it gets no guest email: at most one per address per event.
+function emailsOf_(rows) {
+  var out = [];
+  rows.forEach(function (r) {
+    if (r.email && out.indexOf(r.email) === -1) out.push(r.email);
   });
   return out;
 }
@@ -828,8 +839,9 @@ function mailGuestRemoved_(ev, to, name, guestName) {
   send_(ev, to, fill_(t.guestRemovedSubject, v), mail_(ev, [fill_(t.hi, { name: name }), fill_(t.guestRemovedNote, merge_(v, { guest: guestName }))]));
 }
 
-// `known`: the addresses this RSVP already stored (a confirmed change), so a guest is mailed once, not on every change.
-// Never to the RSVPer's own address, never twice to one address.
+// `known`: every address the event tab held before this write (emailsOf_), so a guest address is mailed once per event,
+// whichever RSVP lists it (Brian, Nov 9: the cap; it was this RSVP's old rows only). Never to the RSVPer's own address,
+// never twice to one address.
 function mailOutcome_(ev, to, n, people, assigned, known) {
   try {
     if (n.status === 'cant') mailCant_(ev, to, n.name);
@@ -1129,10 +1141,12 @@ function submit_(ev, n, html) {
   var assigned = null;
   var stored = null; // the existing RSVP's you row: a change request, nothing written
   var listed = []; // Brian, Nov 9: guest rows holding this address (no you row has it): a guest request, nothing written
+  var known = []; // Brian, Nov 9 (cap): every address already in the tab; none of them gets a guest email
   try {
     var ss = openSheet_();
     var sheet = tab_(ss, ev, true);
     var rows = readRows_(sheet);
+    known = emailsOf_(rows);
     stored = findYou_(rows, n.email);
     if (!stored && ev.text.guestRemoveLead) listed = findGuests_(rows, n.email); // an older feed: as before
     if (!stored && !listed.length) {
@@ -1155,7 +1169,7 @@ function submit_(ev, n, html) {
     else requestGuest_(ev, n, listed);
     return html ? resultPage_(ev, 'doneTitle', n, people, [], true) : json_({ ok: true, status: n.status, pending: true, outcomes: [] });
   }
-  mailOutcome_(ev, n.email, n, people, assigned);
+  mailOutcome_(ev, n.email, n, people, assigned, known);
   if (html) return resultPage_(ev, 'doneTitle', n, people, assigned, false);
   return json_({ ok: true, status: n.status, outcomes: outcomesOf_(ev, n.status, assigned) });
 }
@@ -1312,7 +1326,7 @@ function applyChange_(token) {
   var assigned = null;
   var freed = 0;
   var stale = false;
-  var known = []; // the addresses on this RSVP's old rows (a guest already mailed isn't mailed again)
+  var known = []; // Brian, Nov 9 (cap): every address in the tab before the change (a guest already mailed isn't mailed again)
   try {
     var sheet = tab_(openSheet_(), ev, false);
     var rows = readRows_(sheet);
@@ -1324,9 +1338,7 @@ function applyChange_(token) {
       var mine = rows.filter(function (r) {
         return r.id === you.id;
       });
-      mine.forEach(function (r) {
-        if (r.email) known.push(r.email);
-      });
+      known = emailsOf_(rows);
       var others = rows.filter(function (r) {
         return r.id !== you.id;
       });
