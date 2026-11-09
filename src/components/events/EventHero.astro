@@ -65,6 +65,7 @@ const narrowSizes = `(min-width: 30rem) ${narrow.width}px, 100vw`;
 
 <h1>{event.heading ?? event.title}</h1>
 
+<div class="event-meta">
 <p class="event-when">
   <time datetime={event.start}>{dateLabel(event.start, tz)}</time> · {timeLabel(event.start, event.end, tz, 'always')}
 </p>
@@ -82,6 +83,7 @@ const narrowSizes = `(min-width: 30rem) ${narrow.width}px, 100vw`;
 <p class="event-where">
   <a href={mapsUrl(event.venue)} target="_blank" rel="noopener">{event.venue.name}, {event.venue.address}</a>
 </p>
+</div>
 <p class="event-actions">
   {event.rsvp && <a class="btn" href="#rsvp">{rsvpText.heading}</a>}
   <a class="btn btn--quiet" href={googleUrl} target="_blank" rel="noopener">{rsvpText.calendarGoogle}</a>
@@ -117,11 +119,141 @@ const narrowSizes = `(min-width: 30rem) ${narrow.width}px, 100vw`;
     font-size: 1.25rem;
     font-weight: 600;
   }
-  /* One line tall even when empty, so filling it shifts nothing (CLS 0) */
+  /* Brian, Nov 9: date and place on the left, the flip board on the right (below them on a phone). */
+  .event-meta {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
   .event-countdown {
-    margin-top: var(--s-2);
-    min-height: calc(1em * var(--lh-body));
+    grid-row: 3;
+    margin-top: var(--s-3);
+    /* Reserves the board's height before the script fills it (CLS 0) */
+    min-height: 3.5rem;
     font-weight: 600;
+  }
+  @media (min-width: 48rem) {
+    .event-meta {
+      grid-template-columns: 1fr auto;
+      column-gap: var(--s-8);
+    }
+    .event-when,
+    .event-where {
+      grid-column: 1;
+    }
+    .event-countdown {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      align-self: center;
+      margin-top: 0;
+    }
+  }
+  /* The board and its tiles are made by script 6, so these reach into it. A tile is two half-height panels; the flaps
+     are the two that move (a falling top, a landing bottom), the other two hold the old and new characters. */
+  .event-countdown :global(.event-countdown__sr) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .event-countdown :global(.event-countdown__board) {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-1);
+    --tile-w: 2.5rem;
+    --tile-h: 3.5rem;
+  }
+  .event-countdown :global(.event-countdown__board[data-long='true']) {
+    --tile-w: 1.75rem;
+    --tile-h: 2.75rem;
+  }
+  .event-countdown :global(.event-countdown__word) {
+    padding-inline: var(--s-2);
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .event-countdown :global(.flip) {
+    position: relative;
+    display: inline-block;
+    width: var(--tile-w);
+    height: var(--tile-h);
+    perspective: 12rem;
+    border-radius: var(--radius);
+    font-family: var(--font-display);
+    font-size: calc(var(--tile-h) * 0.72);
+    font-weight: 700;
+    line-height: var(--tile-h);
+    color: var(--text-on-dark);
+  }
+  .event-countdown :global(.flip__h) {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 50%;
+    overflow: hidden;
+    background: var(--ink);
+    backface-visibility: hidden;
+  }
+  .event-countdown :global(.flip__top) {
+    top: 0;
+    border-radius: var(--radius) var(--radius) 0 0;
+    border-bottom: 1px solid var(--green-900);
+    transform-origin: 50% 100%;
+  }
+  .event-countdown :global(.flip__bottom) {
+    bottom: 0;
+    border-radius: 0 0 var(--radius) var(--radius);
+    transform-origin: 50% 0;
+  }
+  .event-countdown :global(.flip__h b) {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: var(--tile-h);
+    text-align: center;
+  }
+  .event-countdown :global(.flip__top b) {
+    top: 0;
+  }
+  .event-countdown :global(.flip__bottom b) {
+    bottom: 0;
+  }
+  .event-countdown :global(.flip__flap-top),
+  .event-countdown :global(.flip__flap-bottom) {
+    visibility: hidden;
+  }
+  .event-countdown :global(.is-flipping .flip__flap-top) {
+    visibility: visible;
+    animation: flip-down 80ms ease-in forwards;
+  }
+  .event-countdown :global(.is-flipping .flip__flap-bottom) {
+    visibility: visible;
+    transform: rotateX(90deg);
+    animation: flip-land 80ms 80ms ease-out forwards;
+  }
+  @keyframes flip-down {
+    to {
+      transform: rotateX(-90deg);
+    }
+  }
+  @keyframes flip-land {
+    from {
+      transform: rotateX(90deg);
+    }
+    to {
+      transform: rotateX(0deg);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .event-countdown :global(.flip__flap-top),
+    .event-countdown :global(.flip__flap-bottom) {
+      display: none;
+    }
   }
   .event-where {
     margin-top: var(--s-2);

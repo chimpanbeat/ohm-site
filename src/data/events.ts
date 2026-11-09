@@ -190,8 +190,8 @@ export function launchParty(limit: number, chaiNote: string | null = null): Site
       showGoing: false,
       session: { key: 'yoga', label: 'Yoga', item: 1, limit, waitlist: true },
       tips: true, // I-082, I-084 (Brian): self-care tips after an RSVP and in the reminder email
-      // E13 (Marea's email copy, approved by Brian, Nov 8, 2026, verbatim)
-      mail: { name: 'Ohm Launch Party', thanks: 'We look forward to celebrating this milestone moment with you.', host: 'Maréa' },
+      // E13 (Marea's email copy, approved by Brian, Nov 8, 2026, verbatim); Brian, Nov 9: thanks is "I'm looking forward" (was "We look forward")
+      mail: { name: 'Ohm Launch Party', thanks: "I'm looking forward to celebrating this milestone moment with you.", host: 'Maréa' },
     },
   };
 }
@@ -245,6 +245,8 @@ export const rsvpText = {
   guestsHelpPlain: "Bringing someone? Add each guest's name.",
   guestLegend: 'Guest {n}',
   guestName: 'Name',
+  guestEmail: 'Email', // Brian, Nov 9: a guest's optional email (they get the event details)
+  guestEmailHint: 'Optional, send event details', // Brian, Nov 9: the placeholder in the guest's email field
   addGuest: 'Add a guest',
   removeGuest: 'Remove guest {n}',
   honeypot: 'Leave this field empty',
@@ -278,6 +280,7 @@ export const rsvpText = {
   errSession: 'Answer the {session} question.',
   errGuestName: "Enter guest {n}'s name, or remove the guest.",
   errGuestSession: 'Answer the {session} question for guest {n}.',
+  errGuestEmail: "Check guest {n}'s email address, or leave it blank.", // Brian, Nov 9: a guest's optional email that isn't one
   changeTitle: 'Check your email.',
   changeText: 'This email already has an RSVP, so I sent a link to that address. Open it to confirm your change; nothing changes until you do.',
   errServer: "Something went wrong and your RSVP wasn't saved. Try again in a minute, or email me at {email}.",
@@ -286,6 +289,8 @@ export const rsvpText = {
   hi: 'Hi {name},',
   confirmSubject: "You're on the list: {title}",
   confirmLead: 'Thanks for your RSVP to {eventName}. {thanks}', // E13, Marea (approved by Brian)
+  guestLead: '{inviter} RSVPed you to {eventName}. {thanks}', // Brian, Nov 9: the guest email's lead; {inviter} = the RSVPer's name
+  guestChangeLine: 'To change or cancel, RSVP again on the event page with this email address, or reply to this email.', // Brian, Nov 9 (verbatim): in the guest emails; no remove links
   detailsHead: "Here's all of the details:", // E13, Marea; E14 (Brian, Nov 8): "all of the"
   yourRsvp: 'Your RSVP: {status}', // E13, Marea
   sessionAnswer: '{Session}: {answer}', // E14 (Brian, Nov 8): "Yoga: Yes", Yes green and No terracotta in the HTML; none for a Maybe
@@ -293,7 +298,6 @@ export const rsvpText = {
   guestLine: '{name} — {Session}: {answer}', // E14 (Brian, Nov 8): a guest's bullet; just the name for a Maybe or an event without a session
   sessionWaitlist: 'Waitlist', // E13, Brian (the answer word for a waitlisted person)
   bookHead: 'Ready to book a massage?', // E13, Marea; Brian, Nov 8: was "Need to"
-  bookLine: "Brian's site is now live!", // E13, Marea; E14 (Brian, Nov 8): the link moved to its own line, as a button
   bookLink: 'Click here to book', // E13, Marea; E14: the button's label, linked to the site's /book
   questions: 'If you have any questions, reply to this email.', // E13, Brian (HOST_PHONE unset)
   questionsHost: 'If you have any questions, reply to this email or text {host}: {hostPhone}.', // E13, Marea
@@ -320,6 +324,17 @@ export const rsvpText = {
   changeConfirming: 'Confirming…', // E14: the confirm button while the change is saved (it can take several seconds)
   changeExpired: 'This link has expired or was already used. To change your RSVP, send it again on the event page.',
   changeDoneTitle: 'Your RSVP is updated.',
+  // Brian, Nov 9 (guest self-removal; architect's words in Brian's voice): a guest's address RSVPs again
+  guestRemoveSubject: "Confirm you can't make it: {title}",
+  guestRemoveLead: "{inviter} RSVPed you to {eventName}. Someone used this email address to say you can't make it. If it was you, confirm below and I'll take you off the list.",
+  guestRemoveIgnore: "If you didn't ask for this, ignore this email. You'll stay on the list.",
+  guestRemoveConfirmLead: 'Take yourself off the list for {eventName}?',
+  guestRemovedTitle: "You're off the list.",
+  guestRemovedText: 'Thanks for letting me know. If your plans change, RSVP on the event page.',
+  guestRemovedSubject: 'RSVP update: {title}',
+  guestRemovedNote: '{guest} removed themselves from your RSVP to {eventName}.', // Brian, Nov 9 (verbatim): to the RSVPer
+  guestListedSubject: "You're already on the list: {title}",
+  guestListedLead: "You're already on the list for {eventName} as {inviter}'s guest, so there's nothing you need to do.",
   spotFreedSubject: 'A {session} spot opened: {title}',
   spotFreedText: "A guest's RSVP change freed {session} spots (freed: {n}) while people are on the waitlist. In the sheet, set the lowest Waitlist # to confirmed and email that guest, once for each freed spot.",
   tipTitle: 'Self-care tip', // E9, I-095 (Brian: drops "of the day")

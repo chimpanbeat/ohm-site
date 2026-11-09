@@ -388,7 +388,7 @@ test('7. feed', () => {
 test('7b. feed (E13): the book link, the event words for the emails, the signature, and no phone number', () => {
   const feed = feedFor(party, siteUrl);
   assert.equal(feed.bookUrl, `${origin}${base}/book`);
-  assert.deepEqual(feed.mail, { name: 'Ohm Launch Party', thanks: 'We look forward to celebrating this milestone moment with you.', host: 'Maréa' });
+  assert.deepEqual(feed.mail, { name: 'Ohm Launch Party', thanks: "I'm looking forward to celebrating this milestone moment with you.", host: 'Maréa' });
   assert.deepEqual(feed.signature, { name: 'Brian Clarke', credentials: 'LMT, CNMT', business: site.name, url: origin, label: 'ohmprecisionbodywork.com' });
   assert.equal(`${feed.signature.name}, ${feed.signature.credentials}`, w('credential'), 'the signature line is the credential');
   assert.equal(feed.signature.name, site.owner);
@@ -400,7 +400,7 @@ test('7b. feed (E13): the book link, the event words for the emails, the signatu
   const json = JSON.stringify(feed);
   assert.ok(!/\(?\b[2-9]\d{2}\)?[\s.-]\d{3}[\s.-]\d{4}\b/.test(json) && !/tel:|PHONE/.test(json), 'no phone number or phone property in the feed');
   // the new copy keys, and the sign-off is gone (the signature replaces it)
-  for (const k of ['detailsHead', 'yourRsvp', 'guestsHead', 'guestLine', 'sessionAnswer', 'sessionWaitlist', 'bookHead', 'bookLine', 'bookLink', 'calendarGoogleLine', 'changeConfirming', 'questions', 'questionsHost', 'seeYou']) {
+  for (const k of ['detailsHead', 'yourRsvp', 'guestsHead', 'guestLine', 'sessionAnswer', 'sessionWaitlist', 'bookHead', 'bookLink', 'calendarGoogleLine', 'changeConfirming', 'questions', 'questionsHost', 'seeYou']) {
     assert.ok(k in feed.text, `text.${k}`);
   }
   assert.ok(!('signoff' in feed.text) && !('guestRsvp' in feed.text));

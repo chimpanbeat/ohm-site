@@ -12,6 +12,11 @@
 // change), sendDueReminders (a 15-minute trigger), setup (run once by hand).
 // I-087 (E7): all mail goes through GmailApp from the events alias (see send_); the alias is never written here.
 // E13: mail to guests is HTML with a plain-text body, signed with Brian's reply signature (see mail_ and signature_).
+// Brian, Nov 9: each guest may have an optional email (g{n}email). It goes in that guest's row (Email column; Opt-in
+// stays blank) and gets one short guest email (see mailGuest_). Guests are not reminded; only `you` rows are.
+// Brian, Nov 9 (guest self-removal): an RSVP from an address that only a guest row holds is a guest request (see
+// requestGuest_): the same "check your email" reply; Can't go mails that address a confirm link that deletes only
+// that guest row (applyGuest_); Going or Maybe changes nothing and mails a short "you're already on the list" note.
 
 var SITE_ORIGIN = 'https://ohmprecisionbodywork.com';
 var SLUG_RE = /^[a-z0-9-]{1,40}$/;
@@ -235,7 +240,8 @@ function validate_(input, ev) {
     for (var n = 1; n <= maxGuests; n++) {
       var gname = get('g' + n + 'name').trim();
       var raw = asks ? get('g' + n + 'session') : '';
-      if (!gname && !raw) continue;
+      var gemail = get('g' + n + 'email').trim().toLowerCase();
+      if (!gname && !raw && !gemail) continue;
       var gsession = answer_(raw);
       var bad = false;
       if (!gname || gname.length > NAME_MAX) {
@@ -246,7 +252,16 @@ function validate_(input, ev) {
         fields.push('g' + n + 'session');
         bad = true;
       }
-      if (!bad) guests.push(asks ? { name: gname, session: gsession } : { name: gname });
+      // Brian, Nov 9: a guest's email is optional, but a typed one must be an address (the same rule as the RSVPer's)
+      if (gemail && (gemail.length > EMAIL_MAX || !EMAIL_RE.test(gemail))) {
+        fields.push('g' + n + 'email');
+        bad = true;
+      }
+      if (!bad) {
+        var g = asks ? { name: gname, session: gsession } : { name: gname };
+        if (gemail) g.email = gemail;
+        guests.push(g);
+      }
     }
   }
 
@@ -309,7 +324,7 @@ function sheetRow_(p) {
     p.id,
     p.who,
     cell_(p.name),
-    p.who === 'you' ? cell_(p.email) : '',
+    cell_(p.email || ''),
     p.who === 'you' && p.optin ? 'yes' : '',
     p.status,
     p.cell || '',
@@ -326,6 +341,24 @@ function appendRows_(sheet, rows) {
 function findYou_(rows, email) {
   for (var i = 0; i < rows.length; i++) if (rows[i].who === 'you' && rows[i].email === email) return rows[i];
   return null;
+}
+
+// The `you` row of RSVP `id`, or null (Brian deleted it by hand).
+function youOf_(rows, id) {
+  for (var i = 0; i < rows.length; i++) if (rows[i].who === 'you' && rows[i].id === id) return rows[i];
+  return null;
+}
+
+// Brian, Nov 9: every guest row holding `email` whose RSVP still has its `you` row, as [{ guest, you }] in sheet order.
+// A guest row without a `you` row is ignored (the address then RSVPs as a new person, as before).
+function findGuests_(rows, email) {
+  var out = [];
+  rows.forEach(function (r) {
+    if (r.who !== 'guest' || !r.email || r.email !== email) return;
+    var you = youOf_(rows, r.id);
+    if (you) out.push({ guest: r, you: you });
+  });
+  return out;
 }
 
 function counts_(rows) {
@@ -371,7 +404,7 @@ function assign_(ev, people, status, c) {
 function peopleOf_(n) {
   var people = [{ name: n.name, answer: n.session }];
   n.guests.forEach(function (g) {
-    people.push({ name: g.name, answer: g.session });
+    people.push({ name: g.name, answer: g.session, email: g.email });
   });
   return people;
 }
@@ -384,7 +417,7 @@ function rowsFor_(id, submitted, changed, reminder, n, people, assigned) {
       id: id,
       who: i === 0 ? 'you' : 'guest',
       name: p.name,
-      email: n.email,
+      email: i === 0 ? n.email : p.email || '', // a guest's own address, when they gave one
       optin: n.optin,
       status: n.status,
       cell: assigned[i].cell,
@@ -619,12 +652,12 @@ function noticeBlocks_(ev, head) {
   });
 }
 
-// E13: bookHead and bookLine; E14: then bookLink as a button on its own line, linked to the feed's bookUrl. Nothing on a
-// feed without bookUrl.
+// E13: bookHead; E14: then bookLink as a button on its own line, linked to the feed's bookUrl (Brian, Nov 9: the
+// bookLine between them is gone). Nothing on a feed without bookUrl.
 function bookBlock_(ev) {
   var t = ev.text;
   if (!ev.bookUrl) return [];
-  return [{ head: t.bookHead }, t.bookLine, { button: { text: t.bookLink, href: ev.bookUrl } }];
+  return [{ head: t.bookHead }, { button: { text: t.bookLink, href: ev.bookUrl } }];
 }
 
 // E14: the calendar links as one block: Google first when the feed has it, then the .ics. Older feeds: the .ics alone.
@@ -756,13 +789,65 @@ function mailCant_(ev, to, name) {
 // E13: an email that can't be built (a feed older than the script, say) is skipped like one that can't be sent.
 var BUILD_LOG = 'Mail: an email could not be built from the feed; nothing sent';
 
-function mailOutcome_(ev, to, n, people, assigned) {
+// Brian, Nov 9: a guest the RSVPer gave an address gets the event details once (Going or Maybe): who RSVPed them, when,
+// where, the calendar links, the notices and the event page. A feed older than the script (no guestLead): no guest mail.
+function mailGuest_(ev, to, guestName, inviter) {
+  var t = ev.text;
+  if (!t.guestLead) return;
+  var v = merge_(vars_(ev), { inviter: inviter });
+  // Brian, Nov 9: guestChangeLine tells the guest how to cancel (RSVP again with this address); no remove links
+  var blocks = [fill_(t.hi, { name: guestName }), fill_(t.guestLead, v).trim(), [fill_(t.when, v), fill_(t.where, v)], calendarLines_(ev, v)]
+    .concat(noticeBlocks_(ev, true))
+    .concat([[urlLine_(t.detailsLine, v, 'pageUrl', ev.pageUrl)], t.guestChangeLine || '', questionsLine_(ev), t.seeYou]);
+  send_(ev, to, fill_(t.confirmSubject, v), mail_(ev, blocks));
+}
+
+// Brian, Nov 9 (guest self-removal). To the guest's address: the confirm link that takes them off the list.
+function mailGuestRemove_(ev, to, guestName, inviter, changeUrl) {
+  var t = ev.text;
+  var v = merge_(vars_(ev), { inviter: inviter });
+  send_(
+    ev,
+    to,
+    fill_(t.guestRemoveSubject, v),
+    mail_(ev, [fill_(t.hi, { name: guestName }), fill_(t.guestRemoveLead, v), [urlLine_(t.changeLinkLine, {}, 'changeUrl', changeUrl), t.guestRemoveIgnore]]),
+  );
+}
+
+// To the guest's address after a Going or Maybe from it: nothing changes, they are already on the list.
+function mailGuestListed_(ev, to, guestName, inviter) {
+  var t = ev.text;
+  var v = merge_(vars_(ev), { inviter: inviter });
+  send_(ev, to, fill_(t.guestListedSubject, v), mail_(ev, [fill_(t.hi, { name: guestName }), fill_(t.guestListedLead, v), [t.guestChangeLine, url_(ev.pageUrl)]]));
+}
+
+// To the RSVPer after their guest confirmed the removal.
+function mailGuestRemoved_(ev, to, name, guestName) {
+  var t = ev.text;
+  var v = vars_(ev);
+  send_(ev, to, fill_(t.guestRemovedSubject, v), mail_(ev, [fill_(t.hi, { name: name }), fill_(t.guestRemovedNote, merge_(v, { guest: guestName }))]));
+}
+
+// `known`: the addresses this RSVP already stored (a confirmed change), so a guest is mailed once, not on every change.
+// Never to the RSVPer's own address, never twice to one address.
+function mailOutcome_(ev, to, n, people, assigned, known) {
   try {
     if (n.status === 'cant') mailCant_(ev, to, n.name);
     else mailConfirmation_(ev, to, n.name, n.status, people, assigned);
   } catch (err) {
     Logger.log(BUILD_LOG); // a mail failure never undoes an RSVP
   }
+  if (n.status === 'cant') return;
+  var skip = (known || []).concat([to]);
+  (n.guests || []).forEach(function (g) {
+    if (!g.email || skip.indexOf(g.email) !== -1) return;
+    skip.push(g.email);
+    try {
+      mailGuest_(ev, g.email, g.name, n.name);
+    } catch (err) {
+      Logger.log(BUILD_LOG);
+    }
+  });
 }
 
 function merge_(a, b) {
@@ -928,7 +1013,22 @@ function donePage_(token) {
   var done = JSON.parse(raw);
   var ev = loadEvent_(done.slug);
   if (!ev) return null;
+  if (done.kind === 'guest') return guestRemovedPage_(ev);
   return resultPage_(ev, 'changeDoneTitle', done.submission, peopleOf_(done.submission), done.assigned, false);
+}
+
+// Brian, Nov 9: the page after a guest's removal (and on a second press of its Confirm).
+function guestRemovedPage_(ev) {
+  return page_(ev, ev.text.guestRemovedTitle, para_(ev.text.guestRemovedText));
+}
+
+function confirmForm_(t, token) {
+  return (
+    '<form method="post" action="' + esc_(ScriptApp.getService().getUrl()) + '" target="_top">' +
+    '<input type="hidden" name="change" value="' + esc_(token) + '">' +
+    '<input type="hidden" name="mode" value="html">' +
+    '<button type="submit">' + esc_(t.changeConfirm) + '</button></form>' + confirmScript_(t.changeConfirming || t.changeConfirm)
+  );
 }
 
 function confirmPage_(token) {
@@ -939,14 +1039,12 @@ function confirmPage_(token) {
   if (!ev) return json_({ ok: false, error: 'unknown' });
   if (isClosed_(ev)) return errorPage_(ev, 'closed');
   var t = ev.text;
+  if (payload.kind === 'guest') {
+    var lead = fill_(t.guestRemoveConfirmLead, vars_(ev));
+    return page_(ev, lead, confirmForm_(t, token));
+  }
   var n = payload.submission;
-  var inner =
-    para_(t.changeConfirmLead) +
-    list_([fill_(t.newAnswer, { status: t[n.status] })].concat(answerLines_(ev, n))) +
-    '<form method="post" action="' + esc_(ScriptApp.getService().getUrl()) + '" target="_top">' +
-    '<input type="hidden" name="change" value="' + esc_(token) + '">' +
-    '<input type="hidden" name="mode" value="html">' +
-    '<button type="submit">' + esc_(t.changeConfirm) + '</button></form>' + confirmScript_(t.changeConfirming || t.changeConfirm);
+  var inner = para_(t.changeConfirmLead) + list_([fill_(t.newAnswer, { status: t[n.status] })].concat(answerLines_(ev, n))) + confirmForm_(t, token);
   return page_(ev, t.changeConfirmLead, inner);
 }
 
@@ -1030,12 +1128,14 @@ function submit_(ev, n, html) {
   var people = peopleOf_(n);
   var assigned = null;
   var stored = null; // the existing RSVP's you row: a change request, nothing written
+  var listed = []; // Brian, Nov 9: guest rows holding this address (no you row has it): a guest request, nothing written
   try {
     var ss = openSheet_();
     var sheet = tab_(ss, ev, true);
     var rows = readRows_(sheet);
     stored = findYou_(rows, n.email);
-    if (!stored) {
+    if (!stored && ev.text.guestRemoveLead) listed = findGuests_(rows, n.email); // an older feed: as before
+    if (!stored && !listed.length) {
       assigned = assign_(ev, people, n.status, counts_(rows));
       var id = Utilities.getUuid().replace(/-/g, '').slice(0, 12);
       appendRows_(sheet, rowsFor_(id, iso_(now_()), '', '', n, people, assigned));
@@ -1049,8 +1149,10 @@ function submit_(ev, n, html) {
     lock.releaseLock();
   }
 
-  if (stored) {
-    requestChange_(ev, n, stored);
+  if (stored || listed.length) {
+    // the same reply either way, so it never says whether the address is an RSVPer or a guest
+    if (stored) requestChange_(ev, n, stored);
+    else requestGuest_(ev, n, listed);
     return html ? resultPage_(ev, 'doneTitle', n, people, [], true) : json_({ ok: true, status: n.status, pending: true, outcomes: [] });
   }
   mailOutcome_(ev, n.email, n, people, assigned);
@@ -1065,9 +1167,10 @@ function throttleKey_(slug, email) {
   return 'chgn:' + Utilities.base64Encode(bytes);
 }
 
-function requestChange_(ev, n, stored) {
-  var cache = CacheService.getScriptCache();
-  var key = throttleKey_(ev.slug, n.email);
+// Counts one change mail to `email` for this event; false (no mail, same reply) once CHANGE_MAX went in CHANGE_TTL.
+// An RSVPer's change mails and a guest's request mails share the count (one counter per address).
+function allowMail_(cache, slug, email) {
+  var key = throttleKey_(slug, email);
   var t0 = now_();
   var count = 0;
   var seen = cache.get(key);
@@ -1076,9 +1179,15 @@ function requestChange_(ev, n, stored) {
     count = Number(parts[0]) || 0;
     t0 = Number(parts[1]) || t0;
   }
-  if (count >= CHANGE_MAX) return; // same reply, no mail
+  if (count >= CHANGE_MAX) return false;
   var left = Math.max(1, Math.ceil(CHANGE_TTL - (now_() - t0) / 1000));
   cache.put(key, count + 1 + ':' + t0, left);
+  return true;
+}
+
+function requestChange_(ev, n, stored) {
+  var cache = CacheService.getScriptCache();
+  if (!allowMail_(cache, ev.slug, n.email)) return; // same reply, no mail
 
   var token = Utilities.getUuid();
   var base = stored.changed || stored.submitted;
@@ -1090,6 +1199,102 @@ function requestChange_(ev, n, stored) {
   }
 }
 
+// Brian, Nov 9 (guest self-removal). `listed`: [{ guest, you }] from findGuests_. Only Can't go can remove a guest:
+// the token ('chg:', CHANGE_TTL) holds the address and, per RSVP id, the base its you row had (as requestChange_ does),
+// so any change to that RSVP before the guest confirms makes the link stale. Going or Maybe: no token, only the note
+// that they are already on the list. The guest's name and inviter come from the sheet, never from what was typed.
+function requestGuest_(ev, n, listed) {
+  var cache = CacheService.getScriptCache();
+  if (!allowMail_(cache, ev.slug, n.email)) return; // same reply, no mail
+  var first = listed[0];
+  if (n.status !== 'cant') {
+    try {
+      mailGuestListed_(ev, n.email, first.guest.name, first.you.name);
+    } catch (err) {
+      Logger.log(BUILD_LOG);
+    }
+    return;
+  }
+  var token = Utilities.getUuid();
+  var base = {};
+  listed.forEach(function (l) {
+    base[l.you.id] = l.you.changed || l.you.submitted;
+  });
+  cache.put('chg:' + token, JSON.stringify({ kind: 'guest', slug: ev.slug, email: n.email, base: base }), CHANGE_TTL);
+  try {
+    mailGuestRemove_(ev, n.email, first.guest.name, first.you.name, ScriptApp.getService().getUrl() + '?change=' + token);
+  } catch (err) {
+    Logger.log(BUILD_LOG);
+  }
+}
+
+// Confirming a guest's removal: under the lock, re-read the tab and delete each guest row with the token's address
+// whose RSVP's base is unchanged. Never the you row or another guest. Nothing left to delete: the done page (a second
+// press) or "expired". Then one short note to each RSVPer, and the spot-freed note when a confirmed spot went while
+// anyone waits. The guest gets the result page only.
+function applyGuest_(ev, token, payload) {
+  var cache = CacheService.getScriptCache();
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(LOCK_MS)) return errorPage_(ev, 'busy');
+  var gone = [];
+  var freed = 0;
+  try {
+    var sheet = tab_(openSheet_(), ev, false);
+    var rows = readRows_(sheet);
+    rows.forEach(function (r) {
+      if (r.who !== 'guest' || r.email !== payload.email || !Object.prototype.hasOwnProperty.call(payload.base, r.id)) return;
+      var you = youOf_(rows, r.id);
+      if (you && (you.changed || you.submitted) === payload.base[r.id]) gone.push({ guest: r, you: you });
+    });
+    if (gone.length) {
+      var waiting = rows.some(function (r) {
+        return r.cell === 'waitlist' && !gone.some(function (g) {
+          return g.guest.n === r.n;
+        });
+      });
+      if (ev.session && waiting) {
+        freed = gone.filter(function (g) {
+          return g.guest.cell === 'confirmed';
+        }).length;
+      }
+      gone
+        .map(function (g) {
+          return g.guest.n;
+        })
+        .sort(function (a, b) {
+          return b - a;
+        })
+        .forEach(function (rowNumber) {
+          sheet.deleteRow(rowNumber);
+        });
+      // as in applyChange_: the done marker goes in before the lock opens, so a second press finds it
+      cache.put('chgdone:' + token, JSON.stringify({ kind: 'guest', slug: ev.slug }), CHANGE_TTL);
+    }
+    cache.remove('chg:' + token);
+  } finally {
+    try {
+      SpreadsheetApp.flush();
+    } catch (err) {
+      // the original error, if any, is what the caller sees
+    }
+    lock.releaseLock();
+  }
+
+  if (!gone.length) return donePage_(token) || expiredPage_();
+  var told = [];
+  gone.forEach(function (g) {
+    if (told.indexOf(g.you.id) !== -1) return; // one note per RSVP
+    told.push(g.you.id);
+    try {
+      mailGuestRemoved_(ev, g.you.email, g.you.name, g.guest.name);
+    } catch (err) {
+      Logger.log(BUILD_LOG);
+    }
+  });
+  if (freed > 0) mailSpotFreed_(ev, freed);
+  return guestRemovedPage_(ev);
+}
+
 function applyChange_(token) {
   var cache = CacheService.getScriptCache();
   var raw = cache.get('chg:' + token);
@@ -1098,6 +1303,7 @@ function applyChange_(token) {
   var ev = loadEvent_(payload.slug);
   if (!ev) return json_({ ok: false, error: 'unknown' });
   if (isClosed_(ev)) return errorPage_(ev, 'closed');
+  if (payload.kind === 'guest') return applyGuest_(ev, token, payload);
   var n = payload.submission;
   var people = peopleOf_(n);
 
@@ -1106,6 +1312,7 @@ function applyChange_(token) {
   var assigned = null;
   var freed = 0;
   var stale = false;
+  var known = []; // the addresses on this RSVP's old rows (a guest already mailed isn't mailed again)
   try {
     var sheet = tab_(openSheet_(), ev, false);
     var rows = readRows_(sheet);
@@ -1116,6 +1323,9 @@ function applyChange_(token) {
     } else {
       var mine = rows.filter(function (r) {
         return r.id === you.id;
+      });
+      mine.forEach(function (r) {
+        if (r.email) known.push(r.email);
       });
       var others = rows.filter(function (r) {
         return r.id !== you.id;
@@ -1188,7 +1398,7 @@ function applyChange_(token) {
   }
 
   if (stale) return donePage_(token) || expiredPage_();
-  mailOutcome_(ev, payload.email, n, people, assigned);
+  mailOutcome_(ev, payload.email, n, people, assigned, known);
   if (freed > 0) mailSpotFreed_(ev, freed);
   return resultPage_(ev, 'changeDoneTitle', n, people, assigned, false);
 }

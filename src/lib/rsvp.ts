@@ -33,6 +33,8 @@ export interface RsvpRules {
 }
 export interface Guest {
   name: string;
+  /** Optional: the guest's own address, so they get the event details too. */
+  email?: string;
   session?: Answer;
 }
 export interface Normalized {
@@ -86,7 +88,8 @@ export function validateRsvp(input: RawFields, rules: RsvpRules): Validation {
     for (let n = 1; n <= rules.maxGuests; n++) {
       const gname = get(`g${n}name`).trim();
       const rawAnswer = asks ? get(`g${n}session`) : '';
-      if (!gname && !rawAnswer) continue; // a blank row is dropped
+      const gemail = get(`g${n}email`).trim().toLowerCase();
+      if (!gname && !rawAnswer && !gemail) continue; // a blank row is dropped
       const gsession = answerOf(rawAnswer);
       let bad = false;
       if (!gname || gname.length > NAME_MAX) {
@@ -97,7 +100,15 @@ export function validateRsvp(input: RawFields, rules: RsvpRules): Validation {
         fields.push(`g${n}session`);
         bad = true;
       }
-      if (!bad) guests.push(asks ? { name: gname, session: gsession } : { name: gname });
+      if (gemail && (gemail.length > EMAIL_MAX || !EMAIL_RE.test(gemail))) {
+        fields.push(`g${n}email`);
+        bad = true;
+      }
+      if (!bad) {
+        const g: Guest = asks ? { name: gname, session: gsession } : { name: gname };
+        if (gemail) g.email = gemail;
+        guests.push(g);
+      }
     }
   }
 
@@ -114,6 +125,7 @@ export function toBody(slug: string, n: Normalized, website = ''): URLSearchPara
   n.guests.forEach((g, i) => {
     body.set(`g${i + 1}name`, g.name);
     if (g.session) body.set(`g${i + 1}session`, g.session);
+    if (g.email) body.set(`g${i + 1}email`, g.email);
   });
   if (n.optin) body.set('optin', 'yes');
   if (website) body.set('website', website);
@@ -277,9 +289,10 @@ export function errServer(text: RsvpText, email: string): string {
 export function fieldMessage(text: RsvpText, label: string, field: string, input: RawFields): string {
   const w = words(label);
   const long = (k: string) => String(input[k] ?? '').trim().length > NAME_MAX;
-  const guest = field.match(/^g(\d+)(name|session)$/);
+  const guest = field.match(/^g(\d+)(name|session|email)$/);
   if (guest) {
     const n = guest[1];
+    if (guest[2] === 'email') return fill(text.errGuestEmail, { n });
     if (guest[2] === 'session') return fill(text.errGuestSession, { ...w, n });
     return long(field) ? text.errLength : fill(text.errGuestName, { n });
   }

@@ -652,6 +652,155 @@
     }
   },
   {
+    "label": "guest email, valid (trimmed and lowercased)",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "session": "yes",
+      "g1name": "Sam",
+      "g1session": "no",
+      "g1email": "  Sam@Example.COM "
+    },
+    "ok": true,
+    "fields": [],
+    "normalized": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "guests": [
+        {
+          "name": "Sam",
+          "session": "no",
+          "email": "sam@example.com"
+        }
+      ],
+      "optin": false,
+      "session": "yes"
+    }
+  },
+  {
+    "label": "guest email, invalid",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "session": "yes",
+      "g1name": "Sam",
+      "g1session": "yes",
+      "g1email": "sam@example"
+    },
+    "ok": false,
+    "fields": [
+      "g1email"
+    ]
+  },
+  {
+    "label": "guest email, invalid with a missing answer (session first)",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "session": "yes",
+      "g1name": "Sam",
+      "g1email": "not an email"
+    },
+    "ok": false,
+    "fields": [
+      "g1session",
+      "g1email"
+    ]
+  },
+  {
+    "label": "guest email without a name",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "session": "yes",
+      "g1email": "sam@example.com"
+    },
+    "ok": false,
+    "fields": [
+      "g1name"
+    ]
+  },
+  {
+    "label": "guest email blank: the blank row is dropped",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "session": "yes",
+      "g1name": "",
+      "g1email": "   "
+    },
+    "ok": true,
+    "fields": [],
+    "normalized": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "going",
+      "guests": [],
+      "optin": false,
+      "session": "yes"
+    }
+  },
+  {
+    "label": "guest email, maybe and plain event",
+    "event": "plain",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "maybe",
+      "g1name": "Sam",
+      "g1email": "sam@example.com",
+      "g2name": "Jo"
+    },
+    "ok": true,
+    "fields": [],
+    "normalized": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "maybe",
+      "guests": [
+        {
+          "name": "Sam",
+          "email": "sam@example.com"
+        },
+        {
+          "name": "Jo"
+        }
+      ],
+      "optin": false
+    }
+  },
+  {
+    "label": "guest email with cant is dropped",
+    "event": "session",
+    "input": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "cant",
+      "g1name": "Sam",
+      "g1email": "bad"
+    },
+    "ok": true,
+    "fields": [],
+    "normalized": {
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "status": "cant",
+      "guests": [],
+      "optin": false
+    }
+  },
+  {
     "label": "honeypot filled",
     "event": "session",
     "input": {

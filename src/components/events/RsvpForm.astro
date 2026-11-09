@@ -109,6 +109,11 @@ const notices = event.notices.filter((n): n is typeof n & { link: NonNullable<ty
                 <input id={`rsvp-g${n}name`} type="text" name={`g${n}name`} autocomplete="off" />
                 <span class="rsvp-error" id={`err-g${n}name`} data-error-for={`g${n}name`} hidden />
               </span>
+              <span class="field">
+                <label for={`rsvp-g${n}email`}>{t.guestEmail}</label>
+                <input id={`rsvp-g${n}email`} type="email" name={`g${n}email`} autocomplete="off" placeholder={t.guestEmailHint} />
+                <span class="rsvp-error" id={`err-g${n}email`} data-error-for={`g${n}email`} hidden />
+              </span>
               {session && (
                 <fieldset class="group" data-going-only>
                   <legend>{question}</legend>
@@ -236,6 +241,11 @@ const notices = event.notices.filter((n): n is typeof n & { link: NonNullable<ty
     border-radius: var(--radius);
     background: var(--bg-light);
     color: var(--text-on-light);
+  }
+  /* Brian, Nov 9: the optional hint is quiet gray inside the field, still readable (about 5:1 on the cream) */
+  input::placeholder {
+    color: color-mix(in srgb, var(--ink) 62%, var(--bg-light));
+    opacity: 1;
   }
   /* The focus ring stays (global :focus-visible); an invalid field gets a heavier terracotta border. */
   input[aria-invalid='true'] {

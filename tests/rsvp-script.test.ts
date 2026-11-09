@@ -368,7 +368,7 @@ function expectSig(env: Env): string {
   const phone = env.props.SIGNATURE_PHONE;
   return [`${s.name}${s.credentials ? `, ${s.credentials}` : ''}`, s.business, phone ? `${phone} • ${s.label}` : s.label].join('\n');
 }
-const bookBlock = (f: Feed) => [T.bookHead, T.bookLine, T.bookLink, f.bookUrl].join('\n'); // E14: the link is a button on its own line
+const bookBlock = (f: Feed) => [T.bookHead, T.bookLink, f.bookUrl].join('\n'); // E14: the link is a button on its own line
 // E16: the words are the link; the text body puts each URL on the next line
 const calLines = (f: Feed) => [T.calendarGoogle, f.googleCalUrl, T.calendar, f.icsUrl].join('\n');
 const calendarBlock = (f: Feed) => calLines(f);
@@ -1394,14 +1394,14 @@ test('E13-1. the Going confirmation is Marea\'s copy, line for line; the subject
     m.body,
     [
       'Hi Alex Rivera,',
-      'Thanks for your RSVP to Ohm Launch Party. We look forward to celebrating this milestone moment with you.',
+      "Thanks for your RSVP to Ohm Launch Party. I'm looking forward to celebrating this milestone moment with you.",
       "Here's all of the details:\nYour RSVP: Going\nYoga: Yes",
       'Guests:\n- Sam — Yoga: No',
       `To change your RSVP, register again on the event page with the same email address.\n${ORIGIN}/events/launch-party`,
       `When: Sunday, Nov 22, 2026, 2:00–6:00 pm\nWhere: ${party.venue.name}, ${party.venue.address}`,
       `Add to Google Calendar\n${env.feed.googleCalUrl}\nAdd to another calendar\n${ORIGIN}/events/launch-party.ics`,
       `Important: Waiver Required\n${waiver.text}\n${waiver.link!.label}\n${waiver.link!.url}`,
-      `Ready to book a massage?\nBrian's site is now live!\nClick here to book\n${ORIGIN}/book`,
+      `Ready to book a massage?\nClick here to book\n${ORIGIN}/book`,
       `If you have any questions, reply to this email or text Maréa: ${HOST_NUM}.`,
       'See you there!',
       SIG_TEXT(SIG_PHONE),
@@ -1526,7 +1526,7 @@ test("E13-8. Can't go: Marea's copy, the book block and the signature; subject u
     [
       'Hi Dan Lee,',
       `Thanks for letting me know you can't make it to Ohm Launch Party. We'll miss you! If your plans change, RSVP again on the event page with this email address.\n${ORIGIN}/events/launch-party`,
-      `Ready to book a massage?\nBrian's site is now live!\nClick here to book\n${ORIGIN}/book`,
+      `Ready to book a massage?\nClick here to book\n${ORIGIN}/book`,
       SIG_TEXT(SIG_PHONE),
     ].join('\n\n'),
   );
@@ -1699,4 +1699,282 @@ test('E14-7. a confirmed change then a second press: one email, the finished pag
   env.post(params({ name: 'Ann', email: 'ann@example.com', status: 'cant' }));
   env.applyChange(env.token('ann@example.com'));
   assert.equal(env.mails[env.mails.length - 1].subject, fill(T.cantSubject, { title: env.feed.title }));
+});
+
+// ---- Brian, Nov 9, 2026: a guest's optional email, and the short guest email -------------------------------------
+
+/** params() plus g{n}email for the guests named in `emails` (index 0 = guest 1). */
+const withEmails = (p: P, emails: (string | undefined)[]) => {
+  const o = params(p);
+  emails.forEach((e, i) => {
+    if (e !== undefined) o[`g${i + 1}email`] = e;
+  });
+  return o;
+};
+function expectGuest(env: Env, guest: string, inviter: string): string {
+  const f = env.feed;
+  const v = vars(f);
+  return [
+    fill(T.hi, { name: guest }),
+    fill(T.guestLead, { ...v, inviter }).trim(),
+    [fill(T.when, v), fill(T.where, v)].join('\n'),
+    calendarBlock(f),
+    ...noticeBlocks(f),
+    fill(T.detailsLine, v),
+    T.guestChangeLine, // Brian, Nov 9: how a guest changes or cancels (no remove links)
+    hostLine(env),
+    T.seeYou,
+    expectSig(env),
+  ].join('\n\n');
+}
+
+test('G-1. a guest with an email gets the guest email (To, subject, body, HTML); a guest without one gets none; the row keeps the address', () => {
+  const env = makeEnv();
+  const r = env.post(withEmails({ name: 'Alex Rivera', email: 'alex@example.com', guests: [['Sam', 'no'], ['Jo', 'yes']] }, [' Sam@Example.com ']));
+  assert.equal(r.ok, true);
+  assert.ok(!JSON.stringify(r).includes('sam@'), 'no address in the reply');
+  assert.equal(env.mails.length, 2, 'the confirmation and one guest email');
+  assert.equal(env.mails[0].to, 'alex@example.com');
+  const g = env.mails[1];
+  assert.equal(g.to, 'sam@example.com');
+  assert.equal(g.subject, `You're on the list: ${party.title}`);
+  assert.equal(g.replyTo, env.feed.sender.replyTo);
+  assert.equal(g.from, env.feed.sender.from);
+  assert.equal(g.body, expectGuest(env, 'Sam', 'Alex Rivera'));
+  assert.ok(g.body.startsWith("Hi Sam,\n\nAlex Rivera RSVPed you to Ohm Launch Party. I'm looking forward to celebrating this milestone moment with you.\n\n"));
+  assert.ok(!g.body.includes(T.bookHead) && !g.body.includes(T.changeLine) && !g.body.includes('Yoga:'), 'no book block, change line or session answers');
+  assert.ok(g.htmlBody.includes(`<a href="${esc(env.feed.pageUrl)}">`) && g.htmlBody.includes('Alex Rivera RSVPed you'));
+  const rows = env.data();
+  assert.deepEqual(rows.map((x) => [x[COL.who], x[COL.name], x[COL.email], x[COL.optin]]), [
+    ['you', 'Alex Rivera', 'alex@example.com', ''],
+    ['guest', 'Sam', 'sam@example.com', ''],
+    ['guest', 'Jo', '', ''],
+  ]);
+  // Brian, Nov 9 (guest self-removal): the guest's own address RSVPing again is a guest request, not a new RSVP (G-5–G-10)
+  const own = rsvp(env, { name: 'Sam', email: 'sam@example.com' });
+  assert.deepEqual(own, { ok: true, status: 'going', pending: true, outcomes: [] });
+  assert.equal(env.data().length, 3, 'no new rows');
+});
+
+test("G-2. Maybe mails the guest; Can't go mails no guest; a guest's address equal to the RSVPer's or repeated is mailed once at most", () => {
+  const env = makeEnv();
+  env.post(withEmails({ name: 'Ann', email: 'ann@example.com', status: 'maybe', guests: [['Bea', ''], ['Cy', '']] }, ['bea@example.com']));
+  assert.deepEqual(env.mails.map((m) => m.to), ['ann@example.com', 'bea@example.com']);
+  assert.equal(env.mails[1].body, expectGuest(env, 'Bea', 'Ann'));
+  const e2 = makeEnv();
+  e2.post(withEmails({ name: 'Dan', email: 'dan@example.com', status: 'cant', guests: [['Eve', 'yes']] }, ['eve@example.com']));
+  assert.deepEqual(e2.mails.map((m) => m.to), ['dan@example.com']);
+  assert.equal(e2.mails[0].subject, fill(T.cantSubject, { title: e2.feed.title }));
+  assert.equal(e2.data().length, 1, "Can't go keeps no guest rows");
+  const e3 = makeEnv();
+  e3.post(withEmails({ name: 'Fay', email: 'fay@example.com', guests: [['Gus', 'no'], ['Hal', 'no'], ['Ivy', 'no']] }, ['FAY@example.com', 'gus@example.com', 'gus@example.com']));
+  assert.deepEqual(e3.mails.map((m) => m.to), ['fay@example.com', 'gus@example.com']);
+});
+
+test('G-3. a confirmed change mails only a guest address the RSVP did not already store', () => {
+  const env = makeEnv();
+  env.post(withEmails({ name: 'Ann', email: 'ann@example.com', guests: [['Bea', 'no']] }, ['bea@example.com']));
+  assert.deepEqual(env.mails.map((m) => m.to), ['ann@example.com', 'bea@example.com']);
+  env.clock.now += MIN;
+  const r = env.post(withEmails({ name: 'Ann', email: 'ann@example.com', guests: [['Bea', 'yes'], ['Cy', 'no']] }, ['bea@example.com', 'cy@example.com']));
+  assert.equal(r.pending, true);
+  assert.equal(env.mails[env.mails.length - 1].to, 'ann@example.com', 'the change link goes to the RSVPer only');
+  const before = env.mails.length;
+  env.applyChange(env.token('ann@example.com'));
+  assert.deepEqual(env.mails.slice(before).map((m) => m.to), ['ann@example.com', 'cy@example.com'], 'Bea is not mailed again');
+  assert.deepEqual(env.data().map((x) => x[COL.email]), ['ann@example.com', 'bea@example.com', 'cy@example.com']);
+});
+
+test('G-4. a bad guest email is invalid with g{n}email: no row, no mail; a feed without guestLead sends no guest email', () => {
+  const env = makeEnv();
+  const r = env.post(withEmails({ name: 'Ann', email: 'ann@example.com', guests: [['Bea', 'no']] }, ['bea@example']));
+  assert.deepEqual(r, { ok: false, error: 'invalid', fields: ['g1email'] });
+  assert.equal(env.mails.length, 0);
+  assert.equal(env.data().length, 0);
+  const old = makeEnv((feed) => {
+    delete feed.text.guestLead;
+  });
+  old.post(withEmails({ name: 'Ann', email: 'ann@example.com', guests: [['Bea', 'no']] }, ['bea@example.com']));
+  assert.deepEqual(old.mails.map((m) => m.to), ['ann@example.com'], 'the RSVPer still gets the confirmation');
+  assert.ok(!('bookLine' in env.feed.text), 'Brian, Nov 9: bookLine is gone');
+});
+
+// ---- Brian, Nov 9, 2026: a guest takes themselves off the list (guest self-removal) ------------------------------
+
+const removeMail = (env: Env, guest: string, inviter: string, token: string) =>
+  [
+    fill(T.hi, { name: guest }),
+    fill(T.guestRemoveLead, { ...vars(env.feed), inviter }),
+    [fill(T.changeLinkLine, { changeUrl: `${EXEC}?change=${token}` }), T.guestRemoveIgnore].join('\n'),
+    expectSig(env),
+  ].join('\n\n');
+
+test("G-5. a guest's address RSVPs Can't go: the same pending reply as a change, one confirm mail to that address only, nothing written; the link's page writes nothing", () => {
+  const env = makeEnv();
+  env.post(withEmails({ name: 'Ann', email: 'ann@example.com', guests: [['Bea', 'yes'], ['Cy', 'no']] }, ['bea@example.com']));
+  rsvp(env, { name: 'Dee', email: 'dee@example.com' });
+  const rows0 = JSON.stringify(env.sheet().rows);
+  const before = env.mails.length;
+  const r = rsvp(env, { name: 'Somebody', email: ' Bea@Example.com ', status: 'cant' });
+  const yours = rsvp(env, { name: 'Dee', email: 'dee@example.com', status: 'cant' });
+  assert.deepEqual(r, { ok: true, status: 'cant', pending: true, outcomes: [] });
+  assert.deepEqual(r, yours, "the same reply as an RSVPer's change request");
+  assert.equal(JSON.stringify(env.sheet().rows), rows0, 'nothing written');
+  const sent = env.mails.slice(before);
+  assert.deepEqual(sent.map((m) => m.to), ['bea@example.com', 'dee@example.com'], 'the guest address only (and Dee her own change link)');
+  const token = env.token('bea@example.com');
+  assert.equal(sent[0].subject, fill(T.guestRemoveSubject, { title: env.feed.title }));
+  assert.equal(sent[0].body, removeMail(env, 'Bea', 'Ann', token));
+  assert.ok(!sent[0].body.includes('Somebody'), 'the stored name, not the typed one');
+  assert.ok(sent[0].htmlBody.includes(`<a href="${esc(`${EXEC}?change=${token}`)}">`));
+  assert.equal(sent[0].from, env.feed.sender.from);
+  // the no-JS reply is the same "check your email" page
+  const page = env.postHtml(params({ name: 'X', email: 'bea@example.com', status: 'cant' }));
+  assert.ok(page.includes(esc(T.changeTitle)) && page.includes(esc(T.changeText)));
+  // the link's page: the guest lead and the Confirm button; a GET writes nothing
+  const confirm = env.getPage({ change: token });
+  assert.equal(JSON.stringify(env.sheet().rows), rows0, 'a GET writes nothing');
+  assert.ok(confirm.includes(`<h1>${esc(fill(T.guestRemoveConfirmLead, vars(env.feed)))}</h1>`));
+  assert.ok(confirm.includes(`name="change" value="${token}"`) && confirm.includes(esc(T.changeConfirm)));
+  assert.ok(!confirm.includes(esc(T.changeConfirmLead)), 'not the RSVPer page');
+});
+
+test('G-6. confirming removes only that guest row; the RSVPer gets the note; the guest only the page; a second press shows the same page and sends nothing', () => {
+  const env = makeEnv();
+  env.post(withEmails({ name: 'Ann', email: 'ann@example.com', guests: [['Bea', 'yes'], ['Cy', 'no']] }, ['bea@example.com', 'cy@example.com']));
+  env.post(withEmails({ name: 'Dee', email: 'dee@example.com', guests: [['Bea', 'yes']] }, [])); // another Bea, no address
+  const before = env.data();
+  rsvp(env, { name: 'Bea', email: 'bea@example.com', status: 'cant' });
+  const token = env.token('bea@example.com');
+  const m0 = env.mails.length;
+  const page = env.applyChange(token);
+  assert.ok(page.includes(esc(T.guestRemovedTitle)) && page.includes(esc(T.guestRemovedText)));
+  assert.ok(!page.includes(esc(T.changeDoneTitle)));
+  const after = env.data();
+  assert.equal(after.length, before.length - 1);
+  assert.deepEqual(after, before.filter((x) => x[COL.email] !== 'bea@example.com'), 'only that row is gone; every other cell is unchanged');
+  const sent = env.mails.slice(m0);
+  assert.deepEqual(sent.map((m) => m.to), ['ann@example.com'], 'the RSVPer only');
+  assert.equal(sent[0].subject, fill(T.guestRemovedSubject, { title: env.feed.title }));
+  assert.equal(sent[0].body, [fill(T.hi, { name: 'Ann' }), fill(T.guestRemovedNote, { guest: 'Bea', eventName: env.feed.mail.name }), expectSig(env)].join('\n\n'));
+  assert.ok(sent[0].body.startsWith('Hi Ann,\n\nBea removed themselves from your RSVP to Ohm Launch Party.\n\n'));
+  // a second press, and the link opened again: the same page, no mail, no write
+  const again = env.applyChange(token);
+  assert.ok(again.includes(esc(T.guestRemovedTitle)) && !again.includes(esc(T.changeExpired)));
+  assert.ok(env.getPage({ change: token }).includes(esc(T.guestRemovedTitle)));
+  assert.equal(env.mails.length, m0 + 1, 'no second note');
+  assert.deepEqual(env.data(), after, 'the sheet changed once');
+  // Bea's spot is free (nobody waits, so no spot-freed note); her address is now unknown and RSVPs as a new person
+  assert.equal(env.status().session.spotsLeft, 17);
+  assert.deepEqual(rsvp(env, { name: 'Bea', email: 'bea@example.com' }), { ok: true, status: 'going', outcomes: ['confirmed'] });
+});
+
+test('G-7. a removed guest who held a confirmed spot while anyone waits: the spot-freed note (freed 1); a waitlisted guest, or nobody waiting: none', () => {
+  const env = makeEnv((f) => {
+    f.session.limit = 2;
+  });
+  env.post(withEmails({ name: 'Ann', email: 'ann@example.com', guests: [['Bea', 'yes']] }, ['bea@example.com']));
+  env.post(withEmails({ name: 'Dee', email: 'dee@example.com', guests: [['Eve', 'yes']] }, ['eve@example.com']));
+  const cell = (n: string) => env.data().find((x) => x[COL.name] === n)?.[COL.cell];
+  assert.deepEqual(['Ann', 'Bea', 'Dee', 'Eve'].map(cell), ['confirmed', 'confirmed', 'waitlist', 'waitlist']);
+  rsvp(env, { name: 'Bea', email: 'bea@example.com', status: 'cant' });
+  const m0 = env.mails.length;
+  env.applyChange(env.token('bea@example.com'));
+  const freed = env.mails.slice(m0).filter((m) => m.to === env.feed.sender.contact);
+  assert.equal(freed.length, 1, 'one spot-freed note');
+  assert.equal(freed[0].subject, fill(T.spotFreedSubject, { session: 'yoga', title: env.feed.title }));
+  assert.equal(freed[0].body, [fill(T.spotFreedText, { session: 'yoga', n: 1 }), fill(T.detailsLine, vars(env.feed))].join('\n\n'));
+  assert.equal(cell('Dee'), 'waitlist', 'nobody is promoted');
+  // a waitlisted guest's removal frees nothing
+  rsvp(env, { name: 'Eve', email: 'eve@example.com', status: 'cant' });
+  const m1 = env.mails.length;
+  env.applyChange(env.token('eve@example.com'));
+  assert.deepEqual(env.mails.slice(m1).map((m) => m.to), ['dee@example.com'], 'the note to Dee only');
+  assert.equal(cell('Eve'), undefined);
+  // nobody waiting: no note
+  const e2 = makeEnv((f) => {
+    f.session.limit = 3;
+  });
+  e2.post(withEmails({ name: 'Hal', email: 'hal@example.com', guests: [['Ivy', 'yes']] }, ['ivy@example.com']));
+  rsvp(e2, { name: 'Ivy', email: 'ivy@example.com', status: 'cant' });
+  e2.applyChange(e2.token('ivy@example.com'));
+  assert.ok(!e2.mails.some((m) => m.to === e2.feed.sender.contact), 'no spot-freed note');
+  assert.equal(e2.status().session.spotsLeft, 2);
+});
+
+test('G-8. Going or Maybe from a guest address changes nothing: the pending reply and an "already on the list" note with no link; the throttle caps it', () => {
+  const env = makeEnv();
+  env.post(withEmails({ name: 'Ann', email: 'ann@example.com', guests: [['Bea', 'no']] }, ['bea@example.com']));
+  const rows0 = JSON.stringify(env.sheet().rows);
+  const m0 = env.mails.length;
+  for (const status of ['going', 'maybe']) {
+    const r = rsvp(env, { name: 'B', email: 'bea@example.com', status, guests: [['Zed', 'yes']] });
+    assert.deepEqual(r, { ok: true, status, pending: true, outcomes: [] });
+  }
+  assert.equal(JSON.stringify(env.sheet().rows), rows0, 'nothing written');
+  const sent = env.mails.slice(m0);
+  assert.deepEqual(sent.map((m) => m.to), ['bea@example.com', 'bea@example.com']);
+  const f = env.feed;
+  const expected = [fill(T.hi, { name: 'Bea' }), fill(T.guestListedLead, { ...vars(f), inviter: 'Ann' }), [T.guestChangeLine, f.pageUrl].join('\n'), expectSig(env)].join('\n\n');
+  for (const m of sent) {
+    assert.equal(m.subject, fill(T.guestListedSubject, { title: f.title }));
+    assert.equal(m.body, expected);
+    assert.ok(!/\?change=/.test(m.body), 'no link');
+  }
+  assert.ok(![...env.cache.keys()].some((k) => k.startsWith('chg:')), 'no token');
+  // the third request still mails (3 per 6 hours); the fourth gets the same reply and sends nothing
+  rsvp(env, { name: 'B', email: 'bea@example.com', status: 'going' });
+  const r4 = rsvp(env, { name: 'B', email: 'bea@example.com', status: 'cant' });
+  assert.deepEqual(r4, { ok: true, status: 'cant', pending: true, outcomes: [] });
+  assert.equal(env.mails.length, m0 + 3, 'the fourth request sends nothing');
+  assert.equal(JSON.stringify(env.sheet().rows), rows0);
+});
+
+test('G-9. an unknown address is a new RSVP as before; so is a guest address whose RSVPer row is gone, and any address on a feed without guestRemoveLead', () => {
+  const env = makeEnv();
+  env.post(withEmails({ name: 'Ann', email: 'ann@example.com', guests: [['Bea', 'no']] }, ['bea@example.com']));
+  assert.deepEqual(rsvp(env, { name: 'Cy', email: 'cy@example.com' }), { ok: true, status: 'going', outcomes: ['confirmed'] });
+  assert.equal(env.mails[env.mails.length - 1].subject, fill(T.confirmSubject, { title: env.feed.title }));
+  env.sheet().rows.splice(1, 1); // Brian deletes Ann's you row by hand: Bea's row has no RSVPer
+  assert.deepEqual(rsvp(env, { name: 'Bea', email: 'bea@example.com' }), { ok: true, status: 'going', outcomes: ['confirmed'] });
+  const old = makeEnv((feed) => {
+    delete feed.text.guestRemoveLead;
+  });
+  old.post(withEmails({ name: 'Ann', email: 'ann@example.com', guests: [['Bea', 'no']] }, ['bea@example.com']));
+  assert.deepEqual(rsvp(old, { name: 'Bea', email: 'bea@example.com', status: 'cant' }), { ok: true, status: 'cant', outcomes: [] });
+  assert.equal(old.data().length, 3, 'a new RSVP row, as before');
+});
+
+test('G-10. a stale guest link (the RSVPer changed the RSVP first, 6 hours passed, or the row went by hand): changeExpired, nothing deleted, no note', () => {
+  const env = makeEnv();
+  env.post(withEmails({ name: 'Ann', email: 'ann@example.com', guests: [['Bea', 'yes']] }, ['bea@example.com']));
+  rsvp(env, { name: 'Bea', email: 'bea@example.com', status: 'cant' });
+  const stale = env.token('bea@example.com');
+  env.clock.now += MIN;
+  // Ann confirms a change (Bea stays, same address): the RSVP's base moves on
+  const r = env.post(withEmails({ name: 'Ann', email: 'ann@example.com', guests: [['Bea', 'yes']] }, ['bea@example.com']));
+  assert.equal(r.pending, true);
+  env.applyChange(env.token('ann@example.com'));
+  const rows1 = env.data();
+  const m1 = env.mails.length;
+  assert.ok(env.applyChange(stale).includes(esc(T.changeExpired)));
+  assert.deepEqual(env.data(), rows1, 'nothing deleted');
+  assert.equal(env.mails.length, m1, 'no note');
+  // 6 hours pass before the guest confirms
+  rsvp(env, { name: 'Bea', email: 'bea@example.com', status: 'cant' });
+  const late = env.token('bea@example.com');
+  env.clock.now += 6 * HOUR + MIN;
+  assert.ok(env.getPage({ change: late }).includes(esc(T.changeExpired)), 'GET after expiry');
+  assert.ok(env.applyChange(late).includes(esc(T.changeExpired)), 'POST after expiry');
+  assert.deepEqual(env.data(), rows1);
+  // Brian deletes the guest row by hand before she confirms
+  rsvp(env, { name: 'Bea', email: 'bea@example.com', status: 'cant' });
+  const gone = env.token('bea@example.com');
+  const i = env.sheet().rows.findIndex((x) => x[COL.email] === 'bea@example.com');
+  env.sheet().rows.splice(i, 1);
+  const rows2 = env.data();
+  const m2 = env.mails.length;
+  assert.ok(env.applyChange(gone).includes(esc(T.changeExpired)));
+  assert.deepEqual(env.data(), rows2);
+  assert.equal(env.mails.length, m2);
 });
