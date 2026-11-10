@@ -3,9 +3,14 @@
 // Partial work: put "wip" or "partial" in the commit message to skip the check.
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { commitCommands } from './lib/git-commit.mjs';
 
 let cmd = '';
 try { cmd = JSON.parse(readFileSync(0, 'utf8')).tool_input?.command ?? ''; } catch { process.exit(0); }
+// Only the commit command itself is read for step IDs, item IDs and wip (I-117).
+const commits = commitCommands(cmd);
+if (!commits.length) process.exit(0);
+cmd = commits.join('\n');
 if (/\b(wip|partial)\b/i.test(cmd)) process.exit(0);
 
 const statusPath = join(process.env.CLAUDE_PROJECT_DIR, 'docs/build/STATUS.md');

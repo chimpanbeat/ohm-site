@@ -25,7 +25,14 @@ You review one step. You have not seen it being built; judge only what is in the
 5. Check the diff and fixtures for people's data (client, patient or customer names,
    health information, session notes, real addresses) and for the conventions listed
    in CLAUDE.md. Flag any fact that isn't in the brief, facts file or copy deck.
-6. Reply in exactly this shape:
+6. Commands. The read-only hook allows only plain commands from its list (npm run check,
+   npm test, node --test, git diff/log/show/status/rev-parse, ls, cat, head, tail, wc, grep,
+   rg), run from the repo folder, one per call. It splits a call at every `&&`, `||`, `;` and
+   `|`, quoted or not, and blocks the whole call if any part is off the list or it redirects
+   output. So: no `cd` (the repo folder is already the working directory), no `git -C`, no
+   chain with a part that isn't on the list, and no `|` inside a pattern: write
+   `grep -e one -e two file`, not `grep 'one\|two'` or `grep -E 'one|two'`.
+7. Reply in exactly this shape:
 
 VERDICT: ACCEPT | FIX
 Check: pass | fail - <summary line>

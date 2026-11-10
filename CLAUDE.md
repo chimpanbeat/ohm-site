@@ -43,4 +43,5 @@ Rules live in .claude/ (settings, hooks, agents, skills); the spec's Guardrails 
 - `noindex` until launch (`indexable` = `licensed && deploy.live` in `site.ts`).
 - Off-site links: when a step builds or changes anything Brian shares off-site (event pages, QR codes, print, texts, emails, social, partner referrals, the Google Business Profile link), propose the UTM-tagged link(s) in the report to Brian. Conventions: `docs/runbooks/analytics.md` (I-116).
 - Close-out: a commit that names a step (`E16`) or item (`I-107`) is blocked while that step's STATUS row is `todo` (`.claude/hooks/status-closeout.mjs`). Finish a step by setting its row to done with the commit hash; use `wip` in the message for partial commits.
+- Edit files with Edit/Write, never Bash heredocs or Python (heredocs and `$VAR` in Bash calls were behind 13 false commit-gate blocks, I-117).
 - Stack rules, each marked check or convention: ARCHITECTURE §D.

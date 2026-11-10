@@ -10,8 +10,17 @@ the master-list writes in docs/build/steps/0-setup.md.
 1. Load. Run `git status --porcelain`; if the tree is dirty with changes that aren't
    this step's, stop and ask Brian. Read docs/build/STATUS.md. From the master list
    (link in CLAUDE.md) read only Build status and the Items rows with Owner Code and
-   State queued, by section or search. Never read a whole doc, the spec or the Archive
-   tab (the Plan review and Push review tabs are write-only). No Docs connector: ask Brian to paste the
+   State queued, by block id. Never read the whole main tab (about 89K characters, Items
+   alone about 41K), the spec or the Archive tab (the Plan review and Push review tabs
+   are write-only). The Docs connector reads one block by id (`read` of the tab body node
+   with payload `{"kind":"view","parentId":"<id>"}`), so: (a) outline the main tab
+   (`{"projection":"outline"}`) for the ids of the Build status list and the Items table;
+   (b) view the Build status list by id; (c) search `queued`: a hit whose whole paragraph
+   is `queued` is a State cell, so its row is a candidate (hits in prose, or in "open …
+   set queued to release" cells, are not); (d) view each candidate row by its row id and
+   keep the rows with Owner Code. Measured Nov 10, 2026: about 29K characters (outline
+   4K, search 8K, Build status 7K, five rows 2K each) against about 89K for the whole tab.
+   Add up the characters you read and give the figure in the step 12 report. No Docs connector: ask Brian to paste the
    queued rows, and list the I-IDs you applied in your report. S: read STATUS.md's Open
    items rows with Owner Code and State queued, by section.
 2. Effort. If the next row's effort isn't the effort named in the skill message, stop:
@@ -87,7 +96,7 @@ the master-list writes in docs/build/steps/0-setup.md.
     S, launch step (the L row): also print STATUS.md's Method feedback lines and a
     Metrics summary (run `node tools/method-metrics.mjs`; add the Metrics table totals)
     as one fenced block headed "Paste into the harvest chat".
-12. Stop. Report the commit and the next row, then, before its command, the next
+12. Stop. Report the commit, the characters of master list you read (step 1) and the next row, then, before its command, the next
     session's title as a line `/rename <project> <id>: <what>` (at most about 32
     characters) and its model and effort as `Model: Sonnet, <the next row's effort>`.
     Then its command and "/clear first, then /rename, then the command". Never start

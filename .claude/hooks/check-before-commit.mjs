@@ -1,7 +1,14 @@
 // Commit gate: blocks `git commit` unless `npm run check` passes. Exit 2 = block.
+// Runs only when the Bash call holds a real git commit (lib/git-commit.mjs); any other call passes (I-117).
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { commitCommands } from './lib/git-commit.mjs';
+
+// Unparseable input fails closed: the check runs, as before.
+let cmd = null;
+try { cmd = JSON.parse(readFileSync(0, 'utf8')).tool_input?.command ?? ''; } catch { /* run the check */ }
+if (cmd !== null && !commitCommands(cmd).length) process.exit(0);
 
 const root = process.env.CLAUDE_PROJECT_DIR;
 const pkgPath = join(root, 'package.json');
