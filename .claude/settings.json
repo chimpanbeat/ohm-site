@@ -3,7 +3,6 @@
   "permissions": {
     "disableBypassPermissionsMode": "disable",
     "deny": [
-      "Agent(model:*)",
       "Agent(effort:*)"
     ],
     "ask": [

@@ -2,6 +2,8 @@
 
 Brief §15 BM-1–BM-14 · Architecture §B12
 
+Models: builder Fable 5.2 (high effort) · architect Fable 5.2 (plans the fixes as new items) · reviewer Fable 5.2 (live Drive sends and the read-style access checks). Ignored after Nov 16, 2026 11:59 pm PT (I-124).
+
 ## Goal
 Every BM passes, first in Playwright (Chromium and WebKit, at 375 and 1280 px), then with Brian on real devices over LAN preview (`OHM_BODYMAP_PREVIEW=1`, the real endpoint). He needs his iPhone (current iOS), one Android, a desktop, and two people who haven't seen the page (I-111). The results go in the Results section below. Fixes become new items, not edits here. Read-only: all code. Known gaps: none.
 

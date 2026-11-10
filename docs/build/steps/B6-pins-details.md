@@ -2,6 +2,8 @@
 
 Brief §15 R3–R6 · Architecture §B12 Pins, §A1 pin tokens
 
+Models: builder Sonnet (medium effort) · architect Opus (no planning in this step) · reviewer Fable 5.2 (client data: the note and intensity go into storage, and Start over clears it). Ignored after Nov 16, 2026 11:59 pm PT (I-124).
+
 ## Goal
 The page has:
 - All 5 pin types, with shapes from new `src/lib/bodymap-shapes.ts` (circle, diamond, triangle, 4-point star, ring with slash) and a legend.

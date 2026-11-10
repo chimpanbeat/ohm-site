@@ -2,6 +2,8 @@
 
 Brief §15 R8, R10, R11 · Architecture §B12 Report and PDF, Wire contract, Checks, Privacy
 
+Models: builder Sonnet (medium effort) · architect Opus (no planning in this step) · reviewer Fable 5.2 (the wire contract's report, client data in the PDF, the honeypot and caps). Ignored after Nov 16, 2026 11:59 pm PT (I-124).
+
 ## Goal
 The full PDF:
 - header: name, appointment, sent (Denver) and figure;

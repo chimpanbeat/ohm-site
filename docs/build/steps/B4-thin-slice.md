@@ -2,6 +2,8 @@
 
 Brief §15 · Architecture §B12 Page, Coordinates and zoom, Storage, Report and PDF, Wire contract, Checks; §B7, §B8 (the `/hello` pattern), §B11
 
+Models: builder Fable 5.2 (high effort) · architect Opus (no planning in this step) · reviewer Fable 5.2 (the wire contract, client data in storage and the PDF, a real Drive send). Ignored after Nov 16, 2026 11:59 pm PT (I-124).
+
 ## Goal
 `/body-map` exists behind `bodymap.open`. While closed, the page is `closed` only, with 0 scripts and no form. With `OHM_BODYMAP_PREVIEW=1` it shows:
 - name, date and the honeypot;

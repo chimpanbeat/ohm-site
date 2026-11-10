@@ -2,6 +2,8 @@
 
 Brief §15 R1, R9 · Architecture §B12 Zones, Art, Pins
 
+Models: builder Sonnet (high effort; Brian's call, Nov 10) · architect Opus (no planning in this step) · reviewer Opus (zone geometry and lookup; storage, payload shape and filing don't change). Ignored after Nov 16, 2026 11:59 pm PT (I-124).
+
 ## Goal
 The figure picker (`Female` · `Male`) and the view tabs (`Front` · `Back`) show the 4 v1 figures. Changing either keeps the pins. Four hidden zone files, `src/data/bodymap-zones/<sex>_<view>.json` with the keys of `bodymap.regions`, give every pin its region, and the PDF list shows region names. Zones are authored per figure and never mirrored. Left and right are the client's own: on a front view, `left-*` sits on the viewer's right.
 

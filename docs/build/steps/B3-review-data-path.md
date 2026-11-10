@@ -2,6 +2,8 @@
 
 Brief §15 · Architecture §B12 Filing script, Deploy, Privacy
 
+Models: builder Fable 5.2 (high effort) · architect Opus (plans the B2 fix items from a FIX verdict; Brian's call, Nov 10) · reviewer Fable 5.2 (the Apps Script, Drive filing, access and fixtures). Ignored after Nov 16, 2026 11:59 pm PT (I-124).
+
 ## Goal
 The reviewer confirms, read-only, that B2's script can only create files and leaks nothing. Their verdict is PASS or FIX with a numbered list. They check:
 - No code path returns Drive data: the reviewer reads every Drive call and every reply.

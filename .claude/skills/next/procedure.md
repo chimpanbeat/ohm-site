@@ -7,6 +7,27 @@ read and write below, or do it in STATUS.md as the step says. Step 0 works from
 brief/BRIEF.md, which is already the repo brief: skip the Brief-tab read and write and
 the master-list writes in docs/build/steps/0-setup.md.
 
+Models line (I-124). A step file may carry one line
+`Models: builder <model> (<why>) · architect <model> (<why>) · reviewer <model> (<why>)`,
+each model Sonnet, Opus or Fable 5.2. The line counts only until Nov 16, 2026 11:59 pm PT
+(Nov 17, 12:59 am Denver time), the end of the Fable offer; run `date` when it is close,
+and check again at each subagent call. After that, or in a step file with no line, ignore
+it: the builder is Sonnet and subagents get no model, so the agent files decide (Opus).
+Nothing needs reverting.
+- Subagents (architect, reviewer): while the line counts, pass the listed model as the
+  Agent call's `model`, by alias: `fable` for Fable 5.2, `opus`, `sonnet`. The per-call
+  model wins over the agent file's; the call takes aliases only; `fable` is Fable 5.2
+  outside Claude apps gateway sessions and needs Claude Code v2.1.321 or later
+  (https://code.claude.com/docs/en/sub-agents, https://code.claude.com/docs/en/model-config,
+  read 2026-11-10). Never pass an effort. If the call is refused because of the model,
+  repeat it with no model and say so in the step 12 report.
+- Builder: you are the builder, on the model your system prompt names. Wanted is the
+  line's builder while it counts, otherwise Sonnet. A /next command runs its first turn
+  on Sonnet whatever /model says (`model: sonnet` in its SKILL.md), and the session's
+  model takes over from Brian's next message (https://code.claude.com/docs/en/skills,
+  read 2026-11-10). So compare your model with the wanted one in step 2 and again at the
+  start of every later turn; never build on another model.
+
 1. Load. Run `git status --porcelain`; if the tree is dirty with changes that aren't
    this step's, stop and ask Brian. Read docs/build/STATUS.md. From the master list
    (link in CLAUDE.md) read only Build status and the Items rows with Owner Code and
@@ -23,9 +44,15 @@ the master-list writes in docs/build/steps/0-setup.md.
    Add up the characters you read and give the figure in the step 12 report. No Docs connector: ask Brian to paste the
    queued rows, and list the I-IDs you applied in your report. S: read STATUS.md's Open
    items rows with Owner Code and State queued, by section.
-2. Effort. If the next row's effort isn't the effort named in the skill message, stop:
-   "Next is <step>, Sonnet <effort>: /clear, then <command>." (/next is medium,
-   /next-low is low, /next-high is high.)
+2. Effort and builder. If the next row's effort isn't the effort named in the skill
+   message, stop: "Next is <step>, <wanted builder> <effort>: /clear, then <command>."
+   (/next is medium, /next-low is low, /next-high is high.) Then the builder (Models line,
+   above). Your model is the wanted one: go on. It isn't: stop before step 3 and say
+   "Next is <step>, builder <wanted>, and this turn is on <yours>. Run /model <alias>
+   (`fable`, `sonnet` or `opus`), set the effort to <effort>, then send `go`. This
+   command's first turn is always Sonnet, so if /model is already set, just send `go`."
+   On `go`, check again: still not the wanted model, name the model this turn is on and
+   stop; the wanted one, carry on from step 3.
 3. Reviewer answers. If CLAUDE.md lists a reviewer page, read its rows changed since
    STATUS.md's reviewer-read time. Draft one Items row per event, State proposed,
    Owner Brian, Blocks — unless the card blocked a step:
@@ -59,12 +86,14 @@ the master-list writes in docs/build/steps/0-setup.md.
    "Step <id> · <date> · waiting for Brian's OK". If the write fails, say so and
    present the plan anyway. An unknown fact becomes TODO(Brian) plus an open todo
    item, Owner Brian. A contract change, or a protected file the step file doesn't
-   list, goes to the architect subagent.
+   list, goes to the architect subagent (its model: Models line, above).
 7. Check. Run /verify until it passes.
 8. Review when the tier asks (S: before launch; M: after auth, personal data, payments,
    contracts or migrations, and before launch; L: every build step). Delegate to the
    reviewer subagent with the step ID, base commit and acceptance criteria IDs. Don't
-   pass a model or effort; the agent files set them.
+   pass an effort; the agent file sets it. Pass a model only while the step's Models
+   line counts (above): its reviewer for the reviewer, its architect for every architect
+   call below. Otherwise pass none; the agent files set it.
    - Round 1 FIX: fix every item; re-run the reviewer from the same base commit.
    - Round 2 FIX: decide one and log it in STATUS.md: fix (every item small and
      unambiguous), re-plan (architect rewrites the step file; the step restarts), or
@@ -100,6 +129,8 @@ the master-list writes in docs/build/steps/0-setup.md.
     as one fenced block headed "Paste into the harvest chat".
 12. Stop. Report the commit, the characters of master list you read (step 1) and the next row, then, before its command, the next
     session's title as a line `/rename <project> <id>: <what>` (at most about 32
-    characters) and its model and effort as `Model: Sonnet, <the next row's effort>`.
-    Then its command and "/clear first, then /rename, then the command". Never start
-    a second step in this session.
+    characters) and its model and effort as `Model: <builder>, <the next row's effort>`,
+    the builder being the next step's Models-line builder while that line counts,
+    otherwise Sonnet. Then its command and "/clear first, then /rename, then the command";
+    when the builder isn't Sonnet, add "/model <alias> before the command; it will stop
+    once and ask for `go`". Never start a second step in this session.

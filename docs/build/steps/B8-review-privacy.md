@@ -2,6 +2,8 @@
 
 Brief §15 · Architecture §B12 (all), §B11 (excluded page), §D
 
+Models: builder Fable 5.2 (high effort) · architect Fable 5.2 (plans the fix items from a FIX verdict, and the jsPDF decision) · reviewer Fable 5.2 (client data end to end). Ignored after Nov 16, 2026 11:59 pm PT (I-124).
+
 ## Goal
 The reviewer confirms, read-only, that health information goes only where §B12 Privacy allows: page memory, `localStorage` for at most 24 h, the POST body and Drive. Their verdict is PASS or FIX with a numbered list. The areas to check:
 - storage: the wrapper, the expiry, and clearing on send and on Start over;

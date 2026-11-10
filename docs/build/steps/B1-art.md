@@ -2,6 +2,8 @@
 
 Brief §15 · Architecture §B12 Art, §A1 pin tokens, §D
 
+Models: builder Sonnet (medium effort) · architect Opus (no planning in this step) · reviewer Opus (art and a contrast rule, no client data). Ignored after Nov 16, 2026 11:59 pm PT (I-124).
+
 ## Goal
 The delivered art is committed under `src/assets/bodymap/`, clean and checked. New `scripts/bodymap-art.mjs` (`npm run bodymap:art -- <extracted folder>`) copies the 8 SVGs to `svg/<sex>_<view>.svg` and the 8 2048×4096 PNGs to `png/<sex>_<view>.png`, keeping the delivered names. The views are `front`, `back`, `left_side` and `right_side`. The script also:
 - strips any `<metadata>`, editor attributes and comments;

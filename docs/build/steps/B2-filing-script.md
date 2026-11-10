@@ -2,6 +2,8 @@
 
 Brief §15 · Architecture §B12 Wire contract, Filing script, Deploy, Privacy; §B10 (simple-request pattern)
 
+Models: builder Fable 5.2 (high effort) · architect Opus (no planning in this step) · reviewer Fable 5.2 (the Apps Script, Drive filing and access). Ignored after Nov 16, 2026 11:59 pm PT (I-124).
+
 ## Goal
 `apps-script/bodymap/bodymap.js` and `appsscript.json` implement §B12's filing script exactly: `doPost` in the listed order, `doGet` always `invalid`, `setup()`, write-only, `folderKey` matching (a copy of `src/data/bodymap.ts`'s, kept equal by a test), `_Unsorted_Intakes`, file names, rate limits from `bodymap.rate`, idempotency and fixed replies. `scripts/push-apps-script.mjs` gains `--target bodymap`. The default stays `rsvp` and is unchanged. The bodymap target stages only `bodymap.js` (as `Code.js`) and its manifest. Its IDs come from a `bodymap` entry in `.apps-script-ids.json`.
 
