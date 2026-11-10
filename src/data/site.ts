@@ -119,6 +119,13 @@ export const site = {
   rsvpUrl: 'https://script.google.com/macros/s/AKfycbztJsWy8MhhaQXrMIfGBtxM8ZpqGIrBcGaZcO_ZWRmNhbwCm8_3epqZYg1yY18Nvb6N/exec',
 
   /**
+   * The body map filing web app ("Ohm Bodymap", a separate Apps Script; ARCHITECTURE §B12, I-073). Empty until B2
+   * deploys it. Public by design like rsvpUrl: it can only create files, within the rate limits. The Script ID
+   * and the Drive folder ID never go in the repo.
+   */
+  bodymapUrl: '',
+
+  /**
    * PocketSuite booking links: the items page filtered by a keyword tag, one per link key
    * (Brian, Oct 29 2026, I-040). Never guess PS URLs; only Brian changes these.
    */

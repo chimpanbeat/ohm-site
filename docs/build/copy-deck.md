@@ -644,7 +644,45 @@ Brian's Partiful description with Marea's edits on P1 (`650 hours`, Brian confir
 
 ---
 
+## Body map (`src/pages/body-map.astro`, `src/data/bodymap.ts`, I-073; B0, Nov 10, 2026)
+
+Brian approved this copy as drafted (Nov 8, 2026, plan question 6). Every string lives in `bodymap.text` (key in brackets); builders never type one. First person, plain, short. No licensure words anywhere on the page or in the PDF.
+
+**Meta** (`noindex`, never in the sitemap)
+- `title`: `Body map · {site.name}` [`title` + `site.name`]; `description`: `Mark where you feel it before your session.` [`description`]
+- Closed page (while `open` is false; B0 to B9): `This page isn't open yet.` [`closed`]
+- Trailing-slash redirect page (`public/body-map/index.html`): `<title>Body map</title>`, link text `Continue`.
+
+**Page**
+- H1 `Body map` [`h1`]; intro `Show me where you feel it, and I'll read it before your session.` [`intro`]
+- Privacy line, under the intro: `Only I see this. It's saved to my private business files.` [`privacy`]
+- Fields: `Your name` [`name`] · `Appointment date` [`apptDate`] · `Pick the figure closest to your body` [`figure`] with `Female` · `Male` [`figures`]; views `Front` · `Back` [`views`].
+- Types: `What are you marking?` [`typeQuestion`] with `Pain` · `Discomfort` · `Injury` · `Numbness or tingling` · `Avoid this area` [`types`].
+- Figure: `Tap where you feel it.` [`tapHint`] · `Pinch, or use + and −, to zoom.` [`zoomHint`]. Buttons `Zoom in` · `Zoom out` · `Reset zoom`. Figure label: `{Female|Male} figure, {front|back}. Tap to mark a spot.` [`figureLabel`]
+- Details sheet: `How strong is it?` [`intensity`] with `1`–`5`, ends `Mild` · `Strong`; `Note (optional)` [`note`], placeholder `A few words, if it helps`; `Star as a top priority` [`star`], `Remove`, `Done`.
+- Star messages: `You can star up to 3 marks. Unstar one first.` [`starLimit`] · `Avoid marks can't be starred.` [`starAvoid`]
+- Marks list: `Your marks ({n})` [`marks`], empty `No marks yet.` [`marksEmpty`]
+- Region list: `Prefer a list? Choose areas by name.` [`listTitle`] · `Areas you tick use the type chosen above.` [`listHint`]
+- Start over: `Start over` · `Clear all your marks?` · `Clear everything` · `Keep my marks`.
+- Storage notes: `Saved on this device for 24 hours, and cleared when you send it.` [`savedNote`] · `On a shared device? Tap Start over when you're done.` [`sharedNote`]
+- Sending: `Send body map` · `Sending…`; `Enter your name.` · `Pick your appointment date.` · `Mark at least one spot, or choose an area from the list.`; `It didn't send. Your marks are still here. Check your connection and try again.` [`errNetwork`] · `Try again` [`retry`]; `A lot of maps are coming in right now. Your marks are saved here. Try again in a few minutes.` [`errBusy`]; `Something went wrong, and it didn't send. Try again, or tell me at your session.` [`errServer`, also the honeypot and invalid replies]
+- Done: `Got it. Thank you.` [`doneTitle`] · `I'll look it over before your session. Your marks are cleared from this device.` [`doneText`]
+- Noscript: `This page needs JavaScript. If you can't use it, tell me about any pain or areas to avoid at your session.` [`noscript`]
+- Honeypot label (visually hidden, `tabindex="-1"`): `Leave this field empty` [`honeypot`]
+- A pin outside every zone: `Unlabelled area` [`unlabelled`]
+
+**Region names** [`bodymap.regions`; left and right are the client's own]
+- **Front (28):** Head and face; Front of neck; Left/Right shoulder; Left/Right chest; Left/Right upper arm; Left/Right elbow; Left/Right forearm; Left/Right wrist and hand; Left/Right side of ribs; Upper belly; Lower belly; Left/Right front of hip; Left/Right front of thigh; Left/Right knee; Left/Right shin; Left/Right ankle and foot.
+- **Back (29):** Back of head; Back of neck; Left/Right top of shoulder; Left/Right shoulder blade; Left/Right mid back; Left/Right low back; Base of spine; Left/Right glute; Left/Right back of upper arm; Left/Right back of elbow; Left/Right back of forearm; Left/Right back of hand; Left/Right hamstring; Left/Right back of knee; Left/Right calf; Left/Right ankle and heel.
+
+**PDF** [`text.pdf`]: `Body map`, `Name`, `Appointment`, `Sent`, `Figure`; headings in this order `Priority` · `Avoid` · `Other marks` (Brian, Nov 8, 2026); labels `Front` · `Back`; intensity `{n}/5`; footer `{site.name} · private client record`.
+
+**Drive file names** (not page copy; the script builds them): `<apptDate> Body map, <Name> (sent <yyyy-MM-dd HH.mm>).pdf` and `.json`, Denver time.
+
+---
+
 ## Checks Opus ran on this deck
+- **Body map (B0, I-073, Nov 10, 2026):** every string is the plan's section-3 draft, which Brian approved as drafted on Nov 8, 2026; the architect wrote it. No "massage", "massage therapist", "LMT" or "licensed" (`tests/bodymap-data.test.ts` 6). No "treat/cure/diagnose/fix/heal"; "pain", "injury" and "numbness or tingling" name what the client marks, not a claim about the work. The privacy line is a promise the build keeps (§B12 Privacy): only Brian's Drive receives the map, no analytics, no email. The 3-star and 24-hour figures in the copy equal `bodymap.limits`. No phone, email or address.
 - **Events, E13 (Marea's email copy, Brian's decisions, Nov 8, 2026):** every new email string is Marea's sample, verbatim, except three the architect needed and Brian's decisions define: `sessionWaitlist` (`Waitlist`), `questions` (Brian's fallback line) and `sessionAnswer`'s single space. The credentials in the signature are `w('postNominals')` (licensed-only, empty while unlicensed), so no email string types "LMT" or "CNMT". `bookHead` says "massage" (Marea's words); it is licensed-era copy like the Services `notSpa` variant and the emails are not checked by `check:wording` (they are not pages); if the license ever lapses, this line needs a variant. No phone number anywhere: both numbers are Script Properties. No "treat/cure/diagnose/fix/heal".
 - **Events, E8–E11 (I-088–I-105, Nov 8, 2026):** every new visible string is Brian's from the items, verbatim: `Restorative Yoga with Britt 🧘 🪷`, `Tai Chi led by John Marshall ☯️ 🥋`, `John Marshall` / `Tai Chi instruction` / `Chai Tea ceremony`, `Chai tea by John Marshall 🍵🫖`, `RSVP: {status}`, `Can't wait to see you there!`, `Hope to see you there!`, `Sorry you can't make it!`, 🤞, 🥲, `In {n} days`, `Tomorrow`, `Today!`, `Self-care tip`, `Self-care tip: {tip}`. The architect wrote none (the chai bullet came from Brian later on Nov 8). The parking link adds a URL, not words; the waiver button reuses the notice's label; the floating bar reuses `going`, `maybe`, `cant` and `status`. "Tai Chi instruction" and "Chai Tea ceremony" describe John Marshall's part in the party, not a credential. `ransfordengineering.com` returned 200 and the parking short link 302s to a Google Maps pin (Nov 8, 2026). 🪷 (lotus, Unicode 14, 2021) shows as an empty box on systems older than about 2022; accepted as Brian's choice. No licensed-only term, no "treat/cure/diagnose/fix/heal/health", no phone, email or address.
 - **Events, E5 and E6 (I-085, I-086, I-082, I-084, Nov 7, 2026):** new visible words: `Description`, `Details`, `Venue`, `Yoga instruction` (Brian, I-085), `Host` and `Graphic design` (Marea's, capitalised), `Harness and shoe rentals available` and `Optional Tai Chi by John Marshall` (Marea, I-086, verbatim), `Self-care tip of the day` and `Another tip` (Brian, I-082). The architect wrote only `reminderTip` (`Self-care tip of the day: {tip}`, its layout open in I-081). "Rentals available" replaces "provided", which wrongly implied free gear (Marea: an extra charge). "John Marshall" is a person's name from Marea; no credential or claim attached to it. No licensed-only term is new; no "treat/cure/diagnose/fix/heal/health"; no phone, email or address. The tips are not deck copy: they come from Brian's sheet at run time, so `check:wording` never sees them; the deck and runbook tell Brian they are public and must follow §A6.

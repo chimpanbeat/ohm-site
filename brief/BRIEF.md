@@ -28,15 +28,15 @@ PocketSuite (PS) handles booking, availability, intake forms, contracts, payment
 
 Do not build any of the following:
 
-- Intake, contracts, payments, or accounts.
-- A CMS, backend, database, or serverless functions. One exception (I-049, Nov 6, 2026): event RSVPs post to a Google Apps Script web app in Brian's Google account, which writes to his private sheet and sends the RSVP emails. The site itself stays static; no guest data, sheet ID or script ID is in the repo.
+- Intake, contracts, payments, or accounts. The body map (§15) is not intake: it carries no red flags, consent or session goals, which stay on the PocketSuite intake form.
+- A CMS, backend, database, or serverless functions. One exception (I-049, Nov 6, 2026): event RSVPs post to a Google Apps Script web app in Brian's Google account, which writes to his private sheet and sends the RSVP emails. The site itself stays static; no guest data, sheet ID or script ID is in the repo. A second exception (I-073, Brian, Nov 7–10, 2026): the body map (§15) posts to its own write-only Apps Script, "Ohm Bodymap", which files a PDF and a JSON copy in Brian's Workspace Drive; no client data, script ID or folder ID is in the repo.
 - Analytics that capture addresses. The one analytics service is Umami Cloud (I-114, Brian, Nov 8, 2026): no cookies; it counts only on the production domain (localhost and previews send nothing); it receives pageviews and the names of a few actions (book, contact, email, call, text, policies, rsvp) with the page path only, never link addresses, form contents or the visitor's address. `/body-map` never loads it (I-115). Details: ARCHITECTURE §B11.
 - Storage or transmission of a visitor's address anywhere other than the Google autocomplete call.
 - Any guessing of PocketSuite URLs. Use only the links Brian supplies (in config since Oct 29, 2026, I-040).
 
 ## 3. Stack and hosting
 
-- **Framework:** Astro, static output, TypeScript. Ship zero JavaScript except on the Book page (address check) and a small script on `/client-policies` (Expand all / Collapse all, and opening the section named in the link; I-037, Oct 29, 2026), and a tiny script on Home only: a plain click on the header logo turns its Ω once, counter-clockwise, instead of reloading Home; the wordmark stays still (Brian, Oct 30, 2026, step V), and a small script on the map pages (`/book` and each `/book/<zone>`) that loads the map's terrain shading after the page has loaded (I-054, Brian, Nov 5, 2026), and on event pages with an RSVP form a script that shows spots left and sends the RSVP without leaving the page (I-049, Nov 6, 2026), and on every page except `/body-map` the Umami analytics tag, plus a small click counter on every page but `/hello` (I-114, I-115, Nov 8, 2026; see §2). Every page works without JavaScript; the map pages then lose only the terrain shading, and the RSVP form posts to the Apps Script and shows its reply page. Page transitions and the other small motion Brian approved on Oct 30, 2026 are CSS only: the browser's native cross-document view transitions, never a client-side router, and no script (ARCHITECTURE §A3, fifth to tenth motion exceptions).
+- **Framework:** Astro, static output, TypeScript. Ship zero JavaScript except on the Book page (address check) and a small script on `/client-policies` (Expand all / Collapse all, and opening the section named in the link; I-037, Oct 29, 2026), and a tiny script on Home only: a plain click on the header logo turns its Ω once, counter-clockwise, instead of reloading Home; the wordmark stays still (Brian, Oct 30, 2026, step V), and a small script on the map pages (`/book` and each `/book/<zone>`) that loads the map's terrain shading after the page has loaded (I-054, Brian, Nov 5, 2026), and on event pages with an RSVP form a script that shows spots left and sends the RSVP without leaving the page (I-049, Nov 6, 2026), and on every page except `/body-map` the Umami analytics tag, plus a small click counter on every page but `/hello` (I-114, I-115, Nov 8, 2026; see §2), and on `/body-map` the body map script (§15, I-073). Every page works without JavaScript except `/body-map`, which needs it and says so in a `<noscript>` line; the map pages then lose only the terrain shading, and the RSVP form posts to the Apps Script and shows its reply page. Page transitions and the other small motion Brian approved on Oct 30, 2026 are CSS only: the browser's native cross-document view transitions, never a client-side router, and no script (ARCHITECTURE §A3, fifth to tenth motion exceptions).
 - **Hosting:** GitHub Pages, deployed with the official Astro GitHub Action.
   - Build to the default `*.github.io` URL first.
   - The custom domain `ohmprecisionbodywork.com` (DNS at Porkbun) is cut over later; see §10.
@@ -302,3 +302,42 @@ Every AC is covered by a test or a named screenshot check.
 - **The preview is public.** Anyone with the URL can load it before license day, so apply the §7 wording rules and `npm run check:wording` from the first deploy. In your plan, say whether the preview should be `noindex` until `licensed` is true.
 - **North boundary decided (Oct 5, 2026):** the KML polygon is authoritative, and Monument is out of the service area (decided Oct 5, 2026). Revisit if the zone cuts out an area Brian meant to serve.
 - *(Superseded)* **North boundary is not final.** Brian exported the KML with the current boundaries and is still deciding whether the area east of Academy, north of Austin Bluffs/Templeton Gap, and west of Powers joins the North zone. The polygons in his exported KML decide (§6). If they disagree with the boundary descriptions in §6, list the differences as `TODO(Brian)` and do not edit the descriptions yourself.
+
+## 15. Body map (I-073, I-074; spec 2026-11-07, Brian's answers Nov 8, started Nov 10, 2026)
+
+A client-facing page, `https://ohmprecisionbodywork.com/body-map`, where a client marks pain, discomfort, injury, numbness or tingling, and areas to avoid on a front and back body figure before a session. Sending files a PDF report and a JSON copy in Brian's Google Workspace Drive. It is standalone from the PocketSuite intake form: no red flags, no appointment confirmation tie-in, no session goal. Design and contracts: ARCHITECTURE §B12; data and strings: `src/data/bodymap.ts`; copy: copy deck → Body map.
+
+**Access.** Noindex, never in the sitemap, linked from no page; Brian shares the link himself (the PocketSuite link waits for launch, I-112). The page is `bare`: no header or footer, so it has no credential block; it never uses "massage therapist", "LMT" or "licensed". It loads no analytics (§2, I-115). It needs JavaScript (§3).
+
+**Requirements (v1).**
+- R1 Front and back figures, female or male. The 4 side views (left and right, both sexes) stay in the assets for a later release and are not shown.
+- R2 Zoom and pan (pinch, wheel, buttons); pins stay on the body at any zoom.
+- R3 Pin types: pain, discomfort, injury, numbness or tingling, avoid. Each has its own shape as well as colour.
+- R4 Optional details in a few taps: intensity 1–5 and a one-line note.
+- R5 Star up to 3 priority pins. Avoid pins can't be starred (Brian, Nov 8, 2026).
+- R6 A region list (checkboxes by area name, per view) gives the same report data without tapping.
+- R7 Autosave on the device for 24 hours, cleared on send; the page works without storage.
+- R8 Sending builds the PDF in the browser and posts it with the JSON to the filing script.
+- R9 The report names body regions from hidden zones (28 front, 29 back), never drawn for the client.
+- R10 Spam protection: a honeypot, size caps and rate limits (6 per 10 minutes, 30 per day, 3 per client name and appointment date per day; Brian, Nov 8, 2026). Turnstile can be added later without a redesign.
+- R11 A confirmation after sending; a clear error and retry if filing fails, with the marks kept.
+
+**Non-goals (v1).** Red-flag screening, appointment tie-in, session goals, before/after overlays, side views, 3D, accounts, a history the client can read, muscle-layer diagrams, email notices of new maps (Brian, Nov 8, 2026), automatic deletion (Brian keeps maps under his own records policy).
+
+**Data and privacy.** No health information in the repo, the built site, analytics, logs, URLs or file names beyond the client's name and dates. Google receives the map as Brian's Workspace processor (Brian treats the BAA as settled, Nov 7, 2026). The filing script only creates files: no code path lists, reads or shares them. Google can't enforce that for a script that runs as Brian, so it is a promise the code keeps, checked by tests, static checks and review. Files go to the client's folder when exactly one folder named `First_Last` matches the typed name (case, accents and punctuation ignored), otherwise to `_Unsorted_Intakes` in the same parent folder; Brian re-files by hand. The public repo holds only code, the art and geometry-only zone files.
+
+**Acceptance criteria** (the spec's AC-1 to AC-14, renamed so they don't clash with §12):
+- [ ] **BM-1** On a phone, a client can choose female or male, place 3 pins on the front and 2 on the back, and send in under 3 minutes without help.
+- [ ] **BM-2** Pinching to zoom 3x and placing a pin lands it within about 10 px of the tap at that zoom, and it stays on that spot after zooming out.
+- [ ] **BM-3** Each of the 5 pin types is distinguishable in greyscale.
+- [ ] **BM-4** An avoid pin appears in the PDF under its own "Avoid" heading.
+- [ ] **BM-5** Starring a 4th pin is refused with a visible message; starred pins are listed first in the PDF.
+- [ ] **BM-6** With no pins tapped, the region list alone produces a sendable report listing the same region names.
+- [ ] **BM-7** Reloading mid-entry restores the pins; after sending, a reload shows an empty form; with storage blocked the page still works.
+- [ ] **BM-8** Sending as "Test Client" with a date creates one PDF and one JSON in `_Unsorted_Intakes` (or the matching client folder); the endpoint cannot list or read files (checked with read-style requests).
+- [ ] **BM-9** The PDF shows both figures with pins, the pin list with region names, the typed name and the appointment date; no zone outline is visible on the page or in the PDF.
+- [ ] **BM-10** A send with the honeypot filled, or over the size cap, creates nothing and shows a generic error.
+- [ ] **BM-11** If filing fails (offline or script error), the client sees a retry message and the pins are still there.
+- [ ] **BM-12** No client data, secrets or health information in the repo, the page source, third-party network calls or console logs.
+- [ ] **BM-13** The page is noindex and linked from nowhere on the site; `check:wording` passes and the page has no "massage therapist", "LMT" or "licensed".
+- [ ] **BM-14** Swapping the art for another set with the same viewBox and file names needs no code change (only the files and the zone JSON).
