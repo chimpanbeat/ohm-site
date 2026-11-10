@@ -37,6 +37,14 @@
             "timeout": 600,
             "onFailure": "block",
             "statusMessage": "Running the check before commit"
+          },
+          {
+            "type": "command",
+            "if": "Bash(git commit *)",
+            "command": "node",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/status-closeout.mjs"],
+            "onFailure": "block",
+            "statusMessage": "Checking STATUS.md is closed out"
           }
         ]
       },

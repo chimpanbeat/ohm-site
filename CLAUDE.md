@@ -42,4 +42,5 @@ Rules live in .claude/ (settings, hooks, agents, skills); the spec's Guardrails 
 - Unknown facts become `TODO(Brian):` plus an open todo in the master list. Never invent facts, copy claims, testimonials or credentials.
 - `noindex` until launch (`indexable` = `licensed && deploy.live` in `site.ts`).
 - Off-site links: when a step builds or changes anything Brian shares off-site (event pages, QR codes, print, texts, emails, social, partner referrals, the Google Business Profile link), propose the UTM-tagged link(s) in the report to Brian. Conventions: `docs/runbooks/analytics.md` (I-116).
+- Close-out: a commit that names a step (`E16`) or item (`I-107`) is blocked while that step's STATUS row is `todo` (`.claude/hooks/status-closeout.mjs`). Finish a step by setting its row to done with the commit hash; use `wip` in the message for partial commits.
 - Stack rules, each marked check or convention: ARCHITECTURE §D.
