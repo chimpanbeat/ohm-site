@@ -87,8 +87,10 @@ the master-list writes in docs/build/steps/0-setup.md.
     Metrics row (sessions, tokens from tools/method-metrics.mjs, fix rounds,
     hook/check blocks); reviewer page progress/current and review cards (375 and
     1280 px) when something visible changed; 0-3 Method feedback lines from the review.
-    Move done and applied Items rows to the Archive tab unchanged; when one had a
-    reviewer card with blocks set, clear that field.
+    After rewriting Build status, move every Items row whose State is done or
+    applied <commit> to the top of the Archive tab, unchanged (newest first), then
+    delete it from Items. Keep the Next ID line as it is. Report "archived N rows" in
+    the step's summary. When one had a reviewer card with blocks set, clear that field.
     S (no master list link): skip the Build status write; the Metrics row goes in
     STATUS.md's Metrics table and the Method feedback lines in its Method feedback
     section; move done and applied rows from Open items to Closed, State done or
