@@ -1,31 +1,35 @@
 #!/usr/bin/env node
 // Screenshots of every built route at 375 and 1280 px, with Playwright (the one devDependency, static-site profile only).
-// Usage: node tools/shots.mjs [step-id] [--dir dist] [--base /path]   (npm run shots -- 1)
+// Usage: node tools/shots.mjs [step-id] [--dir dist] [--base /path] [--route /x] [--stub <state>] [--nojs]   (npm run shots -- 1)
 // --base: the site's base path (Astro `base`), so built asset URLs resolve.
+// --route: only that route. --nojs: JavaScript off (files get -nojs).
+// --stub <state>: answer the Apps Script endpoint with a fixture (ok, busy, invalid, server, network, nonjson, sending),
+//   run the route's scenario in tools/shots-scenarios.mjs first, and name files <route>-<state>-<width>.png. Logic: tools/shots-stub.mjs.
 // Serves the build folder on 127.0.0.1, finds every route from its *.html files, and writes
 // docs/build/screens/[<step-id>/]<route>-<width>.png. Run the build first.
 import { createServer } from 'node:http';
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { extname, join, normalize, relative, resolve, sep } from 'node:path';
 
+import { parseShotsArgs, stubAction, shotName } from './shots-stub.mjs';
+import { SCENARIOS } from './shots-scenarios.mjs';
+
 const WIDTHS = [375, 1280];
-const args = process.argv.slice(2);
-let dir = 'dist';
-let sitePath = '';
-const rest = [];
-for (let i = 0; i < args.length; i++) {
-  if (args[i] === '--dir') dir = args[++i] || dir;
-  else if (args[i] === '--base') sitePath = (args[++i] || '').replace(/\/+$/, '');
-  else rest.push(args[i]);
-}
-const step = rest[0] || '';
-const root = resolve(dir);
-const outDir = resolve('docs/build/screens', step);
 
 function fail(msg) {
   console.error(`shots: ${msg}`);
   process.exit(1);
 }
+
+let opts;
+try {
+  opts = parseShotsArgs(process.argv.slice(2));
+} catch (e) {
+  fail(e.message);
+}
+const { dir, sitePath, step, stub, nojs, route: onlyRoute } = opts;
+const root = resolve(dir);
+const outDir = resolve('docs/build/screens', step);
 
 if (!existsSync(root) || !statSync(root).isDirectory()) fail(`${dir}/ not found; run the build first`);
 
@@ -35,11 +39,17 @@ function htmlFiles(d) {
     return e.isDirectory() ? htmlFiles(p) : e.name.endsWith('.html') ? [p] : [];
   });
 }
-const routes = htmlFiles(root)
+const allRoutes = htmlFiles(root)
   .map((f) => relative(root, f).split(sep).join('/'))
   .map((f) => '/' + f.replace(/(^|\/)index\.html$/, '$1').replace(/\.html$/, ''))
   .sort();
-if (!routes.length) fail(`no .html files in ${dir}/`);
+if (!allRoutes.length) fail(`no .html files in ${dir}/`);
+const routes = onlyRoute ? allRoutes.filter((r) => r.replace(/\/$/, '') === onlyRoute.replace(/\/$/, '')) : allRoutes;
+if (!routes.length) fail(`--route ${onlyRoute} matches no built route`);
+if (stub) {
+  const missing = routes.filter((r) => !SCENARIOS[r]);
+  if (missing.length) fail(`--stub needs a scenario in tools/shots-scenarios.mjs for: ${missing.join(', ')} (use --route)`);
+}
 
 let chromium;
 try {
@@ -76,13 +86,27 @@ let count = 0;
 try {
   browser = await chromium.launch();
   for (const width of WIDTHS) {
-    const page = await (await browser.newContext({ viewport: { width, height: 800 }, reducedMotion: 'reduce' })).newPage();
+    const context = await browser.newContext({ viewport: { width, height: 800 }, reducedMotion: 'reduce', javaScriptEnabled: !nojs });
+    // Stub mode: the Apps Script endpoint gets fixture replies; every other script.google.com URL is aborted.
+    const held = [];
+    if (stub) {
+      await context.route(/^https:\/\/script\.google\.com\//, (r) => {
+        const a = stubAction(stub, r.request().method(), r.request().url());
+        if (a.kind === 'fulfill') r.fulfill({ status: a.status, contentType: a.contentType, body: a.body });
+        else if (a.kind === 'hold') held.push(r);
+        else r.abort();
+      });
+    }
+    const page = await context.newPage();
     for (const route of routes) {
       await page.goto(base + sitePath + route, { waitUntil: 'networkidle' });
-      const slug = route.replace(/^\/|\/$/g, '').replace(/\//g, '-') || 'index';
-      await page.screenshot({ path: join(outDir, `${slug}-${width}.png`), fullPage: true });
+      // JS off has no page script to drive, so the scenario runs only with JS on.
+      if (stub && !nojs) await SCENARIOS[route](page);
+      await page.screenshot({ path: join(outDir, shotName(route, stub, width, nojs)), fullPage: true });
       count++;
     }
+    for (const r of held) await r.abort().catch(() => {});
+    await context.close();
   }
 } catch (e) {
   fail(String(e && e.message ? e.message : e));

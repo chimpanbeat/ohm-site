@@ -25,7 +25,7 @@ Read-only: everything. Known gaps: none.
 No new code. The reviewer runs `npm run check`, then these greps:
 1. `git grep -nE "drive\.google\.com|/folders/[A-Za-z0-9_-]{20,}"` → none.
 2. `git grep -nE "script\.google\.com/(home|d)/|\"scriptId\""` → none, except the placeholder example file.
-3. `git ls-files | grep -iE "\.clasp\.json$|\.pdf$|bodymap.*\.json$"` → only `public/ohm-client-policies.pdf` and the 4 zone files.
+3. `git ls-files | grep -iE "\.clasp\.json$|\.pdf$|bodymap.*\.json$"` → only `public/ohm-client-policies.pdf`, the 4 zone files, `apps-script/bodymap/appsscript.json` and `tests/fixtures/bodymap-payloads.json` (the last two are B2's, fake data only).
 4. `git grep -nE "console\.|localStorage\.(setItem|getItem)" -- src/scripts/bodymap.ts src/lib/bodymap*.ts src/lib/pdf.ts` → no console; storage only inside the one wrapper.
 5. `git grep -nE "Logger\.log|console\.(log|info|error)" -- apps-script/bodymap/` → none.
 6. `grep -ohE "https?://[^\"' )]+" dist/body-map.html dist/_astro/*.js | sort -u`, for the body map chunk → only the site, `script.google.com` and `www.w3.org`.

@@ -53,7 +53,7 @@ The page side:
 
 ## Done when
 1. `npm run check` passes, including the new tests. `npm run e2e:bodymap` passes.
-2. Screens of the form, a sent result and each error at 375 and 1280 px in `docs/build/screens/B7/`. A sample PDF made from fake data is attached to the report, and never committed.
+2. Screens of the form, a sent result and each error at 375 and 1280 px in `docs/build/screens/B7/`, made with `npm run shots -- B7 --route /body-map --stub <state>` (`ok`, `busy`, `invalid`, `server`, `network`, `nonjson`, `sending`) and `--nojs` (I-122), not throwaway scripts. A sample PDF made from fake data is attached to the report, and never committed.
 
 ## Report
 Files changed · Checks (command and result) · Deviations · New items (I-###) · Questions for the architect.

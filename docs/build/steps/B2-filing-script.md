@@ -28,8 +28,11 @@ Pin the clasp create and deploy commands from the clasp docs, with URL and date.
 - tools/check-secrets.mjs
 - tests/check-secrets.test.ts
 - src/data/site.ts
+- tests/bodymap-data.test.ts
 - package.json
 - docs/build/STATUS.md
+
+Earlier tests that change (I-123): `tests/bodymap-data.test.ts` test 1 pins `site.bodymapUrl === ''` ("no script yet"). Setting the `/exec` URL makes it fail, so it now pins the URL shape: `https://script.google.com/macros/s/<id>/exec`. `tests/check-secrets.test.ts` is listed above for the new rules.
 
 ## Tests first (write them and see them fail before writing code)
 `tests/bodymap-script.test.ts` runs the script in `node:vm` with fakes for Drive, Cache, Lock, Properties, ContentService and Utilities, and a settable clock (as in `tests/rsvp-script.test.ts`). The cases are the plan's §4 B2 list, with these names:

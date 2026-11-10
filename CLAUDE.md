@@ -32,6 +32,7 @@ Rules live in .claude/ (settings, hooks, agents, skills); the spec's Guardrails 
 ## Commands
 - `npm run dev`: dev server on http://localhost:4321/ (port 4321 is required by the Google key referrer).
 - `npm run check`, `npm run build`, `npm test`, `npm run shots [-- <step>]`, `npm run metrics`.
+- Form states: `npm run shots -- <step> --route /x --stub <ok|busy|invalid|server|network|nonjson|sending> [--nojs]` stubs the Apps Script endpoint; scenarios live in `tools/shots-scenarios.mjs` (I-122). In Git Bash prefix `MSYS_NO_PATHCONV=1` so `/x` isn't rewritten.
 - RSVP script: `npm run push:script -- "what changed"` pushes `apps-script/rsvp.js` to the live Apps Script project and moves the existing deployment (`--dry` only stages). Never paste by hand. Needs clasp logged in as the Ohm account and the gitignored `.apps-script-ids.json`; details in `docs/runbooks/events.md` → Push the script with clasp (I-107).
 - Data: `npm run zones` (KML → geojson), `npm run osm`, `npm run terrain`, `npm run icons`, `npm run omega`, `npm run event-banner` (launch-party banner background and traced mark).
 

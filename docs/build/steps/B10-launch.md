@@ -20,8 +20,15 @@ Close I-073 and I-074. Hand the link to Brian with UTM-tagged variants for the i
 - tests/bodymap-data.test.ts
 - tests/bodymap-page.test.ts
 - tests/page-transition.test.ts
+- tests/client-policies.test.ts
 - docs/runbooks/bodymap.md
 - docs/build/STATUS.md
+
+Earlier tests that change (I-123), each pinning the closed page:
+- `tests/bodymap-data.test.ts` 1: `bodymap.open === false`.
+- `tests/bodymap-page.test.ts`: the "closed" case (0 scripts, no form).
+- `tests/page-transition.test.ts`: `body-map.html` has 0 scripts.
+- `tests/client-policies.test.ts` test 15: the exact list of pages that carry a script. The open page adds `body-map.html`.
 
 ## Tests first (write them and see them fail before writing code)
 1. Flip the three assertions first (open → 1 script, the form present, no `closed` text) and watch them fail.
@@ -29,7 +36,7 @@ Close I-073 and I-074. Hand the link to Brian with UTM-tagged variants for the i
 3. Sequence on production: load → send "Test Client" → confirmation → reload shows an empty form.
 
 ## Done when
-1. `npm run check` passes.
+1. `npm run check` passes, and `npm run check:wording`, `check:contrast`, `check:dist`, `check:secrets` and `check:reviewer` each pass on their own against the open build (the open page is a new kind of built page, I-123).
 2. Both production sends are in Drive, and Brian confirms.
 3. The link is in the report: `https://ohmprecisionbodywork.com/body-map`, plus the UTM-tagged variants.
 

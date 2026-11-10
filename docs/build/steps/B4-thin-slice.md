@@ -42,9 +42,20 @@ Strings come only from `bodymap.text`. Read-only: `src/data/bodymap.ts`, `src/da
 - tests/check-wording.test.ts
 - scripts/check-dist.mjs
 - tests/check-dist.test.ts
+- tests/footer.test.ts
 - tools/bodymap-e2e.mjs
+- tools/shots-scenarios.mjs
 - package.json
 - docs/build/STATUS.md
+
+Earlier tests that change (I-123), each pinning "no body map page, form or script yet":
+- `tests/footer.test.ts` test 2: every page except `hello.html` and redirect pages has the site footer. `body-map.html` is `bare`, so add it to the exceptions.
+- `tests/check-dist.test.ts` (about line 91): "passes when body-map.html does not exist yet". Keep it, and add the preview-page cases.
+- `tests/events.test.ts` 2b: `RESERVED_SLUGS` covers every top-level entry of `src/pages/` and `public/`, so `body-map` joins.
+- `tests/page-transition.test.ts`: the script count per page defaults to 0, so `body-map.html` gets its own count (closed: 0).
+- `tests/check-wording.test.ts`: the `good()` page list gains the body map page.
+
+`tools/shots-scenarios.mjs` (from MF3, I-122) gets the `/body-map` scenario: fill the test name, add a pin, send. `npm run shots -- B4 --route /body-map --stub <state>` then captures the confirmation, `network`, `busy`, `server` and `sending` states, and `--nojs` the `noscript` view. No throwaway Playwright scripts.
 
 ## Tests first (write them and see them fail before writing code)
 1. View: the screen↔0–1 round trip at zoom 1, 3 and 6, with pans and DPR 1, 2 and 3, has error under 1e-6. Zoom clamps to 1–6. A pan can't push the figure off screen. Pin scale is 1/zoom.
@@ -65,8 +76,11 @@ Strings come only from `bodymap.text`. Read-only: `src/data/bodymap.ts`, `src/da
 
 ## Done when
 1. `npm run check` passes, including the new tests. `npm run e2e:bodymap` passes locally.
-2. `npm run shots -- B4` (closed page), plus preview screens at 375 and 1280 px, in `docs/build/screens/B4/`.
-3. Brian sends "Test Client" from his phone over LAN preview, and it lands in `_Unsorted_Intakes`.
+2. `npm run shots -- B4` (closed page), plus preview screens at 375 and 1280 px, in `docs/build/screens/B4/`. The error and sent states come from `--stub` runs (see Files), not ad hoc scripts.
+3. This step adds a new kind of built page (`body-map.html` and its `public/body-map/index.html` refresh stub), so every check runs on both builds (I-123):
+   - after `OHM_BODYMAP_PREVIEW=1 npm run build`, run `npm run check:wording`, `check:contrast`, `check:dist`, `check:secrets` and `check:reviewer` against that preview `dist/`, and all pass;
+   - then rebuild without the flag and run `npm run check`, or the page-transition and footer tests fail on the preview build.
+4. Brian sends "Test Client" from his phone over LAN preview, and it lands in `_Unsorted_Intakes`.
 
 ## Report
 Files changed · Checks (command and result) · Deviations · New items (I-###) · Questions for the architect.
