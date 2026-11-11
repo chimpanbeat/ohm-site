@@ -1,13 +1,13 @@
 # B3: Review the body map data path (reviewer)
 
-Brief §15 · Architecture §B12 Filing script, Deploy, Privacy
+Brief §15 · Architecture §B12 Filing script, Script state, Deploy, Privacy
 
 Models: builder Sonnet (high effort; Brian's call, Nov 10) · architect Opus (plans the B2 fix items from a FIX verdict; Brian's call, Nov 10) · reviewer Fable 5.2 (the Apps Script, Drive filing, access and fixtures). Ignored after Nov 16, 2026 11:59 pm PT (I-124).
 
 ## Goal
 The reviewer confirms, read-only, that B2's script can only create files and leaks nothing. Their verdict is PASS or FIX with a numbered list. They check:
 - No code path returns Drive data: the reviewer reads every Drive call and every reply.
-- Replies, logs and cache values carry no name, date, note, folder or file ID.
+- Replies, logs, cache keys and values, and Script Property names and values carry no name, folder key, appointment date, note, folder or file ID: the reviewer reads every `put`, `setProperty` and `console.*` call against §B12 Script state.
 - The Script ID and folder ID are absent from git history (`git log -p` grep).
 - The push script can't cross the two projects.
 - The live endpoint answers read-style requests with the generic reply.
