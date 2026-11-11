@@ -24,6 +24,7 @@
     "check:dist": "node scripts/check-dist.mjs",
     "check:secrets": "node tools/check-secrets.mjs",
     "push:script": "node scripts/push-apps-script.mjs",
+    "push:bodymap": "node scripts/push-apps-script.mjs --target bodymap",
     "check:reviewer": "node tools/check-reviewer.mjs",
     "check": "npm run build && npm test && npm run check:wording && npm run check:contrast && npm run check:dist && npm run check:secrets && npm run check:reviewer",
     "shots": "node tools/shots.mjs",

@@ -1,0 +1,11 @@
+{
+  "timeZone": "America/Denver",
+  "dependencies": {},
+  "exceptionLogging": "NONE",
+  "runtimeVersion": "V8",
+  "oauthScopes": ["https://www.googleapis.com/auth/drive"],
+  "webapp": {
+    "access": "ANYONE_ANONYMOUS",
+    "executeAs": "USER_DEPLOYING"
+  }
+}

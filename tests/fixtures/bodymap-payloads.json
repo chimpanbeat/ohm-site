@@ -1,0 +1,37 @@
+{
+  "about": "Fake sends for tests/bodymap-script.test.ts (B2). Every name, note and ID here is invented; no client data, ever.",
+  "clientsFolderId": "fake-clients-folder-id-0123456789abcdef",
+  "clock": "2026-11-20T12:00:00-07:00",
+  "pdfText": "%PDF-1.4\n%fake body map for tests\n%%EOF\n",
+  "folders": ["Alex_Example", "Sam_Sample"],
+  "names": [
+    "Test Client",
+    "test  CLIENT",
+    "Alex Example",
+    "alex  EXAMPLE",
+    "Álex Example",
+    " Álex Example ",
+    "Alex_Example",
+    "Sam Sample",
+    "O'Brien_Sam",
+    "obrien sam",
+    "Zoë-Marie D’Example",
+    "   "
+  ],
+  "base": {
+    "v": 1,
+    "kind": "ohm-bodymap",
+    "id": "1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed",
+    "website": "",
+    "name": "Test Client",
+    "apptDate": "2026-12-03",
+    "figure": "female",
+    "report": {
+      "pins": [
+        { "id": 1, "view": "front", "x": 0.42, "y": 0.31, "type": "pain", "intensity": 3, "note": "fake note", "star": true, "fromList": false },
+        { "id": 2, "view": "back", "x": 0.55, "y": 0.47, "type": "avoid", "intensity": null, "note": "", "star": false, "fromList": true }
+      ]
+    },
+    "pdf": ""
+  }
+}

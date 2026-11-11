@@ -17,6 +17,7 @@ const files = [...new Set(git.stdout.split('\0').filter(Boolean))];
 const badNames = [
   [/^\.env(\..+)?$/, 'env file'],
   [/^\.clasprc\.json$/, 'clasp credentials'],
+  [/^\.clasp\.json$/, 'clasp project file'], // B2: it holds a Script ID; the push script writes it only in the gitignored staging folder
   [/\.(pem|key|p12|pfx)$/, 'key or certificate file'],
   [/^id_(rsa|dsa|ecdsa|ed25519)/, 'SSH key'],
   [/^credentials\.json$/, 'credentials file'],
@@ -30,7 +31,15 @@ const patterns = [
   [/\bxox[abposr]-[0-9A-Za-z-]{10,}/, 'Slack token'],
   [/\b(sk|rk)_live_[0-9A-Za-z]{16,}/, 'Stripe live key'],
   [/\bsk-ant-[0-9A-Za-z_-]{20,}/, 'Anthropic API key'],
+  // B2 (ARCHITECTURE §B12 Privacy): where the client folders and the filing script live stays out of the repo.
+  // The public web-app address (…/macros/s/<deployment>/exec) is not an editor address and is allowed.
+  [/drive\.google\.com\/[^\s"'<>)]*folders\/|\/folders\/[A-Za-z0-9_-]{20,}/, 'Drive folder URL'],
+  [/script\.google\.com\/(home\/projects|d)\//, 'Apps Script editor URL'],
 ];
+// B2: a "scriptId" key with a value, in any file. The example IDs file is exempt only while each such value is a
+// placeholder sentence (it has a space; a real Script ID has none).
+const scriptIdKey = /"scriptId"\s*:\s*("[^"]*")?/g;
+const idsExample = '.apps-script-ids.example.json';
 const email = /\b[A-Za-z0-9._%+-]+@([A-Za-z0-9-]+\.)+[A-Za-z]{2,}\b/g;
 const fakeDomain = /(^|\.)(example\.(com|org|net)|test|example|invalid|localhost|users\.noreply\.github\.com)$/i;
 // E13: phone numbers. Brian's and the event host's are Script Properties of the RSVP script, never in the repo (the site
@@ -61,6 +70,10 @@ for (const file of files) {
   buf.toString('utf8').split('\n').forEach((line, i) => {
     if (line.includes('secrets-scan: allow')) return;
     for (const [re, kind] of patterns) if (re.test(line)) findings.push(`${file}:${i + 1}: ${kind}`);
+    for (const m of line.matchAll(scriptIdKey)) {
+      const placeholder = file === idsExample && /\s/.test(m[1] ?? '');
+      if (!placeholder) findings.push(`${file}:${i + 1}: Script ID key`);
+    }
     for (const m of line.matchAll(email)) {
       if (!fakeDomain.test(m[0].split('@')[1])) findings.push(`${file}:${i + 1}: email address`);
     }

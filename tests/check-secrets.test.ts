@@ -54,6 +54,61 @@ test('check:secrets skips the phone pattern for the body map art SVGs (path data
   assert.equal(email.code, 1, 'the other checks still run on the art');
 });
 
+// B2 (§B12 Privacy): the Script ID and the Drive folder ID never go in the repo. Every ID below is fake and built at
+// run time, so this file itself never trips the scan.
+const fakeId = n('1AbC', 'dEfGhIjKlMnOpQrStUvWxYz', '0123456789', '_-aBcDeFgHiJ');
+
+test('check:secrets finds Drive folder URLs, script editor URLs, a scriptId key and .clasp.json files (B2)', () => {
+  const cases: [string, string, RegExp][] = [
+    ['notes.md', n('The folder: https://drive.google', '.com/drive/folders/', fakeId, '?usp=sharing'), /notes\.md:1: Drive folder URL/],
+    ['notes.md', n('open https://drive.google', '.com/drive/u/0/folders/', fakeId), /notes\.md:1: Drive folder URL/],
+    ['a.ts', n("const where = '/fold", "ers/", fakeId, "';"), /a\.ts:1: Drive folder URL/],
+    ['notes.md', n('https://script.google', '.com/home/projects/', fakeId, '/edit'), /notes\.md:1: Apps Script editor URL/],
+    ['notes.md', n('https://script.google', '.com/d/', fakeId, '/edit'), /notes\.md:1: Apps Script editor URL/],
+    ['ids.json', n('{\n  "script', 'Id": "', fakeId, '"\n}'), /ids\.json:2: Script ID key/],
+    ['src/x.ts', n('const ids = { "script', 'Id" : "x" };'), /src[\\/]x\.ts:1: Script ID key/],
+  ];
+  for (const [file, text, found] of cases) {
+    const r = scan({ [file]: `${text}\n` });
+    assert.equal(r.code, 1, `${file}: ${found}`);
+    assert.match(r.out, found);
+    assert.ok(!r.out.includes(fakeId), 'the value is never printed');
+  }
+  for (const name of ['.clasp.json', 'apps-script/bodymap/.clasp.json']) {
+    const r = scan({ [name]: '{}\n' });
+    assert.equal(r.code, 1, name);
+    assert.match(r.out, /\.clasp\.json: clasp project file/);
+  }
+});
+
+test('check:secrets exempts .apps-script-ids.example.json only while its values are placeholder sentences (B2)', () => {
+  const key = n('"script', 'Id"');
+  const example = (value: string) => `{\n  ${key}: "${value}",\n  "bodymap": { ${key}: "${value}" }\n}\n`;
+  const sentences = scan({ '.apps-script-ids.example.json': example('Project Settings > IDs > Script ID (Ohm account)') });
+  assert.equal(sentences.code, 0, sentences.out);
+  const filled = scan({ '.apps-script-ids.example.json': example(fakeId) });
+  assert.equal(filled.code, 1, 'a real-looking value in the example file is found');
+  assert.match(filled.out, /\.apps-script-ids\.example\.json:2: Script ID key/);
+  assert.match(filled.out, /\.apps-script-ids\.example\.json:3: Script ID key/);
+  const elsewhere = scan({ 'docs/ids.json': example('Project Settings > IDs > Script ID (Ohm account)') });
+  assert.equal(elsewhere.code, 1, 'only the example file is exempt');
+  const real = spawnSync(process.execPath, [script], { cwd: fileURLToPath(new URL('..', import.meta.url)), encoding: 'utf8' });
+  assert.equal(real.status, 0, `the repo itself passes: ${real.stdout}${real.stderr}`);
+});
+
+test('check:secrets leaves the public web-app URL, the user-settings page and plain words alone (B2)', () => {
+  const clean = scan({
+    'site.ts': n("const url = 'https://script.google", ".com/macros/s/", fakeId, "/exec';\n"),
+    'runbook.md': [
+      n('Switch the API on at script.google', '.com/home/usersettings, signed in as Ohm.'),
+      'The repo never holds the Script ID or a Drive folder URL. Folders are named First_Last.',
+      'writeFileSync(`${dir}/.clasp.json`, JSON.stringify({ scriptId, rootDir }));',
+      'See the folders/ directory and /folders/short.',
+    ].join('\n'),
+  });
+  assert.equal(clean.code, 0, clean.out);
+});
+
 test('check:secrets allows the fictional 555-01xx range, the allow marker, and numbers that are not phones', () => {
   const clean = scan({
     'fake.ts': [

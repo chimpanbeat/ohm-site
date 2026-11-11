@@ -36,7 +36,9 @@ docs/build/screens/
 CLAUDE.local.md
 *.log
 
-# Apps Script push (I-107): the IDs and the staging folder never go in the public repo
+# Apps Script push (I-107, B2): the IDs and the staging folder never go in the public repo.
+# .clasp.json holds a Script ID; the push script writes it only inside the staging folder.
 .apps-script-ids.json
 .apps-script-build/
 .clasprc.json
+.clasp.json

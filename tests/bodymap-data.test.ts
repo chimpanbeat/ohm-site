@@ -18,9 +18,10 @@ function resolve(name: string, depth = 0): string | null {
   return alias ? resolve(alias[1], depth + 1) : null;
 }
 
-test('1. closed until B10, no endpoint yet', () => {
+test('1. closed until B10; the endpoint is a web-app /exec URL (B2), never an editor address', () => {
   assert.equal(bodymap.open, false);
-  assert.equal(site.bodymapUrl, '');
+  assert.match(site.bodymapUrl, /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/);
+  assert.notEqual(site.bodymapUrl, site.rsvpUrl, 'its own project, not the RSVP script');
 });
 
 test('2. figures, views and art names', () => {

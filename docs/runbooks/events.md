@@ -30,7 +30,7 @@ Do all of this signed in to the **Ohm Workspace account**, not a personal Google
 4. Delete the test rows in the sheet (rows only, not the header).
 
 ## Push the script with clasp (I-107)
-Replaces the paste-and-redeploy steps for every later update. Needs `clasp` logged in as the Ohm account (`clasp login`; `clasp show-authorized-user` must say `@ohmprecisionbodywork.com`), the Apps Script API switched on at script.google.com/home/usersettings, and `.apps-script-ids.json` (gitignored; copy `.apps-script-ids.example.json` and fill in the Script ID and the Deployment ID behind `site.rsvpUrl`). The repo holds neither ID.
+Replaces the paste-and-redeploy steps for every later update. Needs `clasp` logged in as the Ohm account (`clasp login`; `clasp show-authorized-user` must say `@ohmprecisionbodywork.com`), the Apps Script API switched on at script.google.com/home/usersettings, and `.apps-script-ids.json` (gitignored; copy `.apps-script-ids.example.json` and fill in the Script ID and the Deployment ID behind `site.rsvpUrl`). The repo never holds the Script ID; the Deployment ID is public in every `/exec` URL. The body map filing script is a second target of the same command (`--target bodymap`, or `npm run push:bodymap`); see the Body map runbook.
 
 1. `npm run push:script -- --dry` stages the files in `.apps-script-build/` without touching Google.
 2. `npm run push:script -- "what changed"` pushes `apps-script/rsvp.js` (as `Code.js`) and `appsscript.json`, makes a new version, moves the existing deployment to it and checks it did. The `/exec` URL does not change.

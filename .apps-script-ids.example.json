@@ -1,4 +1,8 @@
 {
   "scriptId": "Project Settings > IDs > Script ID (Ohm account)",
-  "deploymentId": "Deploy > Manage deployments > the existing web-app deployment's ID"
+  "deploymentId": "Deploy > Manage deployments > the existing web-app deployment's ID",
+  "bodymap": {
+    "scriptId": "The Ohm Bodymap project > Project Settings > IDs > Script ID (Ohm account)",
+    "deploymentId": "Leave as an empty string until the first web-app deployment exists, then its ID from Deploy > Manage deployments"
+  }
 }
