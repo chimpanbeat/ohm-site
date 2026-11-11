@@ -23,7 +23,19 @@ const message = args.filter((a, i) => a !== '--dry' && i !== at && (at < 0 || i 
 if (!existsSync('.apps-script-ids.json')) fail('Missing .apps-script-ids.json. Copy .apps-script-ids.example.json and fill in the IDs.');
 const all = JSON.parse(readFileSync('.apps-script-ids.json', 'utf8'));
 // The RSVP IDs sit at the top level (as E16 left them); every other target has its own entry.
-const ids = target === 'rsvp' ? all : all[target];
+const idsOf = (t) => (t === 'rsvp' ? all : all[t]);
+// No two projects may share a Script ID or a Deployment ID: `clasp push --force` would overwrite the other project, and
+// update-deployment would move its live deployment (I-143). Empty IDs aren't a clash (a new project has no deployment yet).
+for (const field of ['scriptId', 'deploymentId']) {
+  const seen = new Map();
+  for (const t of Object.keys(TARGETS)) {
+    const v = idsOf(t)?.[field];
+    if (typeof v !== 'string' || !v) continue;
+    if (seen.has(v)) fail(`.apps-script-ids.json gives "${seen.get(v)}" and "${t}" the same ${field}. Each project needs its own; nothing was staged or pushed.`);
+    seen.set(v, t);
+  }
+}
+const ids = idsOf(target);
 if (!ids || typeof ids !== 'object') fail(`.apps-script-ids.json has no "${target}" entry. See .apps-script-ids.example.json.`);
 const scriptId = ids.scriptId ?? '';
 const deploymentId = ids.deploymentId ?? '';

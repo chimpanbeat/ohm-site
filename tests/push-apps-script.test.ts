@@ -67,6 +67,22 @@ test('in sequence, each stage is fresh: neither holds the other target\'s file o
   assert.ok(stages[2].clasp.includes(IDS.scriptId) && !stages[2].clasp.includes(IDS.bodymap.scriptId));
 });
 
+test('two targets sharing a Script ID or a Deployment ID stop the run before anything is staged (I-143)', () => {
+  const sameScript = { ...IDS, bodymap: { ...IDS.bodymap, scriptId: IDS.scriptId } };
+  const sameDeployment = { ...IDS, bodymap: { ...IDS.bodymap, deploymentId: IDS.deploymentId } };
+  for (const ids of [sameScript, sameDeployment]) {
+    for (const args of [['--dry'], ['--target', 'bodymap', '--dry']]) {
+      const r = sandbox(ids).run(...args);
+      assert.equal(r.code, 1, `refused (${args.join(' ')})`);
+      assert.match(r.out, /same|share|equal/i);
+      assert.deepEqual(r.files, [], 'nothing is staged');
+    }
+  }
+  // Two empty Deployment IDs are not a clash: the body map has no deployment until its first web-app deployment.
+  const bothEmpty = sandbox({ scriptId: IDS.scriptId, deploymentId: IDS.deploymentId, bodymap: { scriptId: IDS.bodymap.scriptId, deploymentId: '' } });
+  assert.equal(bothEmpty.run('--target', 'bodymap', '--dry').code, 0);
+});
+
 test('the IDs file: bodymap may wait for its first deployment; placeholders, a missing entry and an unknown target stop the run', () => {
   const first = sandbox({ ...IDS, bodymap: { scriptId: 'fake-bodymap-script-id', deploymentId: '' } }).run('--target', 'bodymap', '--dry');
   assert.equal(first.code, 0, 'before the first web-app deployment there is no Deployment ID yet');
