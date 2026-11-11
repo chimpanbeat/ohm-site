@@ -19,6 +19,7 @@
     "icons": "node scripts/make-icons.mjs",
     "event-banner": "node scripts/make-event-banner.mjs",
     "omega": "node scripts/trace-omega.mjs",
+    "bodymap:art": "node scripts/bodymap-art.mjs",
     "event-images": "node scripts/make-event-credits.mjs",
     "check:dist": "node scripts/check-dist.mjs",
     "check:secrets": "node tools/check-secrets.mjs",

@@ -1,10 +1,14 @@
 // Contrast guard for the brand tokens (step 5A). Exit 0 ok, 1 a pair fails.
 import { readFileSync } from 'node:fs';
 
-const css = readFileSync('src/styles/tokens.css', 'utf8');
-const hex = (name) => {
-  const m = css.match(new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})\\b`));
-  if (!m) {
+// `--tokens <file>` reads another tokens.css (the tests use it); the default is the real one.
+const argTokens = process.argv.indexOf('--tokens');
+const css = readFileSync(argTokens === -1 ? 'src/styles/tokens.css' : process.argv[argTokens + 1], 'utf8');
+/** A token's hex value; `var(--other)` is followed (the pin tokens point at the palette). */
+const hex = (name, depth = 0) => {
+  const m = css.match(new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6}\\b|var\\(--([\\w-]+)\\))`));
+  if (m && m[2] && depth < 5) return hex(m[2], depth + 1);
+  if (!m || m[2]) {
     console.error(`check:contrast: --${name} not found as a hex value in tokens.css`);
     process.exit(1);
   }
@@ -55,6 +59,10 @@ const pairs = [
     ['ink', hex('ink'), name, color, 4.5],
     [name, color, 'green-900', hex('green-900'), 3.0],
   ]),
+  // Body map pins (B1, §A1, BM-3): every pin fill or stroke at least 3:1 against the halo ring it sits in,
+  // and the 1px edge at least 3:1 against the figure it is drawn over.
+  ...['pain', 'discomfort', 'injury', 'numb', 'avoid'].map((t) => [`pin-${t}`, hex(`pin-${t}`), 'pin-halo', hex('pin-halo'), 3.0]),
+  ['pin-edge', hex('pin-edge'), 'bodymap-figure', hex('bodymap-figure'), 3.0],
 ];
 
 let failed = false;

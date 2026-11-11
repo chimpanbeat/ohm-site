@@ -3,9 +3,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const script = fileURLToPath(new URL('../tools/check-secrets.mjs', import.meta.url));
@@ -14,7 +14,10 @@ const n = (...parts: string[]) => parts.join('');
 function scan(files: Record<string, string>) {
   const dir = mkdtempSync(join(tmpdir(), 'ohm-secrets-'));
   assert.equal(spawnSync('git', ['init', '-q'], { cwd: dir }).status, 0, 'git init');
-  for (const [name, text] of Object.entries(files)) writeFileSync(join(dir, name), text);
+  for (const [name, text] of Object.entries(files)) {
+    mkdirSync(dirname(join(dir, name)), { recursive: true });
+    writeFileSync(join(dir, name), text);
+  }
   const r = spawnSync(process.execPath, [script], { cwd: dir, encoding: 'utf8' });
   return { code: r.status, out: r.stdout + r.stderr };
 }
@@ -39,6 +42,16 @@ test('check:secrets finds a phone number in each US format and in tel:/sms: link
     assert.equal(r.code, 1, `${link} is found`);
     assert.match(r.out, /b\.html:1: phone number/);
   }
+});
+
+test('check:secrets skips the phone pattern for the body map art SVGs (path data), and nowhere else (B1)', () => {
+  const path = `<path d="M ${n('719', ' 867', ' 5309')} C 20 30 40"/>\n`;
+  const art = scan({ 'src/assets/bodymap/svg/female_front.svg': path });
+  assert.equal(art.code, 0, art.out);
+  const other = scan({ 'src/assets/other.svg': path, 'src/assets/bodymap/svg/note.txt': path });
+  assert.equal(other.code, 1, 'only the art SVGs are exempt');
+  const email = scan({ 'src/assets/bodymap/svg/female_front.svg': `<title>${n('a@real-', 'domain.com')}</title>\n` });
+  assert.equal(email.code, 1, 'the other checks still run on the art');
 });
 
 test('check:secrets allows the fictional 555-01xx range, the allow marker, and numbers that are not phones', () => {

@@ -56,13 +56,15 @@ for (const file of files) {
   }
   if (buf.subarray(0, 8192).includes(0)) continue; // binary
   scanned++;
+  // B1: the body map art's SVG path data is long runs of numbers that read as phone numbers. Only those files skip the phone pattern.
+  const artSvg = /^src\/assets\/bodymap\/svg\/[\w-]+\.svg$/.test(file.replace(/\\/g, '/'));
   buf.toString('utf8').split('\n').forEach((line, i) => {
     if (line.includes('secrets-scan: allow')) return;
     for (const [re, kind] of patterns) if (re.test(line)) findings.push(`${file}:${i + 1}: ${kind}`);
     for (const m of line.matchAll(email)) {
       if (!fakeDomain.test(m[0].split('@')[1])) findings.push(`${file}:${i + 1}: email address`);
     }
-    for (const re of [phone, phoneLink]) {
+    for (const re of artSvg ? [] : [phone, phoneLink]) {
       for (const m of line.matchAll(re)) if (!fakePhone(m[0])) findings.push(`${file}:${i + 1}: phone number`);
     }
   });
