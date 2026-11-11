@@ -7,14 +7,14 @@ Models: builder Fable 5.2 (high effort) · architect Opus (no planning in this s
 ## Goal
 `apps-script/bodymap/bodymap.js` and `appsscript.json` implement §B12's filing script exactly: `doPost` in the listed order, `doGet` always `invalid`, `setup()`, write-only, `folderKey` matching (a copy of `src/data/bodymap.ts`'s, kept equal by a test), `_Unsorted_Intakes`, file names, rate limits from `bodymap.rate`, idempotency and every key in Script state, and fixed replies. `scripts/push-apps-script.mjs` gains `--target bodymap`. The default stays `rsvp` and is unchanged. The bodymap target stages only `bodymap.js` (as `Code.js`) and its manifest. Its IDs come from a `bodymap` entry in `.apps-script-ids.json`.
 
-`docs/runbooks/bodymap.md` follows the plan's 12-part outline (`brief/bodymap-plan_2026-11-08.md` §5). In `docs/runbooks/events.md`, "The repo holds neither ID" becomes "the repo never holds the Script ID; the Deployment ID is public in every `/exec` URL".
+`docs/runbooks/bodymap.md` follows the plan's 12-part outline (`brief/bodymap-plan_2026-11-08.md` §5). Part 6 (filing rules) states §B12's accepted duplicate: two copies of one send with the same marks (two pairs, or a lone PDF and a later pair); keep the later pair and delete the rest by hand. In `docs/runbooks/events.md`, "The repo holds neither ID" becomes "the repo never holds the Script ID; the Deployment ID is public in every `/exec` URL".
 
 `check:secrets` flags Drive folder URLs, script editor URLs, a `"scriptId"` key and `.clasp.json` names. `.apps-script-ids.example.json` is exempt only while its values are the placeholder sentences. **Brian at the PC (about 30 min, I-110):** create the project as Ohm, set `CLIENTS_FOLDER_ID` (I-075; never in chat or the repo), push, run `setup()`, allow Drive, make the first web-app deployment (Execute as Me, Anyone), and give Code the `/exec` URL only. Then `site.bodymapUrl` is set.
 
 Pin the clasp create and deploy commands from the clasp docs, with URL and date. Read-only: `src/data/bodymap.ts`, `apps-script/rsvp.js`. Known gaps: none.
 
 ## AC covered (IDs)
-- BM-8 and BM-10 (server half), BM-12 (script half): tests 1–12, plus the live checks in Done when 3.
+- BM-8 and BM-10 (server half), BM-12 (script half): tests 1–13, plus the live checks in Done when 3.
 
 ## Files
 - apps-script/bodymap/bodymap.js
@@ -50,6 +50,11 @@ Earlier tests that change (I-123): `tests/bodymap-data.test.ts` test 1 pins `sit
 10. Every reply is one of 4 strings. No reply, `console.*` argument, cache key or value, or Script Property name or value the run writes holds a fixture name, its `folderKey`, appointment date, note, folder name, folder or file ID, or the `CLIENTS_FOLDER_ID` value (the fake clock's days differ from every fixture `apptDate`). The `nameKey` for `test client|2026-12-03` equals the first 16 hex characters of its SHA-256 from `node:crypto`.
 11. Static bans: the API list in plan §4 B2.11, string-literal `console.*` only, and the manifest exactly as §B12.
 12. `setup()`: a clear throw when the property is unset; creates `_Unsorted_Intakes` once.
+13. Retry sequences (§B12 Retries), each retrying with the same `id`:
+    - (a) the JSON `createFile` throws after the PDF → `server`, nothing counted; the retry writes the JSON only, with the PDF's sent stamp → `ok`, one pair;
+    - (b) both written, the same body again within 6 h → `ok`, 0 Drive calls, counts unchanged, also with the day cap full;
+    - (c) as (b) with `done:<id>` evicted by the fake cache → a second pair with a later stamp; as (a) with `pdf:<id>` evicted → a lone PDF, then a pair;
+    - a throw putting `done:` or the counts after both files → `ok` and `bodymap: state-error`.
 
 `tests/push-apps-script.test.ts` runs `--dry` against a temp IDs file. `rsvp` stages `Code.js` from `rsvp.js` plus the manifest. `bodymap` stages `Code.js` from `bodymap.js` plus its manifest. Neither stage holds the other's file.
 

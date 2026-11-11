@@ -1,6 +1,6 @@
 # B4: Body map thin slice (I-073)
 
-Brief §15 · Architecture §B12 Page, Coordinates and zoom, Storage, Report and PDF, Wire contract, Checks; §B7, §B8 (the `/hello` pattern), §B11
+Brief §15 · Architecture §B12 Page, Coordinates and zoom, Storage, Report and PDF, Wire contract, Retries (page half), Checks; §B7, §B8 (the `/hello` pattern), §B11
 
 Models: builder Sonnet (high effort; Brian's call, Nov 10) · architect Opus (no planning in this step) · reviewer Fable 5.2 (the wire contract, client data in storage and the PDF, a real Drive send). Ignored after Nov 16, 2026 11:59 pm PT (I-124).
 
@@ -67,7 +67,8 @@ Earlier tests that change (I-123), each pinning "no body map page, form or scrip
    - an unknown `v` → deleted;
    - send ok → cleared, and a reload is empty;
    - a storage that throws → in memory, with no throw;
-   - a failed send keeps the marks, and the retry reuses the same `id`.
+   - a failed send keeps the marks, and the retry reuses the same `id`, also after a reload; an edit to the name, date, figure or pins, Start over and `ok` each drop it, so the next send has a new one (§B12 Retries);
+   - the `id` is a lower-case v4 UUID made with `crypto.getRandomValues`, never `randomUUID` (the LAN preview is plain http).
 3. PDF: the output parses in `unpdf`. It holds the name, date, sent time and pin list, and 1 image. `é` survives and `ł` becomes `?`.
 4. Page (dist): closed → no `<script>`, no form, no `script.google.com`. Preview → 1 script, the fields and the honeypot. `body-map` is in `RESERVED_SLUGS`.
 5. `check-dist` and `check-wording` on synthetic trees: one failing case per new rule.
