@@ -26,7 +26,7 @@ Every BM passes, first in Playwright (Chromium and WebKit, at 375 and 1280 px), 
 - docs/build/steps/B9-verify.md
 
 ## Tests first (write them and see them fail before writing code)
-No new code. Run `npm run check` and `npm run e2e:bodymap` on both engines. Then, as a sequence on each device: fill in, reload, send, then reload (empty). Brian deletes the test files from Drive afterwards.
+No new code. Run `npm run check` and `npm run e2e:bodymap` on both engines. Then, as a sequence on each device: fill in, reload, send, then reload (empty). The live limits apply (§B12 Script state): use a different fake name or appointment date after every 3 sends, keep to 6 sends in 10 minutes, and expect `busy` past them. Brian deletes the test files from Drive afterwards.
 
 ## Done when
 1. Every BM is marked pass in Results, with its evidence (test, screenshot or Brian's note).

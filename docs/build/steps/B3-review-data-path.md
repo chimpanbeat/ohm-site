@@ -1,6 +1,6 @@
 # B3: Review the body map data path (reviewer)
 
-Brief §15 · Architecture §B12 Filing script, Script state, Deploy, Privacy
+Brief §15 · Architecture §B12 Filing script, Script state, Retries, Deploy, Off switch, Privacy
 
 Models: builder Sonnet (high effort; Brian's call, Nov 10) · architect Opus (plans the B2 fix items from a FIX verdict; Brian's call, Nov 10) · reviewer Fable 5.2 (the Apps Script, Drive filing, access and fixtures). Ignored after Nov 16, 2026 11:59 pm PT (I-124).
 
@@ -12,7 +12,7 @@ The reviewer confirms, read-only, that B2's script can only create files and lea
 - The push script can't cross the two projects.
 - The live endpoint answers read-style requests with the generic reply.
 - The fixtures are fake and follow the CLAUDE.md data rules.
-- The runbook steps match the script.
+- The runbook steps match the script, including unexpected files (unverified until the client confirms), a busy day (the log codes and both `DAY_COUNTS` resets), the off switch (`PAUSED` and the URL rotation) and the accepted duplicate.
 
 Read-only: everything. Known gaps: none.
 
@@ -31,7 +31,7 @@ No new code. The reviewer runs:
    - `curl` GET `site.bodymapUrl?list=1`;
    - a POST `{"action":"list"}`;
    - a POST with `fileId`;
-   - the same valid fake send twice (one pair of files, then Brian deletes them).
+   - the same valid fake send twice, with a fake name and date not sent that Denver day (one pair of files, then Brian deletes them).
 
 ## Done when
 1. A verdict line in STATUS → Change log, with each FIX item turned into a new B2 fix item.

@@ -1,20 +1,26 @@
 # B2: Body map filing script (I-073, I-075, I-110)
 
-Brief §15 · Architecture §B12 Wire contract, Filing script, Script state, Deploy, Privacy; §B10 (simple-request pattern)
+Brief §15 · Architecture §B12 Wire contract, Filing script, Script state, Retries, Deploy, Off switch, Privacy; §B10 (simple-request pattern)
 
 Models: builder Fable 5.2 (high effort) · architect Opus (no planning in this step) · reviewer Fable 5.2 (the Apps Script, Drive filing and access). Ignored after Nov 16, 2026 11:59 pm PT (I-124).
 
 ## Goal
 `apps-script/bodymap/bodymap.js` and `appsscript.json` implement §B12's filing script exactly: `doPost` in the listed order, `doGet` always `invalid`, `setup()`, write-only, `folderKey` matching (a copy of `src/data/bodymap.ts`'s, kept equal by a test), `_Unsorted_Intakes`, file names, rate limits from `bodymap.rate`, idempotency and every key in Script state, and fixed replies. `scripts/push-apps-script.mjs` gains `--target bodymap`. The default stays `rsvp` and is unchanged. The bodymap target stages only `bodymap.js` (as `Code.js`) and its manifest. Its IDs come from a `bodymap` entry in `.apps-script-ids.json`.
 
-`docs/runbooks/bodymap.md` follows the plan's 12-part outline (`brief/bodymap-plan_2026-11-08.md` §5). Part 6 (filing rules) states §B12's accepted duplicate: two copies of one send with the same marks (two pairs, or a lone PDF and a later pair); keep the later pair and delete the rest by hand. In `docs/runbooks/events.md`, "The repo holds neither ID" becomes "the repo never holds the Script ID; the Deployment ID is public in every `/exec` URL".
+`docs/runbooks/bodymap.md` follows the plan's 12-part outline (`brief/bodymap-plan_2026-11-08.md` §5). It also covers, with steps matching §B12 Retries, Deploy and Off switch (I-127, I-128):
+- part 6, the accepted duplicate: two copies of one send with the same marks (two pairs, or a lone PDF and a later pair); keep the later pair and delete the rest by hand;
+- part 6, unexpected files: anyone with the public URL can file under any name, so a map in a client folder or `_Unsorted_Intakes` is unverified until the client confirms it at the session; one they didn't send, Brian deletes by hand; several, set `PAUSED`;
+- parts 7 and 12, a busy day: clients see `errBusy` and keep their marks; Brian finds `bodymap: busy-day` (or `busy-window`, `busy-name`, `busy-lock`, `paused`) in Executions; counts reset at the first send after Denver midnight, or at once by deleting `DAY_COUNTS` in Project Settings → Script Properties;
+- part 8, off and on: set `PAUSED` = `1` or delete it (no push or deployment); the URL rotation steps; after B10, `bodymap.open: false`.
+
+In `docs/runbooks/events.md`, "The repo holds neither ID" becomes "the repo never holds the Script ID; the Deployment ID is public in every `/exec` URL".
 
 `check:secrets` flags Drive folder URLs, script editor URLs, a `"scriptId"` key and `.clasp.json` names. `.apps-script-ids.example.json` is exempt only while its values are the placeholder sentences. **Brian at the PC (about 30 min, I-110):** create the project as Ohm, set `CLIENTS_FOLDER_ID` (I-075; never in chat or the repo), push, run `setup()`, allow Drive, make the first web-app deployment (Execute as Me, Anyone), and give Code the `/exec` URL only. Then `site.bodymapUrl` is set.
 
 Pin the clasp create and deploy commands from the clasp docs, with URL and date. Read-only: `src/data/bodymap.ts`, `apps-script/rsvp.js`. Known gaps: none.
 
 ## AC covered (IDs)
-- BM-8 and BM-10 (server half), BM-12 (script half): tests 1–13, plus the live checks in Done when 3.
+- BM-8 and BM-10 (server half), BM-12 (script half): tests 1–14, plus the live checks in Done when 3.
 
 ## Files
 - apps-script/bodymap/bodymap.js
@@ -55,16 +61,18 @@ Earlier tests that change (I-123): `tests/bodymap-data.test.ts` test 1 pins `sit
     - (b) both written, the same body again within 6 h → `ok`, 0 Drive calls, counts unchanged, also with the day cap full;
     - (c) as (b) with `done:<id>` evicted by the fake cache → a second pair with a later stamp; as (a) with `pdf:<id>` evicted → a lone PDF, then a pair;
     - a throw putting `done:` or the counts after both files → `ok` and `bodymap: state-error`.
+14. Pause and log codes: with `PAUSED` = `1`, a valid send and a 2,000,001-character body both → `busy` and `bodymap: paused`, with 0 Drive, cache, lock or count calls; with it deleted, the same send → `ok`. Each refusal in tests 3–8 logs its §B12 code.
 
 `tests/push-apps-script.test.ts` runs `--dry` against a temp IDs file. `rsvp` stages `Code.js` from `rsvp.js` plus the manifest. `bodymap` stages `Code.js` from `bodymap.js` plus its manifest. Neither stage holds the other's file.
 
 ## Done when
 1. `npm run check` passes, including the new tests.
 2. `npm run push:script -- --dry` is unchanged for RSVP.
-3. Live, after Brian deploys:
+3. Live, after Brian deploys (each filing send uses its own fake name, since a name and date allow 3 a day):
    - a "Test Client" send creates one PDF and one JSON in `_Unsorted_Intakes`, and Brian deletes them; Project Settings → Script Properties then shows `DAY_COUNTS` with one `k` entry equal to the test's `nameKey`;
    - a 1.9 MB body is accepted and a 2.1 MB body is refused;
-   - two read-style `curl` calls get the generic reply.
+   - two read-style `curl` calls get the generic reply;
+   - with `PAUSED` = `1` set in Project Settings, a fake send gets `busy` at once and Executions shows `bodymap: paused`; after deleting it the next send files (Brian deletes it).
 4. `site.bodymapUrl` is the `/exec` URL. No Script ID or folder ID is anywhere in git.
 
 ## Report
