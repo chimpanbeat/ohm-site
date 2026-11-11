@@ -25,8 +25,8 @@ Read-only: everything. Known gaps: none.
 
 ## Tests first (write them and see them fail before writing code)
 No new code. The reviewer runs `npm run check`, then these greps:
-1. `git grep -nE "drive\.google\.com|/folders/[A-Za-z0-9_-]{20,}"` → none.
-2. `git grep -nE "script\.google\.com/(home|d)/|\"scriptId\""` → none, except the placeholder example file.
+1. `git grep -nE "drive\.google\.com/[^[:space:]]*folders/|/folders/[A-Za-z0-9_-]{20,}"` → none. These are Drive folder addresses only, B2's `check:secrets` rule (I-138).
+2. `git grep -nE "script\.google\.com/(home/projects|d)/|\"scriptId\"[[:space:]]*:" -- . ":(exclude).apps-script-ids.example.json"` → none. These are script editor project addresses only (not `/home/usersettings` or `/macros/s/…/exec`) and a `"scriptId"` key only when a value follows (I-138). Then `git grep -nE "\"scriptId\"" -- .apps-script-ids.example.json` → exactly its two placeholder sentences (each has spaces; a real Script ID has none).
 3. `git ls-files | grep -iE "\.clasp\.json$|\.pdf$|bodymap.*\.json$"` → only `public/ohm-client-policies.pdf`, the 4 zone files, `apps-script/bodymap/appsscript.json` and `tests/fixtures/bodymap-payloads.json` (the last two are B2's, fake data only).
 4. `git grep -nE "console\.|localStorage\.(setItem|getItem)" -- src/scripts/bodymap.ts src/lib/bodymap*.ts src/lib/pdf.ts` → no console; storage only inside the one wrapper.
 5. `git grep -nE "Logger\.log|console\.(log|info|error)" -- apps-script/bodymap/` → none.

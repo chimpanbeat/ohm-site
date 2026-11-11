@@ -34,7 +34,9 @@ Read-only: everything. Known gaps: none.
 ## Tests first (write them and see them fail before writing code)
 No new code. The reviewer runs:
 1. `npm run check`.
-2. `git grep -nE "drive\.google\.com|/folders/[A-Za-z0-9_-]{20,}|script\.google\.com/(home|d)/|\"scriptId\""` → nothing.
+2. The `check:secrets` rules from B2 (`tools/check-secrets.mjs`), as greps (I-138). They cover Drive folder addresses, script editor project addresses (not `/home/usersettings` or `/macros/s/…/exec`) and a `"scriptId"` key only when a value follows:
+   - `git grep -nE "drive\.google\.com/[^[:space:]]*folders/|/folders/[A-Za-z0-9_-]{20,}|script\.google\.com/(home/projects|d)/|\"scriptId\"[[:space:]]*:" -- . ":(exclude).apps-script-ids.example.json"` → nothing;
+   - `git grep -nE "\"scriptId\"" -- .apps-script-ids.example.json` → exactly lines 2 and 5, each value a placeholder sentence with spaces (a real Script ID has none).
 3. `git log -p --all -S CLIENTS_FOLDER_ID` → only the property name, never a value.
 4. Live, in sequence. Each result is judged by the reply bytes, Drive and Script Properties, never by a log line: Executions doesn't show web-app log lines (§B12 Pinned facts).
    - `curl` GET `site.bodymapUrl?list=1`;
