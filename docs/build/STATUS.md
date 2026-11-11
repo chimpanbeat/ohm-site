@@ -4,7 +4,7 @@ Tier: M · Method: v3.2 · Profile: static-site · Repo: public · Launch: Nov 6
 
 The first row that isn't `done` or `dropped` is the next step; Brian runs its Command after `/clear`. This file is the only source of progress; the master list's Build status is derived from it. Items (I-###) and Method feedback live in the master list, not here. A slip of more than a day gets a note to Brian on what it does to launch.
 
-Reviewer read: 2026-11-11T00:10Z (rows to 2026-11-08T21:04Z already applied in E12–E15: yoga/Tai Chi/chai emojis and words, email copy, Maybe hides Yoga; nothing new)
+Reviewer read: 2026-11-11T00:22Z (rows to 2026-11-08T21:04Z already applied in E12–E15: yoga/Tai Chi/chai emojis and words, email copy, Maybe hides Yoga; nothing new)
 
 States: `todo` · `doing` · `blocked` · `done` · `dropped`
 
@@ -42,7 +42,7 @@ States: `todo` · `doing` · `blocked` · `done` · `dropped`
 | MF3 | I-121, I-122, I-123: tooling and step files only. `npm run shots` gains `--stub <state>`, `--nojs`, `--route` (`tools/shots-stub.mjs`, `tools/shots-scenarios.mjs`, `tests/shots-stub.test.ts`); B2, B4, B7, B8, B10 step files name the earlier tests that change and run new built pages through every `check:*` script; I-121 Parked (`steps/MF3-shots-stub.md`). Run by hand before B1 at Brian's ask, Nov 10 | medium | (manual) | done | 83c92fd |
 | MF4 | I-124: Fable models until Nov 16, 2026 11:59 pm PT. Each B1–B10 step file gets one `Models:` line (builder, architect, reviewer); `procedure.md` spawns subagents with the listed model and stops with a `/model` message if the builder differs. Tooling and step files only (`.claude/skills/next/procedure.md`, `docs/build/steps/B1…B10`, `.claude/settings.json`). Run by hand before B1 at Brian's ask, Nov 10 | medium | (manual) | done | 41e07ae |
 | B1 | I-074: the art into `src/assets/bodymap/` (delivered names, metadata check, size), art test, pin contrast rules (`steps/B1-art.md`) | medium | /next | done | d0b633e |
-| B2 | I-073: the "Ohm Bodymap" filing script (write-only, folder match, honeypot, caps, rate limits, idempotent), its tests, runbook, push target; Brian at the PC about 30 min (I-075, I-110) (`steps/B2-filing-script.md`) | high | /next-high | todo | |
+| B2 | I-073: the "Ohm Bodymap" filing script (write-only, folder match, honeypot, caps, rate limits, idempotent), its tests, runbook, push target; Brian at the PC about 30 min (I-075, I-110) (`steps/B2-filing-script.md`) | high | /next-high | blocked: I-126, I-127, I-128 (proposed by the architect at MF4; Brian decides) | |
 | B3 | Reviewer: data path, write-only, replies and logs, IDs out of the repo, live read-style calls (`steps/B3-review-data-path.md`) | high | /next-high | todo | |
 | B4 | Thin slice behind `open`: female front, one pin type, zoom, pan, pinch, autosave, minimal PDF, real "Test Client" send, retry; page checks (`steps/B4-thin-slice.md`) | high | /next-high | todo | |
 | B5 | The 4 v1 figures, figure and view picker, zone files, region lookup, coverage tool; Brian looks over the overlays about 20 min (`steps/B5-figures-zones.md`) | high | /next-high | todo | |
