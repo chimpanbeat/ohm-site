@@ -122,6 +122,19 @@ test('preview: the figure URLs for the v1 figures are in the page data and none 
   assert.equal(Object.keys(map).some((k) => /side/.test(k)), false, 'the side views are not shown in v1');
 });
 
+test('preview (B5b): the figure picker has Female and Male, the view tabs have Front and Back, and the picker starts on Female', () => {
+  const picker = preview.match(/<div\b[^>]*\bid="bm-figures"[^>]*>([\s\S]*?)<\/div>/)?.[1] ?? '';
+  assert.ok(picker, 'a figure picker group');
+  assert.match(preview, /<div\b[^>]*\bid="bm-figures"[^>]*\baria-labelledby="bm-figures-label"/, 'the group is named by its question');
+  assert.ok(plain(preview.match(/<p\b[^>]*\bid="bm-figures-label"[^>]*>([\s\S]*?)<\/p>/)?.[1] ?? '').trim() === bodymap.text.figure, 'the question is bodymap.text.figure');
+  const options = [...picker.matchAll(/<button\b[^>]*\bdata-figure="([^"]+)"[^>]*aria-pressed="([^"]+)"[^>]*>([^<]*)</g)];
+  assert.deepEqual(options.map((m) => [m[1], m[3]]), [['female', bodymap.text.figures.female], ['male', bodymap.text.figures.male]]);
+  assert.deepEqual(options.map((m) => m[2]), ['true', 'false']);
+  const tabs = preview.match(/<div\b[^>]*\bid="bm-tabs"[^>]*>([\s\S]*?)<\/div>/)?.[1] ?? '';
+  assert.deepEqual([...tabs.matchAll(/\bdata-view="([^"]+)"/g)].map((m) => m[1]), ['front', 'back']);
+  assert.equal([...preview.matchAll(/\bdata-figure="/g)].length, 2, 'no other element carries a figure choice');
+});
+
 test('the only importer of the body map script is body-map.astro', () => {
   const walk = (d: string): string[] => readdirSync(d).flatMap((n) => (statSync(join(d, n)).isDirectory() ? walk(join(d, n)) : [join(d, n)]));
   for (const f of walk(join(root, 'src')).filter((p) => /\.(astro|ts)$/.test(p))) {

@@ -112,6 +112,7 @@ const pinCentres = async (page) => {
 };
 /** Taps the figure at a fraction of its box and returns the tap point. */
 async function tapFigure(page, fx, fy) {
+  await page.locator('#bm-figure').scrollIntoViewIfNeeded(); // filling the form scrolls up; the picker's question is a line taller than before
   const box = await page.locator('#bm-figure').boundingBox();
   const at = { x: box.x + box.width * fx, y: box.y + box.height * fy };
   await page.touchscreen.tap(at.x, at.y);
@@ -333,6 +334,56 @@ await check('B5: the Front and Back tabs keep the marks, swap the art and reset 
   assert(r.v === 2 && r.pins.length === 2, `report v${r.v}, ${r.pins.length} pins`);
   assert(r.pins[0].zone === 'left-belly-upper' && r.pins[0].region === 'belly-upper' && r.pins[0].side === 'left' && r.pins[0].zoneSet === 1, JSON.stringify(r.pins[0]));
   assert(r.pins[1].zone === 'left-skull-base' && r.pins[1].view === 'back', JSON.stringify(r.pins[1]));
+  await context.close();
+});
+
+await check('B5b (BM-1): the Female and Male picker swaps the art, keeps the mark on its spot, survives a reload, and the report says male with the male file\'s zone', async () => {
+  const { context, page, sends } = await open();
+  await fill(page);
+  const femaleArt = await page.locator('#bm-art').getAttribute('href');
+  assert((await page.locator('.bm-tab[data-figure="female"]').getAttribute('aria-pressed')) === 'true', 'Female is not pressed at the start');
+  await tapFigure(page, 0.65, 0.635); // the female file says lower outer thigh here, the male file outer knee
+  const spot =() => page.locator('.bm-pin').first().evaluate((el) => [el.getAttribute('cx'), el.getAttribute('cy')]);
+  const before = await spot();
+  assert((await page.locator('.bm-pin').count()) === 1, 'the mark');
+  await page.click('.bm-tab[data-figure="male"]');
+  assert((await page.locator('.bm-tab[data-figure="male"]').getAttribute('aria-pressed')) === 'true', 'the Male button is not pressed');
+  assert((await page.locator('.bm-tab[data-figure="female"]').getAttribute('aria-pressed')) === 'false', 'Female is still pressed');
+  const maleArt = await page.locator('#bm-art').getAttribute('href');
+  assert(maleArt && maleArt !== femaleArt, 'the art did not change');
+  assert((await page.locator('.bm-tab[data-view="front"]').getAttribute('aria-pressed')) === 'true', 'the view changed with the figure');
+  assert((await page.locator('.bm-pin').count()) === 1, 'the mark went');
+  assert(JSON.stringify(await spot()) === JSON.stringify(before), `the pin moved: ${before} to ${await spot()}`);
+  assert((await viewBox(page)) === 2048, 'the zoom was not reset');
+  const saved = await stored(page);
+  assert(saved.figure === 'male' && saved.pins.length === 1, `stored ${saved.figure}, ${saved.pins.length} pins`);
+  await page.reload({ waitUntil: 'networkidle' });
+  assert((await page.locator('#bm-art').getAttribute('href')) === maleArt, 'a reload showed the other figure');
+  assert((await page.locator('.bm-tab[data-figure="male"]').getAttribute('aria-pressed')) === 'true', 'a reload lost the Male choice');
+  await page.click('.bm-tab[data-view="back"]');
+  assert((await page.locator('#bm-art').getAttribute('href')) !== maleArt, 'the Back tab did not swap the male art');
+  await page.click('.bm-tab[data-view="front"]');
+  await page.locator('#bm-send').scrollIntoViewIfNeeded();
+  await page.click('#bm-send');
+  await page.locator('#bm-done:not([hidden])').waitFor();
+  assert(sends[0].figure === 'male', `figure ${sends[0].figure}`);
+  const p = sends[0].report.pins[0];
+  assert(sends[0].report.figure === 'male' && p.zone === 'left-knee-outer' && p.region === 'left-knee' && p.side === 'left' && p.zoneSet === 1, JSON.stringify(p));
+  await context.close();
+});
+
+await check('B5b: Start over puts the picker and the art back on Female (the view stays where it was)', async () => {
+  const { context, page } = await open();
+  const figures = await page.evaluate(() => JSON.parse(document.getElementById('bm-stage').dataset.figures));
+  await page.click('.bm-tab[data-figure="male"]');
+  await page.click('.bm-tab[data-view="back"]');
+  assert((await page.locator('#bm-art').getAttribute('href')) === figures.male_back, 'the male back art is not showing');
+  await page.click('#bm-start-over');
+  await page.click('#bm-start-yes');
+  assert((await page.locator('.bm-tab[data-figure="female"]').getAttribute('aria-pressed')) === 'true', 'Female is not pressed after Start over');
+  assert((await page.locator('.bm-tab[data-figure="male"]').getAttribute('aria-pressed')) === 'false', 'Male is still pressed after Start over');
+  assert((await page.locator('.bm-tab[data-view="back"]').getAttribute('aria-pressed')) === 'true', 'the view changed');
+  assert((await page.locator('#bm-art').getAttribute('href')) === figures.female_back, 'the female back art is not showing');
   await context.close();
 });
 

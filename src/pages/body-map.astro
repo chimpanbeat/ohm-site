@@ -56,6 +56,12 @@ const label = t.figureLabel.replace('{figure}', t.figures.female).replace('{view
                 </div>
 
                 <p class="bm-hint" id="bm-hint">{t.tapHint} {t.zoomHint}</p>
+                <p class="bm-picker-label" id="bm-figures-label">{t.figure}</p>
+                <div class="bm-tabs" id="bm-figures" role="group" aria-labelledby="bm-figures-label">
+                  {bodymap.figures.map((s) => (
+                    <button type="button" class="bm-btn bm-tab" data-figure={s} aria-pressed={s === 'female' ? 'true' : 'false'}>{t.figures[s]}</button>
+                  ))}
+                </div>
                 <div class="bm-tabs" id="bm-tabs" role="group" aria-label={t.views.front + ' / ' + t.views.back}>
                   {bodymap.views.map((v) => (
                     <button type="button" class="bm-btn bm-tab" data-view={v} aria-pressed={v === 'front' ? 'true' : 'false'}>{t.views[v]}</button>
@@ -215,6 +221,10 @@ const label = t.figureLabel.replace('{figure}', t.figures.female).replace('{view
     font-weight: 700;
     font-size: 1.125rem;
     cursor: pointer;
+  }
+  .bm-picker-label {
+    margin: 0 0 var(--s-2);
+    font-weight: 700;
   }
   .bm-tabs {
     display: flex;

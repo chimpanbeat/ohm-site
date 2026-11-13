@@ -3,7 +3,7 @@
 // src/lib/bodymap.ts, the report and PDF are src/lib/bodymap-pdf.ts. All strings are bodymap.text.
 // Health information stays in this page's memory, one localStorage entry (24 hours) and the one send. Nothing is logged,
 // put in the URL, or sent to analytics (the page loads none).
-import { bodymap, artName, type PinTypeKey, type View } from '../data/bodymap.ts';
+import { bodymap, artName, type PinTypeKey, type Sex, type View } from '../data/bodymap.ts';
 import { buildPayload, createStore, dateWindow, sendMap, validate, type FieldError, type SendResult } from '../lib/bodymap.ts';
 import { boxOf, initialView, panBy, pinRadius, toCanvas, toNorm, zoomAt, type Matrix, type ViewState } from '../lib/bodymap-view.ts';
 import { DEFAULT_COLORS, buildPdf, buildReport, toBase64, type PdfColors, type Rgb } from '../lib/bodymap-pdf.ts';
@@ -130,9 +130,11 @@ function start(): void {
   };
 
   const tabs = Array.from(document.querySelectorAll<HTMLButtonElement>('#bm-tabs .bm-tab'));
+  const picker = Array.from(document.querySelectorAll<HTMLButtonElement>('#bm-figures .bm-tab'));
   function showView(next: View): void {
     currentView = next;
     for (const b of tabs) b.setAttribute('aria-pressed', String(b.dataset.view === next));
+    for (const b of picker) b.setAttribute('aria-pressed', String(b.dataset.figure === state().figure));
     const url = figureUrl();
     if (url) art.setAttribute('href', url);
     svg.setAttribute('aria-label', t.figureLabel.replace('{figure}', t.figures[state().figure]).replace('{view}', t.views[next].toLowerCase()));
@@ -142,6 +144,19 @@ function start(): void {
     void preload(url).catch(() => undefined);
   }
   for (const b of tabs) b.addEventListener('click', () => showView(b.dataset.view === 'back' ? 'back' : 'front'));
+
+  // The figure picker (B5b): the marks stay where they are, each is looked up again in the new figure's zone file when the
+  // report is built (describe reads the figure), and the send id is dropped because the figure is an edit (§B12 Retries).
+  for (const b of picker) {
+    b.addEventListener('click', () => {
+      if (sending) return;
+      const next: Sex = b.dataset.figure === 'male' ? 'male' : 'female';
+      if (next === state().figure) return;
+      store.setFigure(next);
+      clearStatus();
+      showView(currentView);
+    });
+  }
 
   function renderMarks(): void {
     const pins = state().pins;
@@ -391,7 +406,7 @@ function start(): void {
     confirm.hidden = true;
     showErrors([]);
     clearStatus();
-    applyView();
+    showView(currentView); // Start over puts the figure back on Female, so the art and the picker follow
     renderMarks();
     startOver.focus();
   });
@@ -493,9 +508,8 @@ function start(): void {
   nameInput.value = state().name;
   dateInput.value = state().apptDate;
   app.hidden = false;
-  applyView();
+  showView(currentView); // a restored entry may hold the male figure: show its art and press its button
   renderMarks();
-  void preload(figureUrl()).catch(() => undefined);
 }
 
 start();

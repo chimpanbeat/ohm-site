@@ -7,11 +7,13 @@ import sharp from 'sharp';
 import { bodymap, sideOf, type View } from '../src/data/bodymap.ts';
 import { describePin, leafKeys, locate, type Ring, type ZoneFile } from '../src/lib/bodymap-zones.ts';
 import { pointInPolygon } from '../src/lib/geo.ts';
-import { buildReport } from '../src/lib/bodymap-pdf.ts';
+import { extractText, getDocumentProxy } from 'unpdf';
+import { buildPdf, buildReport } from '../src/lib/bodymap-pdf.ts';
+import { createStore } from '../src/lib/bodymap.ts';
 
-// B5 (I-073, I-156, I-157): two zone levels, the lookup and the female figure files. ARCHITECTURE §B12 Zones.
+// B5, B5b (I-073, I-156, I-157): two zone levels, the lookup and the zone files of all four v1 figures. ARCHITECTURE §B12 Zones.
 const root = fileURLToPath(new URL('..', import.meta.url));
-const FIGURES = ['female_front', 'female_back'] as const;
+const FIGURES = ['female_front', 'female_back', 'male_front', 'male_back'] as const;
 const viewOf = (name: string): View => (name.endsWith('front') ? 'front' : 'back');
 const zoneFile = (name: string): ZoneFile => JSON.parse(readFileSync(join(root, 'src/data/bodymap-zones', `${name}.json`), 'utf8'));
 const files = () => Object.fromEntries(FIGURES.map((n) => [n, zoneFile(n)])) as Record<(typeof FIGURES)[number], ZoneFile>;
@@ -124,14 +126,72 @@ const PROBES: Probe[] = [
   { name: 'left heel', view: 'back', x: 0.38, y: 0.94, zone: 'left-heel', region: 'left-ankle-heel', side: 'left' },
 ];
 
-test('2. probes from the art landmarks give the expected zone, region and side on each female figure', () => {
+// B5b: written from the male art's own landmarks (not from the female probes or the zone files): the male navel is at
+// y 0.384, the pectoral edge at y 0.285, the briefs' top edge at y 0.433, the knee caps at y 0.64 to 0.69, the shoulder
+// blades at y 0.19 to 0.265 and x 0.32 to 0.435 (viewer's left), the gluteal fold at y 0.505, the hands at y 0.47 to 0.57.
+const MALE_PROBES: Probe[] = [
+  { name: 'forehead', view: 'front', x: 0.5, y: 0.07, zone: 'forehead', region: 'head-face', side: 'midline' },
+  { name: 'left collarbone', view: 'front', x: 0.58, y: 0.195, zone: 'left-collarbone', region: 'left-shoulder', side: 'left' },
+  { name: 'left chest by the breastbone', view: 'front', x: 0.54, y: 0.26, zone: 'left-chest-inner', region: 'left-chest', side: 'left' },
+  { name: 'left chest by the armpit', view: 'front', x: 0.62, y: 0.26, zone: 'left-chest-outer', region: 'left-chest', side: 'left' },
+  { name: 'above the navel', view: 'front', x: 0.55, y: 0.34, zone: 'left-belly-upper', region: 'belly-upper', side: 'left' },
+  { name: 'below the navel', view: 'front', x: 0.45, y: 0.42, zone: 'right-belly-lower', region: 'belly-lower', side: 'right' },
+  { name: 'left knee, inner', view: 'front', x: 0.585, y: 0.665, zone: 'left-knee-inner', region: 'left-knee', side: 'left' },
+  { name: 'left knee, outer', view: 'front', x: 0.645, y: 0.665, zone: 'left-knee-outer', region: 'left-knee', side: 'left' },
+  { name: 'left upper shin', view: 'front', x: 0.635, y: 0.77, zone: 'left-shin-upper', region: 'left-shin', side: 'left' },
+  { name: 'left lower shin', view: 'front', x: 0.63, y: 0.87, zone: 'left-shin-lower', region: 'left-shin', side: 'left' },
+  { name: 'left palm', view: 'front', x: 0.845, y: 0.505, zone: 'left-palm', region: 'left-wrist-hand', side: 'left' },
+  { name: 'right forearm (no fine zones)', view: 'front', x: 0.21, y: 0.42, zone: 'right-forearm', region: 'right-forearm', side: 'right' },
+  { name: 'back of head', view: 'back', x: 0.5, y: 0.07, zone: 'head-back-upper', region: 'head-back', side: 'midline' },
+  { name: 'left skull base', view: 'back', x: 0.46, y: 0.13, zone: 'left-skull-base', region: 'head-back', side: 'left' },
+  { name: 'right skull base', view: 'back', x: 0.54, y: 0.13, zone: 'right-skull-base', region: 'head-back', side: 'right' },
+  { name: 'left blade, outer edge and back of shoulder', view: 'back', x: 0.29, y: 0.225, zone: 'left-shoulder-blade-outer', region: 'left-shoulder-blade', side: 'left' },
+  { name: 'left blade, middle', view: 'back', x: 0.38, y: 0.225, zone: 'left-shoulder-blade-mid', region: 'left-shoulder-blade', side: 'left' },
+  { name: 'left blade, inner', view: 'back', x: 0.415, y: 0.225, zone: 'left-shoulder-blade-inner', region: 'left-shoulder-blade', side: 'left' },
+  { name: 'left low back, beside the spine', view: 'back', x: 0.46, y: 0.38, zone: 'left-low-back-inner', region: 'left-low-back', side: 'left' },
+  { name: 'left lower glute', view: 'back', x: 0.41, y: 0.495, zone: 'left-glute-lower', region: 'left-glute', side: 'left' },
+  { name: 'left hamstring, upper inner', view: 'back', x: 0.45, y: 0.57, zone: 'left-hamstring-upper-inner', region: 'left-hamstring', side: 'left' },
+  { name: 'left hamstring, lower outer', view: 'back', x: 0.36, y: 0.62, zone: 'left-hamstring-lower-outer', region: 'left-hamstring', side: 'left' },
+  { name: 'left upper calf', view: 'back', x: 0.38, y: 0.74, zone: 'left-calf-upper', region: 'left-calf', side: 'left' },
+  { name: 'left heel', view: 'back', x: 0.37, y: 0.94, zone: 'left-heel', region: 'left-ankle-heel', side: 'left' },
+];
+
+test('2. probes from the art landmarks give the expected zone, region and side on every figure', () => {
   const f = files();
-  for (const p of PROBES) {
-    const at = locate(f[`female_${p.view}`], p.view, p.x, p.y);
-    assert.equal(at.zone, p.zone, `${p.name}: zone`);
-    assert.equal(at.region, p.region, `${p.name}: region`);
-    assert.equal(at.side, p.side, `${p.name}: side`);
-    assert.ok(at.zoneName && at.regionName, `${p.name}: names`);
+  for (const [sex, probes] of [['female', PROBES], ['male', MALE_PROBES]] as const) {
+    for (const p of probes) {
+      const at = locate(f[`${sex}_${p.view}`], p.view, p.x, p.y);
+      assert.equal(at.zone, p.zone, `${sex} ${p.name}: zone`);
+      assert.equal(at.region, p.region, `${sex} ${p.name}: region`);
+      assert.equal(at.side, p.side, `${sex} ${p.name}: side`);
+      assert.ok(at.zoneName && at.regionName, `${sex} ${p.name}: names`);
+    }
+  }
+});
+
+test('2b. both sexes have the same leaf keys and the same anchor keys for each view', () => {
+  const f = files();
+  for (const view of bodymap.views) {
+    const keys = (n: (typeof FIGURES)[number]) => f[n].zones.map((z) => z.key).sort();
+    assert.deepEqual(keys(`male_${view}`), keys(`female_${view}`), `${view}: leaf keys`);
+    assert.deepEqual(Object.keys(f[`male_${view}`].anchors).sort(), Object.keys(f[`female_${view}`].anchors).sort(), `${view}: anchor keys`);
+  }
+});
+
+test('2c. no male polygon equals a female polygon, or its mirror image, point for point', () => {
+  const f = files();
+  const same = (a: Ring, b: Ring) => a.length === b.length && a.every((p, i) => p[0] === b[i][0] && p[1] === b[i][1]);
+  const mirror = (r: Ring): Ring => r.map(([x, y]) => [Math.round((1 - x) * 10000) / 10000, y]);
+  const round = (r: Ring): Ring => r.map(([x, y]) => [Math.round(x * 10000) / 10000, Math.round(y * 10000) / 10000]);
+  for (const view of bodymap.views) {
+    const female = f[`female_${view}`].zones.map((z) => round(z.rings[0]));
+    for (const z of f[`male_${view}`].zones) {
+      const ring = round(z.rings[0]);
+      for (const g of female) {
+        assert.ok(!same(ring, g), `male_${view} ${z.key} equals a female polygon`);
+        assert.ok(!same(ring, mirror(g)), `male_${view} ${z.key} equals a mirrored female polygon`);
+      }
+    }
   }
 });
 
@@ -289,11 +349,73 @@ test('6. sequence: a pin looked up again when the view or the figure changes; th
   );
 });
 
+test('6b. changing the figure keeps the marks, looks the zone up again in the other figure\'s file, and drops the send id', () => {
+  const f = files();
+  const store = createStore({ storage: null, now: () => Date.now(), random: (b) => crypto.getRandomValues(b) });
+  store.setName('Test Client');
+  store.setApptDate('2026-12-03');
+  // A spot where the two figures' files disagree (the female thigh runs lower than the male one), so a lookup in the
+  // wrong file cannot pass: the female file names the lower outer thigh, the male file the outer knee.
+  store.addPin({ view: 'front', x: 0.65, y: 0.635, type: 'pain' });
+  const describe = () => describePin(f[`${store.state.figure}_front` as 'female_front' | 'male_front'], store.state.pins[0]);
+
+  const first = describe();
+  assert.equal(store.state.figure, 'female');
+  assert.equal(first.zone, 'left-thigh-front-lower-outer');
+  const id = store.sendId();
+  assert.ok(id, 'a send id was made');
+
+  store.setFigure('male');
+  assert.equal(store.state.id, null, 'the figure is an edit: the send id is dropped');
+  assert.equal(store.state.pins.length, 1, 'the pin is kept');
+  assert.deepEqual([store.state.pins[0].x, store.state.pins[0].y, store.state.pins[0].view], [0.65, 0.635, 'front'], 'the same spot');
+  assert.deepEqual([store.state.name, store.state.apptDate], ['Test Client', '2026-12-03'], 'name and date are kept');
+  const male = describe();
+  assert.equal(male.zone, 'left-knee-outer', 'looked up in the male file');
+  assert.equal(male.region, 'left-knee');
+  assert.notEqual(male.zone, first.zone, 'a different answer from the female file');
+  assert.deepEqual(male, locate(f.male_front, 'front', 0.65, 0.635), 'exactly the male file\'s lookup');
+
+  store.sendId();
+  store.setFigure('female');
+  assert.equal(store.state.id, null, 'and back: the id is dropped again');
+  assert.deepEqual(describe(), first, 'back to the first answer');
+});
+
+test('6c. BM-9 (male): the PDF names a male figure\'s marks from the male files, and a list mark by its region', async () => {
+  const f = files();
+  const nameOf = (view: View, key: string) => (bodymap.zones[view].find((z) => z.key === key) ?? bodymap.regions[view].find((r) => r.key === key))!.name;
+  const probe = (name: string) => MALE_PROBES.find((p) => p.name === name)!;
+  const navel = probe('above the navel');
+  const calf = probe('left upper calf');
+  const knee = f.male_front.anchors['left-knee'];
+  const pin = (id: string, over: Record<string, unknown>) => ({ id, view: 'front' as View, x: 0.5, y: 0.5, type: 'pain' as const, intensity: null, note: '', star: false, fromList: false, ...over });
+  const pins = [
+    pin('a', { view: navel.view, x: navel.x, y: navel.y }),
+    pin('b', { view: calf.view, x: calf.x, y: calf.y }),
+    pin('c', { x: knee[0], y: knee[1], fromList: true }),
+    pin('d', { x: 0.65, y: 0.635 }), // the female file names the lower outer thigh here, so only the male file gives the knee
+  ];
+  const state = { name: 'Test Client', apptDate: '2026-12-03', figure: 'male' as const, pins, id: null };
+  const describe = (p: (typeof pins)[number]) => describePin(f[`male_${p.view}` as 'male_front' | 'male_back'], p);
+  const sent = new Date('2026-12-01T17:00:00Z');
+  const doc = await getDocumentProxy(new Uint8Array(buildPdf(state, sent, {}, { describe })));
+  const { text } = (await extractText(doc, { mergePages: true })) as { text: string };
+  assert.ok(text.includes(nameOf('front', navel.zone)), `${nameOf('front', navel.zone)} in: ${text}`);
+  assert.ok(text.includes(nameOf('back', calf.zone)), `${nameOf('back', calf.zone)} in: ${text}`);
+  assert.ok(text.includes(`${nameOf('front', 'left-knee')}, ${bodymap.text.pdf.fromList}`), text);
+  const report = buildReport(state, sent, describe);
+  assert.equal(report.figure, 'male');
+  assert.ok(text.includes(nameOf('front', 'left-knee-outer')), `${nameOf('front', 'left-knee-outer')} in: ${text}`);
+  assert.deepEqual(report.pins.map((p) => p.zone), [navel.zone, calf.zone, null, 'left-knee-outer']);
+  assert.equal(report.pins[2].region, 'left-knee');
+});
+
 test('7. static: the PDF module imports no zone file, and the page source never renders a zone', () => {
   const pdf = readFileSync(join(root, 'src/lib/bodymap-pdf.ts'), 'utf8');
   assert.doesNotMatch(pdf, /bodymap-zones/);
   // The built page's HTML is checked against the preview build in tools/bodymap-e2e.mjs (dist holds the closed page).
   const page = readFileSync(join(root, 'src/pages/body-map.astro'), 'utf8');
   assert.doesNotMatch(page, /bodymap\.zones|bodymap-zones|zoneName/);
-  assert.ok(existsSync(join(root, 'src/data/bodymap-zones/female_front.json')));
+  for (const n of FIGURES) assert.ok(existsSync(join(root, `src/data/bodymap-zones/${n}.json`)), n);
 });
