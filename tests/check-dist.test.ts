@@ -16,7 +16,12 @@ const script = fileURLToPath(new URL('../scripts/check-dist.mjs', import.meta.ur
 const UMAMI = `<script defer src="${analytics.scriptSrc}" data-website-id="${analytics.websiteId}" data-domains="${analytics.domain}"></script>`;
 const HELLO = `<!doctype html><html><head><meta name="robots" content="noindex"><link rel="canonical" href="${origin}${base}/hello"><script type="application/ld+json">{}</script>${UMAMI}</head><body><main><a href="${base}/">Enter</a></main></body></html>`;
 const HOME = `<!doctype html><html><head>${UMAMI}</head><body><a href="${base}/book">Book</a></body></html>`;
-const BODY_MAP = `<!doctype html><html><head><title>Body map</title></head><body><main>Body map</main></body></html>`;
+// B4: the closed page (bodymap.open false): noindex, a self canonical, the closed line, nothing else.
+const BODY_MAP = `<!doctype html><html><head><title>Body map</title><meta name="robots" content="noindex"><link rel="canonical" href="${origin}${base}/body-map"><script type="application/ld+json">{}</script></head><body><main><p>This page isn't open yet.</p></main></body></html>`;
+// B4: the open page (preview build): the form, the honeypot, the endpoint in a data attribute, exactly one script.
+const SCRIPT_PATH = '_astro/body-map.astro_astro_type_script_index_0_lang.abc123.js';
+const BODY_MAP_OPEN = `<!doctype html><html><head><title>Body map</title><meta name="robots" content="noindex"><link rel="canonical" href="${origin}${base}/body-map"><script type="application/ld+json">{}</script></head><body><main><form id="bm-form" data-endpoint="https://script.google.com/macros/s/AKfake/exec"><input name="name"><input name="website" tabindex="-1"></form><svg xmlns="http://www.w3.org/2000/svg"></svg><noscript>This page needs JavaScript.</noscript><script type="module" src="${base}/${SCRIPT_PATH}"></script></main></body></html>`;
+const BODY_MAP_JS = 'const a="fake";export{a};';
 const SITEMAP = `<urlset><url><loc>${origin}${base}/</loc></url></urlset>`;
 const ROBOTS = 'User-agent: *\nAllow: /\n';
 
@@ -96,6 +101,53 @@ test('check:dist passes a body-map.html with no analytics (I-115)', () => {
   const t = good();
   t['body-map.html'] = BODY_MAP;
   assert.equal(run(t).status, 0);
+});
+
+// B4 / ARCHITECTURE §B12 Checks: noindex, a self canonical, out of the sitemap and robots.txt, no inbound links, one script
+// while open and none while closed, no zone markup, same-origin src/href, and a JS chunk that names no foreign host.
+const openTree = (): Tree => ({ ...good(), 'body-map.html': BODY_MAP_OPEN, [SCRIPT_PATH]: BODY_MAP_JS });
+
+test('check:dist passes the closed body map page and the open (preview) one (B4)', () => {
+  const closed = { ...good(), 'body-map.html': BODY_MAP };
+  assert.equal(run(closed).status, 0, run(closed).stderr);
+  const open = run(openTree());
+  assert.equal(open.status, 0, open.stderr);
+  const stub = { ...openTree(), 'body-map/index.html': '<!doctype html><meta name="robots" content="noindex"><meta http-equiv="refresh" content="0; url=../body-map"><a href="../body-map">Continue</a>' };
+  assert.equal(run(stub).status, 0, 'the refresh stub links to the page it refreshes to, and that is allowed');
+});
+
+const bodyMapBad: Array<[string, (t: Tree) => void, RegExp]> = [
+  ['no robots noindex', (t) => (t['body-map.html'] = BODY_MAP.replace('<meta name="robots" content="noindex">', '')), /body-map\.html.*noindex/],
+  ['no canonical', (t) => (t['body-map.html'] = BODY_MAP.replace(/<link rel="canonical"[^>]*>/, '')), /body-map.html.*canonical/],
+  ['a canonical to another page', (t) => (t['body-map.html'] = BODY_MAP.replace('/body-map"', '/hello"')), /body-map\.html.*canonical/],
+  ['a mention in the sitemap', (t) => (t['sitemap.xml'] = SITEMAP.replace('</urlset>', `<url><loc>${origin}${base}/body-map</loc></url></urlset>`)), /sitemap.*body-map/],
+  ['a robots.txt rule by name', (t) => (t['robots.txt'] = 'User-agent: *\nDisallow: /body-map\n'), /robots.*body-map/],
+  ['a link from another page', (t) => (t['index.html'] = HOME.replace('</body>', `<a href="${base}/body-map">Body map</a></body>`)), /index\.html links to \/body-map/],
+  ['a script while closed', (t) => (t['body-map.html'] = BODY_MAP.replace('</body>', '<script type="module" src="/x.js"></script></body>')), /closed.*script|script.*closed/i],
+  ['an inline script while closed', (t) => (t['body-map.html'] = BODY_MAP.replace('</body>', '<script>1</script></body>')), /closed.*script|script.*closed/i],
+  ['the endpoint URL while closed', (t) => (t['body-map.html'] = BODY_MAP.replace('</main>', '<span>https://script.google.com/macros/s/x/exec</span></main>')), /script\.google\.com/],
+  ['two scripts while open', (t) => (t['body-map.html'] = BODY_MAP_OPEN.replace('</main>', '<script type="module" src="/y.js"></script></main>')), /exactly one script/],
+  ['no script while open', (t) => (t['body-map.html'] = BODY_MAP_OPEN.replace(/<script type="module"[^>]*><\/script>/, '')), /exactly one script/],
+  ['an inline script while open', (t) => (t['body-map.html'] = BODY_MAP_OPEN.replace(/<script type="module"[^>]*><\/script>/, '<script type="module">1</script>')), /inline|exactly one script/],
+  ['zone markup', (t) => (t['body-map.html'] = BODY_MAP_OPEN.replace('</svg>', '<path data-zone="left-knee" d="M0 0"/></svg>')), /zone/],
+  ['an external src', (t) => (t['body-map.html'] = BODY_MAP_OPEN.replace('</main>', '<img src="https://cdn.example.com/a.png"></main>')), /same-origin|cdn\.example\.com/],
+  ['an external href', (t) => (t['body-map.html'] = BODY_MAP_OPEN.replace('</main>', '<link href="https://fonts.example.com/f.css">')), /same-origin|fonts\.example\.com/],
+  ['a JS chunk that names another host', (t) => (t[SCRIPT_PATH] = 'fetch("https://tracker.example.com/x")'), /tracker\.example\.com/],
+];
+for (const [name, mutate, re] of bodyMapBad) {
+  test(`check:dist fails a body map page with ${name} (B4)`, () => {
+    const t = name.includes('while open') || name.includes('zone') || name.includes('external') || name.includes('JS chunk') || name.includes('inline script while open') ? openTree() : { ...good(), 'body-map.html': BODY_MAP };
+    mutate(t);
+    const r = run(t);
+    assert.equal(r.status, 1, r.stdout + r.stderr);
+    assert.match(r.stderr, re);
+  });
+}
+
+test('check:dist lets an open body map chunk name the site, script.google.com and www.w3.org, and nothing else (B4)', () => {
+  const t = openTree();
+  t[SCRIPT_PATH] = `const a="${origin}/x",b="https://script.google.com/macros/s/x/exec",c="http://www.w3.org/2000/svg";`;
+  assert.equal(run(t).status, 0, run(t).stderr);
 });
 
 for (const [name, snippet] of [

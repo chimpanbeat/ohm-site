@@ -64,6 +64,7 @@ test('dist: script inventory per page', { skip }, () => {
     'book/north.html': 1,
     'book/office.html': 1,
     'book/out.html': 1,
+    'body-map.html': 0, // B4 (§B12): closed while bodymap.open is false, so no script; an OHM_BODYMAP_PREVIEW=1 build has one (bodymap.ts), so run `npm run check` on a normal build
   };
   for (const f of walk(dist, /\.html$/)) {
     const rel = relative(dist, f).split(sep).join('/');

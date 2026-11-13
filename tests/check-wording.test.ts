@@ -23,6 +23,7 @@ const good = (): Tree => ({
   'book.html': page(2),
   'book/out.html': page(1),
   'hello.html': page(0),
+  'body-map.html': '<!doctype html><html><body><main><h1>Body map</h1><p>Mark where you feel it before your session.</p></main></body></html>', // B4: bare, no credential
 });
 
 function run(tree: Tree, licensed: boolean) {
@@ -76,6 +77,23 @@ test('licensed: hello pages need no credential', () => {
   const t = good();
   t['hello/index.html'] = page(0);
   assert.equal(run(t, true).status, 0);
+});
+
+test('licensed: /body-map is bare, so it needs no credential, but it always fails on the licensure words (B4, BM-13)', () => {
+  assert.equal(run(good(), true).status, 0, 'no credential block needed');
+  for (const word of ['massage therapist', 'LMT', 'licensed']) {
+    for (const licensed of [true, false]) {
+      const t = good();
+      t['body-map.html'] = `<!doctype html><html><body><main><p>I am a ${word} in Colorado.</p></main></body></html>`;
+      const r = run(t, licensed);
+      assert.equal(r.status, 1, `${word} ${licensed}`);
+      assert.match(r.stderr, /body-map\.html/);
+    }
+  }
+  // any other page still needs the credential
+  const other = good();
+  other['body-map-extra.html'] = '<!doctype html><html><body><main>x</main></body></html>';
+  assert.equal(run(other, true).status, 1);
 });
 
 test('licensed: a redirect page (meta refresh, no main) needs no credential; a content page with a refresh still does (E8)', () => {

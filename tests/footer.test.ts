@@ -41,8 +41,8 @@ test('footer 2. every page with the site footer ends it with the credit; the nam
   for (const f of pages()) {
     const rel = relative(dist, f).replaceAll('\\', '/');
     const html = readFileSync(f, 'utf8');
-    if (rel === 'hello.html' || /http-equiv="refresh"/i.test(html)) {
-      // /hello is bare (§B8) and redirect stubs have no layout: no footer, so no credit
+    if (rel === 'hello.html' || rel === 'body-map.html' || /http-equiv="refresh"/i.test(html)) {
+      // /hello and /body-map (B4, §B12) are bare, and redirect stubs have no layout: no footer, so no credit
       assert.doesNotMatch(html, /<footer\b/, rel);
       continue;
     }

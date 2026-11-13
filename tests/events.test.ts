@@ -294,7 +294,7 @@ test('2b. RESERVED_SLUGS covers every top-level entry of src/pages/ and public/'
   const names = [...readdirSync(join(root, 'src/pages')), ...readdirSync(join(root, 'public'))]
     .filter((n) => !n.startsWith('['))
     .map((n) => n.split('.')[0]); // robots.txt.ts → robots
-  for (const n of [...names, 'events', '_astro', 'index', '404']) assert.ok(RESERVED_SLUGS.includes(n), `RESERVED_SLUGS lacks "${n}"`);
+  for (const n of [...names, 'events', '_astro', 'index', '404', 'body-map']) assert.ok(RESERVED_SLUGS.includes(n), `RESERVED_SLUGS lacks "${n}"`); // B4: /body-map
 });
 
 test('3. labels', () => {

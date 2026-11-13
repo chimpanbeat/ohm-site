@@ -24,6 +24,7 @@ export const RESERVED_SLUGS: string[] = [
   '404',
   'about',
   'apple-touch-icon',
+  'body-map',
   'book',
   'client-policies',
   'favicon-32',

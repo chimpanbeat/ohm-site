@@ -100,6 +100,68 @@ for (const name of ['body-map.html', 'body-map/index.html']) {
   if (/<script\b[^>]*\bsrc="[^"]*\/Base\.astro_astro_type_script[^"]*\.js"/i.test(html)) fail(`${name} loads Base's analytics script (I-115).`);
 }
 
+// B4 / ARCHITECTURE §B12 Checks: the body map page. Passes when the file does not exist. It is noindex with a self
+// canonical, in no sitemap or robots.txt rule, linked from nowhere, and has no zone markup. While closed (no form) it
+// has no script and no endpoint URL; while open (a preview build, or after B10) exactly one script, whose chunk names
+// no host but the site, script.google.com and www.w3.org. Every src and href is relative or on the site.
+{
+  const BODY_MAP_PATH = `${base}/body-map`;
+  const html = read('body-map.html');
+  if (html !== null) {
+    if (!/<meta\b[^>]*\bname="robots"[^>]*\bcontent="[^"]*\bnoindex\b[^"]*"/i.test(html)) fail('body-map.html lacks <meta name="robots" content="noindex">.');
+    const canonical = html.match(/<link\b[^>]*\brel="canonical"[^>]*\bhref="([^"]*)"/i)?.[1];
+    if (!canonical) fail('body-map.html has no <link rel="canonical"> (a self canonical is required).');
+    else {
+      let path = canonical;
+      try {
+        path = new URL(canonical, 'https://placeholder.invalid').pathname;
+      } catch {}
+      if (path.replace(/\/+$/, '') !== BODY_MAP_PATH) fail(`body-map.html canonical is "${canonical}", expected the path ${BODY_MAP_PATH}.`);
+    }
+    const found = [...html.matchAll(/<script\b([^>]*)>/gi)].filter((m) => !/\btype="application\/ld\+json"/i.test(m[1]));
+    const open = /<form\b/i.test(html);
+    if (!open) {
+      if (found.length) fail(`body-map.html is closed (no form) but has ${found.length} script(s); a closed page has none.`);
+      if (html.includes('script.google.com')) fail('body-map.html is closed but names script.google.com (the endpoint URL must not ship while closed).');
+    } else {
+      const srcs = found.map((m) => m[1].match(/\bsrc="([^"]*)"/)?.[1]).filter(Boolean);
+      if (found.length !== 1 || srcs.length !== 1) fail(`body-map.html is open and needs exactly one script, a <script src> (found ${found.length}, ${found.length - srcs.length} inline).`);
+      const own = new Set([new URL(site.deploy.site).host, new URL(site.deploy.customDomain).host]);
+      const allowed = new Set([...own, 'script.google.com', 'www.w3.org']);
+      for (const src of srcs) {
+        const rel = src.replace(/^https?:\/\/[^/]+/, '').replace(base ? new RegExp(`^${base}`) : /^/, '').replace(/^\/+/, '');
+        const js = read(rel);
+        if (js === null) fail(`body-map.html loads ${src}, which is not in ${DIST}/.`);
+        else {
+          for (const h of new Set([...js.matchAll(/https?:\/\/([\w.-]+)/g)].map((m) => m[1]))) {
+            if (!allowed.has(h)) fail(`${rel} names the host ${h} (only the site, script.google.com and www.w3.org are allowed).`);
+          }
+        }
+      }
+    }
+    if (/\bdata-zone\b|bodymap-zones?\b|\bzone-key\b|class="[^"]*\bbm-zone\b/i.test(html)) fail('body-map.html contains zone markup (zones are never in the HTML, §B12).');
+    const own = new Set([new URL(site.deploy.site).host, new URL(site.deploy.customDomain).host]);
+    for (const m of html.matchAll(/\s(?:src|href)="([^"]*)"/gi)) {
+      if (!/^(?:https?:)?\/\//i.test(m[1])) continue;
+      let host = '';
+      try {
+        host = new URL(m[1].startsWith('//') ? `https:${m[1]}` : m[1]).host;
+      } catch {}
+      if (!own.has(host)) fail(`body-map.html has a src or href to ${host || m[1]} (same-origin only).`);
+    }
+  }
+  const map = read('sitemap.xml');
+  if (map !== null && /body-map/i.test(map)) fail('sitemap.xml mentions body-map.');
+  const bots = read('robots.txt');
+  if (bots !== null && /body-map/i.test(bots)) fail('robots.txt mentions body-map (a rule would announce the page).');
+  const LINK = /href\s*=\s*["']?[^"'\s>]*\/body-map(?:\.html)?(?=[/"'#?\s>]|$)/i;
+  for (const file of walk(DIST)) {
+    const name = rel(file);
+    if (/^body-map(\/index)?\.html$/.test(name)) continue;
+    if (LINK.test(readFileSync(file, 'utf8'))) fail(`${name} links to /body-map (it must stay unlinked).`);
+  }
+}
+
 // A1: every other page carries the Umami tag exactly once, with the website ID and data-domains set to the production hostname only.
 const UMAMI_TAG = /<script\b[^>]*\bsrc="([^"]*)"[^>]*>/gi;
 for (const file of walk(DIST)) {

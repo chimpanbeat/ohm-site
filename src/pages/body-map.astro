@@ -1,0 +1,270 @@
+---
+// /body-map (B4, I-073; ARCHITECTURE §B12 Page). Bare, noindex, no analytics, linked from nowhere, needs JavaScript.
+// Not live until B10: while `bodymap.open` is false the page is the closed line only, with no script, no form and no endpoint URL.
+// `OHM_BODYMAP_PREVIEW=1 npm run build` builds the real page for local and LAN-phone tests (like OHM_EVENTS_NOW).
+import Base from '../layouts/Base.astro';
+import { bodymap, artName } from '../data/bodymap.ts';
+import { site } from '../data/site.ts';
+
+const t = bodymap.text;
+const preview = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env?.OHM_BODYMAP_PREVIEW === '1';
+const open = bodymap.open || preview;
+
+// The art is found by one glob on the folder, so a new set with the same names and viewBox needs no code change (BM-14).
+// A figure with a WebP beside it (the SVG was over 400 KB) is shown as the WebP.
+const svgs = import.meta.glob('../assets/bodymap/svg/*_{front,back}.svg', { query: '?url', import: 'default', eager: true }) as Record<string, string>;
+const webps = import.meta.glob('../assets/bodymap/webp/*_{front,back}.webp', { query: '?url', import: 'default', eager: true }) as Record<string, string>;
+const figures: Record<string, string> = {};
+if (open) {
+  for (const sex of bodymap.figures) {
+    for (const view of bodymap.views) {
+      const name = artName(sex, view);
+      const url = webps[`../assets/bodymap/webp/${name}.webp`] ?? svgs[`../assets/bodymap/svg/${name}.svg`];
+      if (url) figures[name] = url;
+    }
+  }
+}
+const first = figures[artName('female', 'front')];
+const label = t.figureLabel.replace('{figure}', t.figures.female).replace('{view}', t.views.front.toLowerCase());
+---
+
+<Base title={`${t.title} · ${site.name}`} description={t.description} noindex bare analytics={false}>
+  <div class="bm">
+    <div class="container bm-wrap">
+      <h1>{t.h1}</h1>
+      {
+        !open ? (
+          <p class="bm-closed">{t.closed}</p>
+        ) : (
+          <>
+            <noscript><p class="bm-noscript">{t.noscript}</p></noscript>
+            <div id="bm" class="bm-app" hidden>
+              <p class="bm-intro">{t.intro}</p>
+              <form id="bm-form" class="bm-form" novalidate data-endpoint={site.bodymapUrl} data-site-name={site.name}>
+                <div class="bm-field">
+                  <label for="bm-name">{t.name}</label>
+                  <input id="bm-name" name="name" type="text" maxlength={bodymap.limits.nameChars} autocomplete="name" aria-describedby="bm-name-err" />
+                  <p id="bm-name-err" class="bm-field-error" hidden>{t.errName}</p>
+                </div>
+                <div class="bm-field">
+                  <label for="bm-date">{t.apptDate}</label>
+                  <input id="bm-date" name="apptDate" type="date" aria-describedby="bm-date-err" />
+                  <p id="bm-date-err" class="bm-field-error" hidden>{t.errDate}</p>
+                </div>
+                <div class="bm-trap" aria-hidden="true">
+                  <label>{t.honeypot}<input name="website" type="text" tabindex="-1" autocomplete="off" /></label>
+                </div>
+
+                <p class="bm-hint" id="bm-hint">{t.tapHint} {t.zoomHint}</p>
+                <div class="bm-figure-block">
+                  <div class="bm-stage" id="bm-stage" data-figures={JSON.stringify(figures)}>
+                    <svg id="bm-figure" class="bm-figure" viewBox={`0 0 ${bodymap.viewBox.width} ${bodymap.viewBox.height}`} preserveAspectRatio="xMidYMid meet" role="img" aria-label={label} aria-describedby="bm-hint">
+                      <image id="bm-art" href={first} x="0" y="0" width={bodymap.viewBox.width} height={bodymap.viewBox.height}></image>
+                      <g id="bm-pins"></g>
+                    </svg>
+                  </div>
+                  <div class="bm-zoom" role="group" aria-label={t.zoomHint}>
+                    <button type="button" class="bm-btn" id="bm-zoom-in" aria-label={t.zoomIn}>+</button>
+                    <button type="button" class="bm-btn" id="bm-zoom-out" aria-label={t.zoomOut}>−</button>
+                    <button type="button" class="bm-btn bm-btn--text" id="bm-zoom-reset">{t.zoomReset}</button>
+                  </div>
+                </div>
+
+                <h2 class="bm-marks-title" id="bm-marks-title" aria-live="polite">{t.marks.replace('{n}', '0')}</h2>
+                <p class="bm-empty" id="bm-empty">{t.marksEmpty}</p>
+                <ul class="bm-marks" id="bm-marks" aria-labelledby="bm-marks-title"></ul>
+                <p id="bm-empty-err" class="bm-field-error" hidden>{t.errEmpty}</p>
+
+                <div class="bm-actions">
+                  <button type="submit" class="btn" id="bm-send">{t.send}</button>
+                  <button type="button" class="bm-btn bm-btn--text" id="bm-start-over">{t.startOver}</button>
+                </div>
+                <div class="bm-confirm" id="bm-confirm" role="group" aria-label={t.startOverConfirm} hidden>
+                  <p>{t.startOverConfirm}</p>
+                  <button type="button" class="btn" id="bm-start-yes">{t.startOverYes}</button>
+                  <button type="button" class="bm-btn bm-btn--text" id="bm-start-no">{t.startOverNo}</button>
+                </div>
+                <p class="bm-status" id="bm-status" role="status" aria-live="polite" hidden></p>
+                <button type="button" class="btn" id="bm-retry" hidden>{t.retry}</button>
+                <p class="bm-note">{t.privacy}</p>
+                <p class="bm-note">{t.savedNote}</p>
+                <p class="bm-note">{t.sharedNote}</p>
+              </form>
+              <section class="bm-done" id="bm-done" role="status" hidden>
+                <h2>{t.doneTitle}</h2>
+                <p>{t.doneText}</p>
+              </section>
+            </div>
+            <script>
+              import '../scripts/bodymap.ts';
+            </script>
+          </>
+        )
+      }
+    </div>
+  </div>
+</Base>
+
+<style is:global>
+  /* Global, not scoped: the script builds the marks list and the pins, and scoped styles don't reach elements it creates. Every rule is under .bm. */
+  /* The scrollbar gutter shows the root background; this page is cream edge to edge. */
+  html:has(.bm) {
+    background: var(--bg-light);
+  }
+  .bm [hidden] {
+    display: none !important;
+  }
+  .bm {
+    min-height: 100vh;
+    background: var(--bg-light);
+    color: var(--text-on-light);
+  }
+  .bm-wrap {
+    padding-block: var(--s-8) var(--s-16);
+    max-width: 34rem;
+  }
+  .bm h1 {
+    margin-bottom: var(--s-3);
+  }
+  .bm-intro,
+  .bm-hint {
+    margin-bottom: var(--s-4);
+  }
+  .bm-closed,
+  .bm-noscript {
+    font-size: 1.125rem;
+  }
+  .bm-field {
+    display: grid;
+    gap: var(--s-1);
+    margin-bottom: var(--s-4);
+  }
+  .bm-field label {
+    font-weight: 700;
+  }
+  .bm-form input[type='text'],
+  .bm-form input[type='date'] {
+    width: 100%;
+    min-height: 44px;
+    padding: var(--s-2) var(--s-3);
+    border: 2px solid var(--text-on-light);
+    border-radius: var(--radius);
+    background: var(--bg-light);
+    font-size: max(16px, 1rem);
+  }
+  .bm-field-error,
+  .bm-error {
+    margin: 0;
+    color: var(--cta-bg);
+    font-weight: 700;
+  }
+  /* The honeypot: out of sight and out of reach for people; a bot that fills every field fills it. */
+  .bm-trap {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+  .bm-figure-block {
+    display: grid;
+    gap: var(--s-3);
+    justify-items: center;
+    margin-bottom: var(--s-6);
+  }
+  /* The only element that stops the browser's own pan and zoom: the figure, so the rest of the page scrolls normally. */
+  .bm-stage {
+    touch-action: none;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .bm-figure {
+    display: block;
+    width: 100%;
+    max-width: 35vh;
+    max-width: 35dvh;
+    max-height: 70vh;
+    max-height: 70dvh;
+    aspect-ratio: 1 / 2;
+    background: var(--bg-light);
+    border: 1px solid var(--bodymap-figure);
+  }
+  .bm-zoom {
+    display: flex;
+    gap: var(--s-2);
+    align-items: center;
+  }
+  .bm-btn {
+    min-width: 44px;
+    min-height: 44px;
+    padding: var(--s-2) var(--s-3);
+    border: 2px solid var(--text-on-light);
+    border-radius: var(--radius);
+    background: transparent;
+    font-weight: 700;
+    font-size: 1.125rem;
+    cursor: pointer;
+  }
+  .bm-btn--text {
+    border-color: transparent;
+    font-size: 1rem;
+    text-decoration: underline;
+  }
+  .bm-btn:hover {
+    background: var(--bodymap-figure);
+  }
+  .bm-marks {
+    list-style: none;
+    margin: 0 0 var(--s-4);
+    padding: 0;
+    display: grid;
+    gap: var(--s-2);
+  }
+  .bm-marks li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--s-3);
+  }
+  .bm-actions,
+  .bm-confirm {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-3);
+    margin-block: var(--s-4);
+  }
+  .bm-confirm p {
+    width: 100%;
+    margin: 0;
+    font-weight: 700;
+  }
+  .bm-status {
+    margin-block: var(--s-3);
+    font-weight: 700;
+  }
+  .bm-note {
+    margin-block: var(--s-2);
+    font-size: 0.9375rem;
+  }
+  .bm-done {
+    padding: var(--s-6);
+    border: 2px solid var(--green-700);
+  }
+  /* Pins: shape and number first, colour second (BM-3). Sizes are set by the script from the live zoom. */
+   .bm-pin {
+    fill: var(--pin-pain);
+    stroke: var(--pin-halo);
+  }
+   .bm-pin-n {
+    fill: var(--pin-halo);
+    font-family: var(--font-text);
+    font-weight: 700;
+    text-anchor: middle;
+    dominant-baseline: central;
+    pointer-events: none;
+  }
+</style>

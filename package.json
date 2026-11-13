@@ -28,6 +28,7 @@
     "check:reviewer": "node tools/check-reviewer.mjs",
     "check": "npm run build && npm test && npm run check:wording && npm run check:contrast && npm run check:dist && npm run check:secrets && npm run check:reviewer",
     "shots": "node tools/shots.mjs",
+    "e2e:bodymap": "node tools/bodymap-e2e.mjs",
     "metrics": "node tools/method-metrics.mjs"
   },
   "dependencies": {
