@@ -8,10 +8,10 @@ Models: builder Fable 5.2 (high effort) · architect Fable 5.2 (plans the fixes 
 Every BM passes, first in Playwright (Chromium and WebKit, at 375 and 1280 px), then with Brian on real devices over LAN preview (`OHM_BODYMAP_PREVIEW=1`, the real endpoint). He needs his iPhone (current iOS), one Android, a desktop, and two people who haven't seen the page (I-111). The results go in the Results section below. Fixes become new items, not edits here. Read-only: all code. Known gaps: none.
 
 ## AC covered (IDs)
-- BM-1: two new testers, timed by Brian, each under 3 minutes.
+- BM-1: two new testers, timed by Brian, each under 3 minutes. They aren't told about `Add details`; the time counts whether or not they open it (the Nov 13 revision must not slow the plain flow).
 - BM-2: an iPhone pinch to 3×, then a pin; zoom out and it stays put.
 - BM-3: the greyscale legend, checked by Brian's eye.
-- BM-4, BM-5, BM-9: Brian opens the PDF in Drive.
+- BM-4, BM-5, BM-9: Brian opens the PDF in Drive. One send has every detail filled in (intensity 1–10, quality, acute or chronic, started, worse, better) and pins on his own left knee, front and back: the PDF and the JSON say left, name the zone he tapped, and the JSON pins carry `zone`, `zoneSet`, `side` and `regionName` (§B12 Report JSON).
 - BM-6: a list-only send.
 - BM-7: reload mid-entry; reload after sending; a Safari private window; a storage-throwing stub.
 - BM-8: a "Test Client" send from the phone and from the desktop; read-style `curl` calls.

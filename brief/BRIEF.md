@@ -313,16 +313,16 @@ A client-facing page, `https://ohmprecisionbodywork.com/body-map`, where a clien
 - R1 Front and back figures, female or male. The 4 side views (left and right, both sexes) stay in the assets for a later release and are not shown.
 - R2 Zoom and pan (pinch, wheel, buttons); pins stay on the body at any zoom.
 - R3 Pin types: pain, discomfort, injury, numbness or tingling, avoid. Each has its own shape as well as colour.
-- R4 Optional details in a few taps: intensity 1–5 and a one-line note.
+- R4 Optional details in a few taps: intensity 1–10 and a one-line note; behind "Add details", what it feels like (sharp, dull or achy, burning, spreading), acute or chronic, when it started, and what makes it worse or better (Brian, Nov 13, 2026; I-153, I-155, I-158). None is required.
 - R5 Star up to 3 priority pins. Avoid pins can't be starred (Brian, Nov 8, 2026).
 - R6 A region list (checkboxes by area name, per view) gives the same report data without tapping.
 - R7 Autosave on the device for 24 hours, cleared on send; the page works without storage.
 - R8 Sending builds the PDF in the browser and posts it with the JSON to the filing script.
-- R9 The report names body regions from hidden zones (28 front, 29 back), never drawn for the client.
+- R9 The report names body regions from hidden zones, never drawn for the client. Two levels (Brian, Nov 13, 2026; I-156, I-157): coarse regions the client sees by name (28 front, 29 back), and finer zones inside them that appear only in the PDF and the JSON. Each mark in the JSON carries its zone ID, the zone-set version, its side (left, right or midline; the client's own left and right) and the region name, and the JSON has a format version.
 - R10 Spam protection: a honeypot, size caps and rate limits (6 per 10 minutes, 30 per day, 3 per client name and appointment date per day; Brian, Nov 8, 2026). Turnstile can be added later without a redesign.
 - R11 A confirmation after sending; a clear error and retry if filing fails, with the marks kept.
 
-**Non-goals (v1).** Red-flag screening, appointment tie-in, session goals, before/after overlays, side views, 3D, accounts, a history the client can read, muscle-layer diagrams, email notices of new maps (Brian, Nov 8, 2026), automatic deletion (Brian keeps maps under his own records policy).
+**Non-goals (v1).** Red-flag screening, appointment tie-in, session goals, before/after overlays, side views, circled areas (v1.1), any technique or origin brief (Brian, Nov 13, 2026), 3D, accounts, a history the client can read, muscle-layer diagrams, email notices of new maps (Brian, Nov 8, 2026), automatic deletion (Brian keeps maps under his own records policy).
 
 **Data and privacy.** No health information in the repo, the built site, analytics, logs, URLs or file names beyond the client's name and dates. Google receives the map as Brian's Workspace processor (Brian treats the BAA as settled, Nov 7, 2026). The filing script only creates files: no code path lists, reads or shares them. Google can't enforce that for a script that runs as Brian, so it is a promise the code keeps, checked by tests, static checks and review. Files go to the client's folder when exactly one folder named `First_Last` matches the typed name (case, accents and punctuation ignored), otherwise to `_Unsorted_Intakes` in the same parent folder; Brian re-files by hand. The public repo holds only code, the art and geometry-only zone files.
 

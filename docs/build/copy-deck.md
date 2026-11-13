@@ -671,6 +671,16 @@ Brian approved this copy as drafted (Nov 8, 2026, plan question 6). Every string
 - Honeypot label (visually hidden, `tabindex="-1"`): `Leave this field empty` [`honeypot`]
 - A pin outside every zone: `Unlabelled area` [`unlabelled`]
 
+**Details** (proposed by the architect, Nov 13, 2026, from Brian's words in I-153, I-155 and I-158; Brian approves them with I-159; B6 copies them into `bodymap.text` as written and they then replace the 1–5 wording in the Details sheet line and the PDF line)
+- Intensity: `How strong is it?` [`intensity`, unchanged] with `1`–`10`, ends `Mild` · `Strong` [unchanged].
+- Disclosure: `Add details` [`details`]
+- Quality: `What does it feel like?` [`quality`] with `Sharp` · `Dull or achy` · `Burning` · `Spreading` [`qualities`: `sharp`, `dull`, `burning`, `spreading`]
+- Course: `Is it new or long-standing?` [`course`] with `New` · `Long-standing` [`courses`: `acute`, `chronic`]
+- Started: `When did it start?` [`started`], placeholder `Roughly, if you know` [`startedPlaceholder`]
+- Worse: `What makes it worse?` [`worse`] · Better: `What makes it better?` [`better`]
+- PDF [`text.pdf`]: intensity `{n}/10` [`intensity`]; `Acute` · `Chronic` [`courses`]; labels `Started` [`started`] · `Worse with` [`worse`] · `Better with` [`better`]; a mark from the list `chosen from the list` [`fromList`]
+- Zone names (fine zones, PDF and JSON only): the names in `docs/build/steps/B5-zone-list-draft.md` once Brian approves that list; B5 copies them into `bodymap.zones` and into this section.
+
 **Region names** [`bodymap.regions`; left and right are the client's own]
 - **Front (28):** Head and face; Front of neck; Left/Right shoulder; Left/Right chest; Left/Right upper arm; Left/Right elbow; Left/Right forearm; Left/Right wrist and hand; Left/Right side of ribs; Upper belly; Lower belly; Left/Right front of hip; Left/Right front of thigh; Left/Right knee; Left/Right shin; Left/Right ankle and foot.
 - **Back (29):** Back of head; Back of neck; Left/Right top of shoulder; Left/Right shoulder blade; Left/Right mid back; Left/Right low back; Base of spine; Left/Right glute; Left/Right back of upper arm; Left/Right back of elbow; Left/Right back of forearm; Left/Right back of hand; Left/Right hamstring; Left/Right back of knee; Left/Right calf; Left/Right ankle and heel.

@@ -11,6 +11,9 @@ The reviewer confirms, read-only, that health information goes only where §B12 
 - network: hosts, and no query strings;
 - URLs and the page title;
 - PDF and JSON contents and the Drive file names;
+- the detail fields from the Nov 13 revision (quality, course, started, worse, better): health information like the note, on the same paths and no others;
+- zones: the JSON pins carry §B12's zone fields, a fine zone name is never rendered on the page, and left and right are the client's own;
+- the filing script changed once at B7 (`LIMITS` and the per-pin caps only), and the repo's copy is what was pushed;
 - fixtures: fake data only;
 - the pin-greyscale screenshot;
 - that the PDF writer is sound: if it is fragile, the architect brings jsPDF to Brian.
@@ -27,7 +30,7 @@ Read-only: everything. Known gaps: none.
 No new code. The reviewer runs `npm run check`, then these greps:
 1. `git grep -nE "drive\.google\.com/[^[:space:]]*folders/|/folders/[A-Za-z0-9_-]{20,}"` → none. These are Drive folder addresses only, B2's `check:secrets` rule (I-138).
 2. `git grep -nE "script\.google\.com/(home/projects|d)/|\"scriptId\"[[:space:]]*:" -- . ":(exclude).apps-script-ids.example.json"` → none. These are script editor project addresses only (not `/home/usersettings` or `/macros/s/…/exec`) and a `"scriptId"` key only when a value follows (I-138). Then `git grep -nE "\"scriptId\"" -- .apps-script-ids.example.json` → exactly its two placeholder sentences (each has spaces; a real Script ID has none).
-3. `git ls-files | grep -iE "\.clasp\.json$|\.pdf$|bodymap.*\.json$"` → only `public/ohm-client-policies.pdf`, the 4 zone files, `apps-script/bodymap/appsscript.json` and `tests/fixtures/bodymap-payloads.json` (the last two are B2's, fake data only).
+3. `git ls-files | grep -iE "\.clasp\.json$|\.pdf$|bodymap.*\.json$"` → only `public/ohm-client-policies.pdf`, the 4 zone files (geometry, anchors and `zoneSet` only), `apps-script/bodymap/appsscript.json` and `tests/fixtures/bodymap-payloads.json` (the last two are B2's, fake data only).
 4. `git grep -nE "console\.|localStorage\.(setItem|getItem)" -- src/scripts/bodymap.ts src/lib/bodymap*.ts src/lib/pdf.ts` → no console; storage only inside the one wrapper.
 5. `git grep -nE "Logger\.log|console\.(log|info|error)" -- apps-script/bodymap/` → none.
 6. `grep -ohE "https?://[^\"' )]+" dist/body-map.html dist/_astro/*.js | sort -u`, for the body map chunk → only the site, `script.google.com` and `www.w3.org`.
