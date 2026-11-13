@@ -181,18 +181,41 @@ function start(): void {
     return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
   };
 
-  function placeMark(clientX: number, clientY: number): void {
-    if (sending) return; // what is being sent is what the client sees: no edits until the reply
+  function placeMark(clientX: number, clientY: number): string | null {
+    if (sending) return null; // what is being sent is what the client sees: no edits until the reply
     const m = matrix();
-    if (!m) return;
+    if (!m) return null;
     const c = toCanvas(m, clientX, clientY);
     const [nx, ny] = toNorm(c.x, c.y);
-    if (nx < 0 || nx > 1 || ny < 0 || ny > 1) return; // the letterbox beside the figure
-    if (!store.addPin({ view: currentView, x: nx, y: ny, type: markType })) return;
+    if (nx < 0 || nx > 1 || ny < 0 || ny > 1) return null; // the letterbox beside the figure
+    const pin = store.addPin({ view: currentView, x: nx, y: ny, type: markType });
+    if (!pin) return null;
     renderPins();
     renderMarks();
     q<HTMLElement>('bm-empty-err').hidden = true;
     clearStatus();
+    return pin.id;
+  }
+
+  // Double tap zooms in on that spot (the first tap's mark is taken back); a quick two-finger tap zooms out. (Brian, Nov 13)
+  const DOUBLE_TAP_MS = 320;
+  const DOUBLE_TAP_PX = 30;
+  const TWO_FINGER_MS = 280;
+  let lastTap: { t: number; x: number; y: number; pin: string | null } | null = null;
+  let twoDownAt = 0;
+  let twoTravel = 0;
+  function tapped(x: number, y: number): void {
+    const now = performance.now();
+    const m = matrix();
+    if (lastTap && m && now - lastTap.t < DOUBLE_TAP_MS && Math.hypot(x - lastTap.x, y - lastTap.y) < DOUBLE_TAP_PX && !sending) {
+      if (lastTap.pin) store.removePin(lastTap.pin);
+      lastTap = null;
+      view = zoomAt(view, 2, toCanvas(m, x, y));
+      applyView();
+      renderMarks();
+      return;
+    }
+    lastTap = { t: now, x, y, pin: placeMark(x, y) };
   }
 
   stage.addEventListener('pointerdown', (e) => {
@@ -207,6 +230,8 @@ function start(): void {
       pinched = true;
       lastDist = dist();
       lastMid = mid();
+      twoDownAt = performance.now();
+      twoTravel = 0;
     }
   });
   stage.addEventListener('pointermove', (e) => {
@@ -220,6 +245,7 @@ function start(): void {
     if (pointers.size === 2) {
       const d = dist();
       const md = mid();
+      twoTravel += Math.abs(d - lastDist) + Math.hypot(md.x - lastMid.x, md.y - lastMid.y);
       if (lastDist > 0) view = zoomAt(view, d / lastDist, toCanvas(m, md.x, md.y));
       svg.setAttribute('viewBox', boxString());
       const after = matrix();
@@ -244,8 +270,17 @@ function start(): void {
   const end = (e: PointerEvent) => {
     if (!pointers.has(e.pointerId)) return;
     const wasOne = pointers.size === 1;
+    const wasTwo = pointers.size === 2;
+    const centre2 = wasTwo ? mid() : null;
     pointers.delete(e.pointerId);
-    if (e.type === 'pointerup' && wasOne && !moved && !pinched) placeMark(e.clientX, e.clientY);
+    if (e.type === 'pointerup' && wasOne && !moved && !pinched) tapped(e.clientX, e.clientY);
+    if (e.type === 'pointerup' && wasTwo && centre2 && !sending && performance.now() - twoDownAt < TWO_FINGER_MS && twoTravel < 12) {
+      const m = matrix();
+      if (m) {
+        view = zoomAt(view, 0.5, toCanvas(m, centre2.x, centre2.y));
+        applyView();
+      }
+    }
     if (pointers.size === 0) pinched = false;
   };
   stage.addEventListener('pointerup', end);

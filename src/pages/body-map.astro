@@ -173,9 +173,12 @@ const label = t.figureLabel.replace('{figure}', t.figures.female).replace('{view
     margin-bottom: var(--s-6);
   }
   /* The only element that stops the browser's own pan and zoom: the figure, so the rest of the page scrolls normally. */
+  /* As wide as the figure and no wider: a swipe beside the figure scrolls the page (Brian, Nov 13). */
   .bm-stage {
     touch-action: none;
-    width: 100%;
+    width: min(100%, 35vh);
+    width: min(100%, 35dvh);
+    margin-inline: auto;
     display: flex;
     justify-content: center;
     user-select: none;

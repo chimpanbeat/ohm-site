@@ -44,7 +44,7 @@ States: `todo` · `doing` · `blocked` · `done` · `dropped`
 | B1 | I-074: the art into `src/assets/bodymap/` (delivered names, metadata check, size), art test, pin contrast rules (`steps/B1-art.md`) | medium | /next | done | d0b633e |
 | B2 | I-073: the "Ohm Bodymap" filing script (write-only, folder match, honeypot, caps, rate limits, idempotent), its tests, runbook, push target; Brian at the PC about 30 min (I-075, I-110) (`steps/B2-filing-script.md`) | high | /next-high | done | cd0ae7a |
 | B3 | Reviewer: data path, write-only, replies and logs, IDs out of the repo, live read-style calls (`steps/B3-review-data-path.md`) | high | /next-high | done | 60b0c78 |
-| B4 | Thin slice behind `open`: female front, one pin type, zoom, pan, pinch, autosave, minimal PDF, real "Test Client" send, retry; page checks (`steps/B4-thin-slice.md`) | high | /next-high | doing: built and reviewed (round 2 ACCEPT); waits only for Done-when 4, Brian's phone send; commit fc5b487 (wip) | |
+| B4 | Thin slice behind `open`: female front, one pin type, zoom, pan, pinch, autosave, minimal PDF, real "Test Client" send, retry; page checks (`steps/B4-thin-slice.md`) | high | /next-high | done | fc5b487 |
 | B5 | The 4 v1 figures, figure and view picker, zone files, region lookup, coverage tool; Brian looks over the overlays about 20 min (`steps/B5-figures-zones.md`) | high | /next-high | todo | |
 | B6 | 5 pin types and legend, details sheet, stars, marks list, region list, Start over (`steps/B6-pins-details.md`) | medium | /next | todo | |
 | B7 | Full PDF and JSON report, honeypot, caps, every error state, accessibility, dist checks (`steps/B7-report-polish.md`) | medium | /next | todo | |

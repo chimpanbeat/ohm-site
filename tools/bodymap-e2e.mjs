@@ -214,6 +214,34 @@ await check('BM-2: a drag pans a zoomed figure and makes no pin; at zoom 1 it do
   await context.close();
 });
 
+await check('touch capture is only as wide as the figure, so a swipe beside it scrolls the page', async () => {
+  const { context, page } = await open();
+  const stage = await page.locator('#bm-stage').boundingBox();
+  const fig = await page.locator('#bm-figure').boundingBox();
+  assert(stage.width <= fig.width + 2, `the touch area is ${stage.width}px wide, the figure ${fig.width}px`);
+  await context.close();
+});
+
+await check('a double tap zooms in on that spot and leaves no mark; a quick two-finger tap zooms back out', async () => {
+  const { context, page } = await open();
+  const w0 = await viewBox(page);
+  const box = await page.locator('#bm-figure').boundingBox();
+  const at = { x: box.x + box.width * 0.5, y: box.y + box.height * 0.4 };
+  await page.touchscreen.tap(at.x, at.y);
+  await page.touchscreen.tap(at.x, at.y);
+  assert((await viewBox(page)) < w0 * 0.6, 'the double tap did not zoom');
+  assert((await page.locator('.bm-pin').count()) === 0, 'a double tap left a mark');
+  assert(((await stored(page))?.pins.length ?? 0) === 0, 'a double tap left a stored mark');
+  const cdp = await context.newCDPSession(page);
+  const touch = (type, pts) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pts.map((p, i) => ({ x: p.x, y: p.y, id: i })) });
+  const c = centre(await page.locator('#bm-figure').boundingBox());
+  await touch('touchStart', [{ x: c.x - 25, y: c.y }, { x: c.x + 25, y: c.y }]);
+  await touch('touchEnd', []);
+  assert((await viewBox(page)) > w0 * 0.9, 'the two-finger tap did not zoom out');
+  assert((await page.locator('.bm-pin').count()) === 0, 'a two-finger tap left a mark');
+  await context.close();
+});
+
 await check('BM-7: marks, name and date survive a reload; Start over clears them', async () => {
   const { context, page } = await open();
   await fill(page);
