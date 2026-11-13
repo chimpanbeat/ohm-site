@@ -56,6 +56,11 @@ const label = t.figureLabel.replace('{figure}', t.figures.female).replace('{view
                 </div>
 
                 <p class="bm-hint" id="bm-hint">{t.tapHint} {t.zoomHint}</p>
+                <div class="bm-tabs" id="bm-tabs" role="group" aria-label={t.views.front + ' / ' + t.views.back}>
+                  {bodymap.views.map((v) => (
+                    <button type="button" class="bm-btn bm-tab" data-view={v} aria-pressed={v === 'front' ? 'true' : 'false'}>{t.views[v]}</button>
+                  ))}
+                </div>
                 <div class="bm-figure-block">
                   <div class="bm-stage" id="bm-stage" data-figures={JSON.stringify(figures)}>
                     <svg id="bm-figure" class="bm-figure" viewBox={`0 0 ${bodymap.viewBox.width} ${bodymap.viewBox.height}`} preserveAspectRatio="xMidYMid meet" role="img" aria-label={label} aria-describedby="bm-hint">
@@ -210,6 +215,15 @@ const label = t.figureLabel.replace('{figure}', t.figures.female).replace('{view
     font-weight: 700;
     font-size: 1.125rem;
     cursor: pointer;
+  }
+  .bm-tabs {
+    display: flex;
+    gap: var(--s-2);
+    margin-bottom: var(--s-3);
+  }
+  .bm-tab[aria-pressed='true'] {
+    background: var(--bodymap-figure);
+    border-width: 3px;
   }
   .bm-btn--text {
     border-color: transparent;

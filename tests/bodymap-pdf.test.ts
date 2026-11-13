@@ -101,22 +101,39 @@ test('no pins still makes a valid PDF; a missing image leaves a note, not a cras
   assert.ok(text.includes(bodymap.text.marksEmpty), text);
 });
 
-test('the report: fixed keys, the pins numbered in order, no regions yet, and the whole record is in it (I-145)', () => {
+test('the report: fixed keys, the pins numbered in order, no zone without a lookup, and the whole record is in it (I-145)', () => {
   const r = buildReport(state([pin(1, { note: 'fake note' }), pin(2, { type: 'pain', star: true, intensity: 3 })]), SENT);
   assert.deepEqual(Object.keys(r).sort(), ['apptDate', 'figure', 'name', 'pins', 'sent', 'v']);
-  assert.equal(r.v, 1);
+  assert.equal(r.v, 2); // B5: the zone fields join (I-156)
   assert.equal(r.name, 'Test Client');
   assert.equal(r.apptDate, '2026-12-03');
   assert.equal(r.figure, 'female');
   assert.equal(r.sent, '2026-12-01T17:00:00.000Z');
   assert.deepEqual(r.pins.map((p) => p.n), [1, 2]);
-  assert.deepEqual(Object.keys(r.pins[0]).sort(), ['intensity', 'n', 'note', 'region', 'star', 'type', 'view', 'x', 'y']);
+  assert.deepEqual(Object.keys(r.pins[0]).sort(), ['fromList', 'intensity', 'n', 'note', 'region', 'regionName', 'side', 'star', 'type', 'view', 'x', 'y', 'zone', 'zoneName', 'zoneSet']);
   assert.equal(r.pins[0].region, null);
+  assert.equal(r.pins[0].zone, null);
   assert.equal(r.pins[0].note, 'fake note');
   assert.equal(r.pins[1].star, true);
   assert.equal(r.pins[1].intensity, 3);
   assert.ok(JSON.stringify(r).length < bodymap.limits.reportBytes);
   assert.ok(!('id' in r), 'the send id stays out of the record');
+});
+
+test('BM-9: the PDF list shows the zone name, the region name for a list mark, and "unlabelled" outside every zone', async () => {
+  const known: Record<string, { zone: string | null; zoneName: string | null; region: string | null; regionName: string | null; side: 'left' | 'right' | null }> = {
+    a: { zone: 'left-knee-inner', zoneName: 'Left knee, inner side', region: 'left-knee', regionName: 'Left knee', side: 'left' },
+    b: { zone: null, zoneName: null, region: 'right-glute', regionName: 'Right glute', side: 'right' },
+    c: { zone: null, zoneName: null, region: null, regionName: null, side: null },
+  };
+  const pins = [pin(1, { id: 'a' }), pin(2, { id: 'b', fromList: true }), pin(3, { id: 'c' })];
+  const { text } = await read(buildPdf(state(pins), SENT, {}, { describe: (p) => known[p.id] }));
+  assert.ok(text.includes('Left knee, inner side'), text);
+  assert.ok(text.includes(`Right glute, ${bodymap.text.pdf.fromList}`), text);
+  assert.ok(text.includes(bodymap.text.unlabelled), text);
+  assert.ok(!text.includes('Left knee, inner side, '), 'a zone is named once');
+  const none = await read(buildPdf(state([pin(1)]), SENT, {}));
+  assert.ok(none.text.includes(bodymap.text.unlabelled), 'no lookup, no zone');
 });
 
 test('toBase64 round-trips bytes, including a large buffer', () => {

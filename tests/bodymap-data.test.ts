@@ -77,6 +77,7 @@ test('6. every text is non-empty and has no licensure words', () => {
   };
   walk(bodymap.text);
   walk(bodymap.regions);
+  walk(bodymap.zones);
   assert.ok(strings.length > 60);
   for (const s of strings) {
     assert.ok(s.trim(), 'non-empty');

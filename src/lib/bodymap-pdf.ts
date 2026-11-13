@@ -1,8 +1,9 @@
 // The body map report and its PDF (B4 thin slice; B7 completes it). ARCHITECTURE §B12 Report and PDF.
 // buildReport() is the JSON the script files beside the PDF; buildPdf() draws the PDF with src/lib/pdf.ts.
-// Regions come from the lookup (B5), never from the zone files: this module imports none. Until B5, a mark's region is null
-// and the PDF says "Unlabelled area". Pin colours come from the page (read from the CSS tokens) so no colour is set here.
-import { bodymap, type PinTypeKey, type View } from '../data/bodymap.ts';
+// Zones come from the lookup (B5), never from the zone files: this module imports none; the page script passes `describe`.
+// Without it a mark has no zone and the PDF says "Unlabelled area". Pin colours come from the page (read from the CSS
+// tokens) so no colour is set here.
+import { bodymap, type Located, type PinTypeKey, type Side, type View } from '../data/bodymap.ts';
 import { PdfWriter, textWidth, wrapText, type PdfPage } from './pdf.ts';
 import type { BodyState, Pin } from './bodymap.ts';
 
@@ -18,8 +19,12 @@ export const DEFAULT_COLORS: PdfColors = {
   rule: [0.83, 0.84, 0.86],
 };
 
+/** What the lookup says about one pin (B5): the page script builds it from the zone files, so this module imports none. */
+export type DescribePin = (p: Pin) => Located;
+const NO_ZONE: Located = { zone: null, zoneName: null, region: null, regionName: null, side: null };
+
 export interface Report {
-  v: 1;
+  v: typeof bodymap.reportVersion;
   name: string;
   apptDate: string;
   figure: BodyState['figure'];
@@ -33,23 +38,36 @@ export interface ReportPin {
   x: number;
   y: number;
   type: PinTypeKey;
+  zone: string | null;
+  zoneName: string | null;
   region: string | null;
+  regionName: string | null;
+  side: Side | null;
+  zoneSet: number;
   intensity: number | null;
   note: string;
   star: boolean;
+  fromList: boolean;
 }
 
 const round4 = (n: number) => Math.round(n * 10000) / 10000;
 
 /** The record filed as JSON: the whole report, so the file reads on its own (I-145). The send id stays out of it. */
-export function buildReport(s: Pick<BodyState, 'name' | 'apptDate' | 'figure' | 'pins'>, sentAt: Date): Report {
+export function buildReport(s: Pick<BodyState, 'name' | 'apptDate' | 'figure' | 'pins'>, sentAt: Date, describe: DescribePin = () => NO_ZONE): Report {
   return {
-    v: 1,
+    v: bodymap.reportVersion,
     name: s.name.trim(),
     apptDate: s.apptDate,
     figure: s.figure,
     sent: sentAt.toISOString(),
-    pins: s.pins.map((p, i) => ({ n: i + 1, view: p.view, x: round4(p.x), y: round4(p.y), type: p.type, region: null, intensity: p.intensity, note: p.note, star: p.star })),
+    pins: s.pins.map((p, i) => {
+      const at = describe(p);
+      return {
+        n: i + 1, view: p.view, x: round4(p.x), y: round4(p.y), type: p.type,
+        zone: at.zone, zoneName: at.zoneName, region: at.region, regionName: at.regionName, side: at.side,
+        zoneSet: bodymap.zoneSet, intensity: p.intensity, note: p.note, star: p.star, fromList: p.fromList,
+      };
+    }),
   };
 }
 
@@ -80,10 +98,16 @@ const FIG_H = 330; // the figure's height on the first page, in points
 const LINE = 12.5;
 const typeName = (k: PinTypeKey) => bodymap.text.types[k];
 
-function pinLine(p: Pin, n: number): string {
+/** The place a line names: the fine zone, the region and "chosen from the list" for a list mark, or "unlabelled". */
+function placeOf(p: Pin, at: Located): string {
+  if (p.fromList && at.regionName) return `${at.regionName}, ${bodymap.text.pdf.fromList}`;
+  return at.zoneName ?? bodymap.text.unlabelled;
+}
+
+function pinLine(p: Pin, n: number, at: Located): string {
   const parts = [typeName(p.type)];
   if (p.intensity) parts.push(bodymap.text.pdf.intensity.replace('{n}', String(p.intensity)));
-  parts.push(bodymap.text.unlabelled); // B5 replaces this with the looked-up region
+  parts.push(placeOf(p, at));
   if (p.note.trim()) parts.push(p.note.trim());
   return `${n}.  ${parts.join(' · ')}`;
 }
@@ -92,8 +116,9 @@ export function buildPdf(
   s: Pick<BodyState, 'name' | 'apptDate' | 'figure' | 'pins'>,
   sentAt: Date,
   images: Partial<Record<View, FigureImage>>,
-  opts: { siteName?: string; colors?: PdfColors } = {},
+  opts: { siteName?: string; colors?: PdfColors; describe?: DescribePin } = {},
 ): Uint8Array {
+  const describe = opts.describe ?? (() => NO_ZONE);
   const t = bodymap.text.pdf;
   const c = opts.colors ?? DEFAULT_COLORS;
   const w = new PdfWriter();
@@ -173,7 +198,7 @@ export function buildPdf(
     ink(page).text(colX, y + 10, heading, { size: 11, bold: true });
     y += LINE + 6;
     for (const { p, n } of rows) {
-      const lines = wrapText(pinLine(p, n), colW - 12, 9.5);
+      const lines = wrapText(pinLine(p, n, describe(p)), colW - 12, 9.5);
       ensure(lines.length);
       lines.forEach((ln, i) => {
         ink(page).text(colX + (i ? 12 : 0), y + 9, ln, { size: 9.5 });

@@ -7,6 +7,12 @@ import { bodymap, artName, type PinTypeKey, type View } from '../data/bodymap.ts
 import { buildPayload, createStore, dateWindow, sendMap, validate, type FieldError, type SendResult } from '../lib/bodymap.ts';
 import { boxOf, initialView, panBy, pinRadius, toCanvas, toNorm, zoomAt, type Matrix, type ViewState } from '../lib/bodymap-view.ts';
 import { DEFAULT_COLORS, buildPdf, buildReport, toBase64, type PdfColors, type Rgb } from '../lib/bodymap-pdf.ts';
+import { describePin, type Located, type ZoneFile } from '../lib/bodymap-zones.ts';
+
+// The zone files (B5), found by one glob on the folder like the art. Only the lookup reads them; nothing here draws a zone.
+const zoneFiles = import.meta.glob('../data/bodymap-zones/*.json', { eager: true, import: 'default' }) as Record<string, ZoneFile>;
+const zoneFileFor = (sex: string, view: View): ZoneFile | undefined => zoneFiles[`../data/bodymap-zones/${artName(sex as 'female' | 'male', view)}.json`];
+const NO_ZONE: Located = { zone: null, zoneName: null, region: null, regionName: null, side: null };
 
 const t = bodymap.text;
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -53,8 +59,8 @@ function start(): void {
   }
   const store = createStore({ storage, now: () => Date.now(), random: (b) => crypto.getRandomValues(b) });
 
-  // Thin slice: the front of the chosen figure, and the one mark type, pain.
-  const currentView: View = 'front';
+  // The view tabs (B5) change the figure's side and keep every mark. The one mark type, pain, stays until B6.
+  let currentView: View = 'front';
   const markType: PinTypeKey = 'pain';
   let view: ViewState = initialView();
   let sending = false;
@@ -116,6 +122,26 @@ function start(): void {
     svg.setAttribute('viewBox', `${b.x} ${b.y} ${b.w} ${b.h}`);
     renderPins();
   }
+
+  /** What the report says about a pin: the lookup in this figure's zone file for the pin's own view (no file, no zone). */
+  const describe = (p: { view: View; x: number; y: number; fromList: boolean }): Located => {
+    const file = zoneFileFor(state().figure, p.view);
+    return file ? describePin(file, p) : NO_ZONE;
+  };
+
+  const tabs = Array.from(document.querySelectorAll<HTMLButtonElement>('#bm-tabs .bm-tab'));
+  function showView(next: View): void {
+    currentView = next;
+    for (const b of tabs) b.setAttribute('aria-pressed', String(b.dataset.view === next));
+    const url = figureUrl();
+    if (url) art.setAttribute('href', url);
+    svg.setAttribute('aria-label', t.figureLabel.replace('{figure}', t.figures[state().figure]).replace('{view}', t.views[next].toLowerCase()));
+    view = initialView(); // each side starts unzoomed; the marks stay
+    lastTap = null;
+    applyView();
+    void preload(url).catch(() => undefined);
+  }
+  for (const b of tabs) b.addEventListener('click', () => showView(b.dataset.view === 'back' ? 'back' : 'front'));
 
   function renderMarks(): void {
     const pins = state().pins;
@@ -392,8 +418,8 @@ function start(): void {
     return colors;
   }
 
-  async function figureJpeg() {
-    const im = await preload(figureUrl());
+  async function figureJpeg(side: View) {
+    const im = await preload(figures[artName(store.state.figure, side)] ?? '');
     const canvas = document.createElement('canvas');
     canvas.width = PDF_PX.w;
     canvas.height = PDF_PX.h;
@@ -444,9 +470,9 @@ function start(): void {
     try {
       const sentAt = new Date();
       const id = store.sendId();
-      const image = await figureJpeg();
-      const pdf = buildPdf(state(), sentAt, { [currentView]: image }, { siteName, colors: readColors() });
-      const payload = buildPayload({ ...state(), id }, buildReport(state(), sentAt), toBase64(pdf));
+      const image = await figureJpeg('front'); // the PDF draws the front only until B7 (the list names every mark's zone)
+      const pdf = buildPdf(state(), sentAt, { front: image }, { siteName, colors: readColors(), describe });
+      const payload = buildPayload({ ...state(), id }, buildReport(state(), sentAt, describe), toBase64(pdf));
       result = await sendMap({ fetch: (url, init) => fetch(url, init), url: endpoint, payload });
     } catch {
       result = 'server'; // the report could not be built (nothing was sent); the marks are still here

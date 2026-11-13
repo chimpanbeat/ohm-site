@@ -9,6 +9,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs
 import { tmpdir } from 'node:os';
 import { extname, join, normalize, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { bodymap } from '../src/data/bodymap.ts';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const KEY = 'ohm-bodymap-v1';
@@ -305,6 +306,40 @@ await check('the send: the wire contract, a v4 id, a real PDF, and a retry carri
   const bytes = Buffer.from(a.pdf, 'base64');
   assert(bytes.subarray(0, 5).toString('latin1') === '%PDF-', 'not a PDF');
   assert(a.pdf.length < 1_500_000, `pdf is ${a.pdf.length} base64 characters`);
+  await context.close();
+});
+
+await check('B5: the Front and Back tabs keep the marks, swap the art and reset the zoom; the sent report carries the zone fields', async () => {
+  const { context, page, sends } = await open();
+  await fill(page);
+  const frontArt = await page.locator('#bm-art').getAttribute('href');
+  await tapFigure(page, 0.55, 0.34); // above the navel: the left side of the upper belly on a front view
+  assert((await page.locator('.bm-pin').count()) === 1, 'the front mark');
+  await page.click('#bm-zoom-in');
+  await page.click('.bm-tab[data-view="back"]');
+  assert((await page.locator('.bm-tab[data-view="back"]').getAttribute('aria-pressed')) === 'true', 'the Back tab is not pressed');
+  assert((await page.locator('.bm-tab[data-view="front"]').getAttribute('aria-pressed')) === 'false', 'the Front tab is still pressed');
+  assert((await page.locator('#bm-art').getAttribute('href')) !== frontArt, 'the art did not change');
+  assert((await page.locator('.bm-pin').count()) === 0, 'a front mark shows on the back');
+  assert((await viewBox(page)) === 2048, 'the zoom was not reset');
+  await tapFigure(page, 0.45, 0.13); // the left base of the skull on a back view
+  assert((await stored(page)).pins.length === 2, 'both marks are kept');
+  await page.click('.bm-tab[data-view="front"]');
+  assert((await page.locator('.bm-pin').count()) === 1, 'the front mark did not come back');
+  await page.locator('#bm-send').scrollIntoViewIfNeeded();
+  await page.click('#bm-send');
+  await page.locator('#bm-done:not([hidden])').waitFor();
+  const r = sends[0].report;
+  assert(r.v === 2 && r.pins.length === 2, `report v${r.v}, ${r.pins.length} pins`);
+  assert(r.pins[0].zone === 'left-belly-upper' && r.pins[0].region === 'belly-upper' && r.pins[0].side === 'left' && r.pins[0].zoneSet === 1, JSON.stringify(r.pins[0]));
+  assert(r.pins[1].zone === 'left-skull-base' && r.pins[1].view === 'back', JSON.stringify(r.pins[1]));
+  await context.close();
+});
+
+await check('B5: the open page names no fine zone (they are for the PDF and JSON only)', async () => {
+  const { context, page } = await open();
+  const html = await page.content();
+  for (const side of Object.values(bodymap.zones)) for (const z of side) assert(!html.includes(z.name), `the page shows "${z.name}"`);
   await context.close();
 });
 
