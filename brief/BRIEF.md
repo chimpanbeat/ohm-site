@@ -318,7 +318,7 @@ A client-facing page, `https://ohmprecisionbodywork.com/body-map`, where a clien
 - R6 A region list (checkboxes by area name, per view) gives the same report data without tapping.
 - R7 Autosave on the device for 24 hours, cleared on send; the page works without storage.
 - R8 Sending builds the PDF in the browser and posts it with the JSON to the filing script.
-- R9 The report names body regions from hidden zones, never drawn for the client. Two levels (Brian, Nov 13, 2026; I-156, I-157): coarse regions the client sees by name (28 front, 29 back), and finer zones inside them that appear only in the PDF and the JSON. Each mark in the JSON carries its zone ID, the zone-set version, its side (left, right or midline; the client's own left and right) and the region name, and the JSON has a format version.
+- R9 The report names body regions from hidden zones, never drawn for the client. Two levels (Brian, Nov 13, 2026; I-156, I-157): coarse regions the client sees by name (28 front, 31 back; the back gained left and right "back of shoulder", I-160, Nov 13, 2026), and finer zones inside them that appear only in the PDF and the JSON. Each mark in the JSON carries its zone ID, the zone-set version, its side (left, right or midline; the client's own left and right) and the region name, and the JSON has a format version.
 - R10 Spam protection: a honeypot, size caps and rate limits (6 per 10 minutes, 30 per day, 3 per client name and appointment date per day; Brian, Nov 8, 2026). Turnstile can be added later without a redesign.
 - R11 A confirmation after sending; a clear error and retry if filing fails, with the marks kept.
 

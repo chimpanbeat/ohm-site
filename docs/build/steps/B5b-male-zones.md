@@ -6,6 +6,8 @@ Models: builder Sonnet (high effort) · architect Opus (no planning in this step
 
 Split from B5 on Nov 13, 2026 (architect): 120 polygons per sex is a step's worth, and Brian's notes on the female overlays should shape the male ones. Needs B5 done.
 
+Nov 13, 2026 (architect, I-160): built in wip `91bbf9a` by registering the female polygons onto the male art (Brian's call; §B12 Files now says so), then blocked by B5c, which re-keys the back shoulder and moves the male top-of-shoulder border. B5b doesn't run again: Brian's one overlay look after B5c meets Done when 2, and Done when 3's screens are taken then if missing.
+
 ## Goal
 Zone files for `male_front` and `male_back`, with the same leaf keys as the female files (57 front, 63 back), authored on the male art and never mirrored or copied from the female files. The figure picker (`Female` · `Male`) shows all 4 v1 figures. Changing the figure keeps the pins and looks every zone up again in the new figure's file. `npm run bodymap:zones` renders the male overlays, and Brian looks them over before done.
 

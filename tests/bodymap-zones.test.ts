@@ -56,12 +56,12 @@ function simple(ring: Ring): boolean {
 }
 
 test('1. contract: counts, region links, unique keys, twins, sides, names', () => {
-  assert.equal(bodymap.zoneSet, 1);
+  assert.equal(bodymap.zoneSet, 2);
   assert.equal(bodymap.reportVersion, 2);
   assert.equal(bodymap.regions.front.length, 28);
-  assert.equal(bodymap.regions.back.length, 29);
+  assert.equal(bodymap.regions.back.length, 31);
   assert.equal(bodymap.zones.front.length, 51);
-  assert.equal(bodymap.zones.back.length, 55);
+  assert.equal(bodymap.zones.back.length, 53);
   assert.equal(leafKeys('front').length, 57);
   assert.equal(leafKeys('back').length, 63);
   const all = new Set<string>();
@@ -115,7 +115,10 @@ const PROBES: Probe[] = [
   { name: 'back of head', view: 'back', x: 0.5, y: 0.07, zone: 'head-back-upper', region: 'head-back', side: 'midline' },
   { name: 'left skull base', view: 'back', x: 0.45, y: 0.13, zone: 'left-skull-base', region: 'head-back', side: 'left' },
   { name: 'right skull base', view: 'back', x: 0.55, y: 0.13, zone: 'right-skull-base', region: 'head-back', side: 'right' },
-  { name: 'left blade, outer', view: 'back', x: 0.32, y: 0.23, zone: 'left-shoulder-blade-outer', region: 'left-shoulder-blade', side: 'left' },
+  { name: 'left back of shoulder, by the armpit', view: 'back', x: 0.32, y: 0.23, zone: 'left-shoulder-back-lower', region: 'left-shoulder-back', side: 'left' },
+  { name: 'left back of shoulder, upper', view: 'back', x: 0.30, y: 0.19, zone: 'left-shoulder-back-upper', region: 'left-shoulder-back', side: 'left' },
+  { name: 'right back of shoulder, upper', view: 'back', x: 0.70, y: 0.19, zone: 'right-shoulder-back-upper', region: 'right-shoulder-back', side: 'right' },
+  { name: 'left top of shoulder, by the neck', view: 'back', x: 0.40, y: 0.185, zone: 'left-shoulder-top', region: 'left-shoulder-top', side: 'left' },
   { name: 'left blade, middle', view: 'back', x: 0.385, y: 0.23, zone: 'left-shoulder-blade-mid', region: 'left-shoulder-blade', side: 'left' },
   { name: 'left blade, inner', view: 'back', x: 0.44, y: 0.23, zone: 'left-shoulder-blade-inner', region: 'left-shoulder-blade', side: 'left' },
   { name: 'left low back, beside the spine', view: 'back', x: 0.46, y: 0.38, zone: 'left-low-back-inner', region: 'left-low-back', side: 'left' },
@@ -145,7 +148,10 @@ const MALE_PROBES: Probe[] = [
   { name: 'back of head', view: 'back', x: 0.5, y: 0.07, zone: 'head-back-upper', region: 'head-back', side: 'midline' },
   { name: 'left skull base', view: 'back', x: 0.46, y: 0.13, zone: 'left-skull-base', region: 'head-back', side: 'left' },
   { name: 'right skull base', view: 'back', x: 0.54, y: 0.13, zone: 'right-skull-base', region: 'head-back', side: 'right' },
-  { name: 'left blade, outer edge and back of shoulder', view: 'back', x: 0.29, y: 0.225, zone: 'left-shoulder-blade-outer', region: 'left-shoulder-blade', side: 'left' },
+  { name: 'left back of shoulder, by the armpit', view: 'back', x: 0.29, y: 0.225, zone: 'left-shoulder-back-lower', region: 'left-shoulder-back', side: 'left' },
+  { name: 'left back of shoulder, upper', view: 'back', x: 0.30, y: 0.19, zone: 'left-shoulder-back-upper', region: 'left-shoulder-back', side: 'left' },
+  { name: 'right back of shoulder, upper', view: 'back', x: 0.70, y: 0.19, zone: 'right-shoulder-back-upper', region: 'right-shoulder-back', side: 'right' },
+  { name: 'left top of shoulder, by the neck', view: 'back', x: 0.40, y: 0.185, zone: 'left-shoulder-top', region: 'left-shoulder-top', side: 'left' },
   { name: 'left blade, middle', view: 'back', x: 0.38, y: 0.225, zone: 'left-shoulder-blade-mid', region: 'left-shoulder-blade', side: 'left' },
   { name: 'left blade, inner', view: 'back', x: 0.415, y: 0.225, zone: 'left-shoulder-blade-inner', region: 'left-shoulder-blade', side: 'left' },
   { name: 'left low back, beside the spine', view: 'back', x: 0.46, y: 0.38, zone: 'left-low-back-inner', region: 'left-low-back', side: 'left' },
@@ -290,8 +296,8 @@ test('4b. a list pin at each region anchor reports that region, no zone', () => 
   }
 });
 
-test('5. sizes (BM-2): leaves at least 105 canvas units, regions at least 210 (ribs 170, shoulder-top 195)', () => {
-  const exempt: Record<string, number> = { 'left-ribs-side': 170, 'right-ribs-side': 170, 'left-shoulder-top': 195, 'right-shoulder-top': 195 };
+test('5. sizes (BM-2): leaves at least 105 canvas units, regions at least 210 (ribs 170, shoulder-top 180)', () => {
+  const exempt: Record<string, number> = { 'left-ribs-side': 170, 'right-ribs-side': 170, 'left-shoulder-top': 180, 'right-shoulder-top': 180 };
   for (const name of FIGURES) {
     const view = viewOf(name);
     const file = zoneFile(name);
@@ -320,7 +326,7 @@ test('6. sequence: a pin looked up again when the view or the figure changes; th
   assert.equal(r1.pins[0].zone, 'left-belly-upper');
   assert.equal(r1.pins[0].region, 'belly-upper');
   assert.equal(r1.pins[0].side, 'left');
-  assert.equal(r1.pins[0].zoneSet, 1);
+  assert.equal(r1.pins[0].zoneSet, bodymap.zoneSet);
   assert.equal(r1.pins[0].fromList, false);
 
   const moved = pin('a', { view: 'back', x: 0.45, y: 0.13 }); // the same pin on the back view's skull base
@@ -341,7 +347,7 @@ test('6. sequence: a pin looked up again when the view or the figure changes; th
   const r4 = buildReport(state([outside]), sent, describe);
   const o = r4.pins[0];
   assert.deepEqual([o.zone, o.zoneName, o.region, o.regionName, o.side], [null, null, null, null, null]);
-  assert.equal(o.zoneSet, 1);
+  assert.equal(o.zoneSet, bodymap.zoneSet);
 
   assert.deepEqual(
     Object.keys(r1.pins[0]),
@@ -418,4 +424,31 @@ test('7. static: the PDF module imports no zone file, and the page source never 
   const page = readFileSync(join(root, 'src/pages/body-map.astro'), 'utf8');
   assert.doesNotMatch(page, /bodymap\.zones|bodymap-zones|zoneName/);
   for (const n of FIGURES) assert.ok(existsSync(join(root, `src/data/bodymap-zones/${n}.json`)), n);
+});
+
+test('8. zone set 2: no old shoulder key survives, shoulder-back has its twins and no region has exactly one fine zone', () => {
+  const old = ['shoulder-top-inner', 'shoulder-top-outer', 'shoulder-blade-outer'];
+  const f = files();
+  for (const name of FIGURES) {
+    const keys = [...f[name].zones.map((z) => z.key), ...Object.keys(f[name].anchors)];
+    for (const k of keys) for (const o of old) assert.ok(!k.endsWith(o), `${name}: old key ${k}`);
+  }
+  for (const z of bodymap.zones.back) for (const o of old) assert.ok(!z.key.endsWith(o), `contract: old key ${z.key}`);
+  assert.ok(bodymap.regions.back.some((r) => r.key === 'left-shoulder-back') && bodymap.regions.back.some((r) => r.key === 'right-shoulder-back'));
+  for (const view of bodymap.views) {
+    for (const r of bodymap.regions[view]) assert.notEqual(bodymap.zones[view].filter((z) => z.region === r.key).length, 1, `${view}: ${r.key} has exactly one fine zone`);
+  }
+});
+
+test('9. back of shoulder: a pin at (0.30, 0.19) is the same on both figures, and a list pin names the region only', () => {
+  const f = files();
+  for (const name of ['female_back', 'male_back'] as const) {
+    const d = describePin(f[name], { view: 'back', x: 0.3, y: 0.19, fromList: false });
+    assert.equal(d.zone, 'left-shoulder-back-upper', name);
+    assert.equal(d.region, 'left-shoulder-back', name);
+    const [x, y] = f[name].anchors['right-shoulder-back'];
+    const l = describePin(f[name], { view: 'back', x, y, fromList: true });
+    assert.equal(l.region, 'right-shoulder-back', name);
+    assert.equal(l.zone, null, name);
+  }
 });

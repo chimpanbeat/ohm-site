@@ -50,6 +50,7 @@ const back: Region[] = [
   { key: 'head-back', name: 'Back of head' },
   { key: 'neck-back', name: 'Back of neck' },
   ...pair('shoulder-top', 'top of shoulder'),
+  ...pair('shoulder-back', 'back of shoulder'),
   ...pair('shoulder-blade', 'shoulder blade'),
   ...pair('mid-back', 'mid back'),
   ...pair('low-back', 'low back'),
@@ -124,11 +125,10 @@ const zonesBack: Zone[] = [
   { key: 'head-back-upper', name: 'Back and top of head', region: 'head-back' },
   ...zoneSplit('skull-base', 'base of skull', 'head-back'),
   ...zoneSplit('neck-back', 'side of the back of the neck', 'neck-back'),
-  ...zonePair('shoulder-top-inner', 'top of shoulder, by the neck', 'shoulder-top'),
-  ...zonePair('shoulder-top-outer', 'top of shoulder, by the arm', 'shoulder-top'),
+  ...zonePair('shoulder-back-upper', 'back of shoulder, upper', 'shoulder-back'),
+  ...zonePair('shoulder-back-lower', 'back of shoulder, by the armpit', 'shoulder-back'),
   ...zonePair('shoulder-blade-inner', 'shoulder blade, inner edge by the spine', 'shoulder-blade'),
   ...zonePair('shoulder-blade-mid', 'shoulder blade, middle', 'shoulder-blade'),
-  ...zonePair('shoulder-blade-outer', 'shoulder blade, outer edge and back of shoulder', 'shoulder-blade'),
   ...zonePair('mid-back-inner', 'mid back, beside the spine', 'mid-back'),
   ...zonePair('mid-back-outer', 'mid back, over the ribs', 'mid-back'),
   ...zonePair('low-back-inner', 'low back, beside the spine', 'low-back'),
@@ -158,7 +158,7 @@ export function sideOf(key: string): Side {
 
 export const bodymap = {
   /** Goes up when a zone key is added, removed or renamed, or a border moves enough to change what a name means. */
-  zoneSet: 1,
+  zoneSet: 2,
   /** The report JSON's own format version (`v`). */
   reportVersion: 2,
   zones: { front: zonesFront, back: zonesBack } satisfies Record<View, Zone[]>,

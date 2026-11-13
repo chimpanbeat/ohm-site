@@ -1,5 +1,7 @@
 # B5 zone list, draft for Brian (I-159, I-157)
 
+**Amended by I-160 (Nov 13, 2026, step B5c):** the back gains `left/right-shoulder-back` "back of shoulder" lateral to the axillary line, with `-shoulder-back-upper` and `-shoulder-back-lower`; `shoulder-top` loses its fine zones; `shoulder-blade-outer` is gone. 31 back regions, 53 back fine zones, 63 leaves. §B12 Zones is the current list; the tables below are the list Brian approved.
+
 Architect, Nov 13, 2026. Text only: no polygon is drawn until Brian approves this list. B5 then copies it into `src/data/bodymap.ts` and the copy deck as written here. "AC-2" in the items is the spec's number; in BRIEF §15 it is **BM-2**.
 
 ## How the two levels work

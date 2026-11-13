@@ -56,7 +56,7 @@ Earlier tests that change: `tests/bodymap-data.test.ts` test 4 pins `limits` exa
    - remove a pin, add it again → a new id and no answers;
    - each detail change drops the send `id` (§B12 Retries).
 3. Storage, in sequence: a B4 entry (`v: 1`) is deleted on load; fill every field, reload → the same pins; a stored pin with intensity 11 or an unknown quality loads with that field cleared.
-4. Region list, in sequence: tick `left-knee` → one pin at its anchor with `fromList: true`; tick it again → still one; untick → that pin only is gone, and tapped pins stay. The list has 28 and 29 checkboxes and no fine zone.
+4. Region list, in sequence: tick `left-knee` → one pin at its anchor with `fromList: true`; tick it again → still one; untick → that pin only is gone, and tapped pins stay. The list has 28 and 31 checkboxes (31 back from B5c, I-160) and no fine zone.
 5. Shapes: compared in pairs, the rasterised masks overlap less than 60%.
 6. e2e at 375 px: place 3 front and 2 back pins and send without touching the sheet → sent, no field error, and `Add details` was closed for each pin; each of the ten chips is at least 44 px; set an intensity with the arrow keys; the greyscale legend screenshot; a keyboard-only send through the list (endpoint mocked); a 4th star shows `starLimit`. The built HTML holds no fine zone name.
 

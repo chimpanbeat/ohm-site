@@ -25,7 +25,7 @@ const H = bodymap.viewBox.height;
 /** Floors on the smaller bounding-box side, canvas units (§B12 Sizes, BM-2). */
 const LEAF_FLOOR = 105;
 const REGION_FLOOR = 210;
-const REGION_EXEMPT = { 'ribs-side': 170, 'shoulder-top': 195 };
+const REGION_EXEMPT = { 'ribs-side': 170, 'shoulder-top': 180 };
 /** The same raster and white cut-off as tests/bodymap-zones.test.ts, so the numbers agree. */
 const MASK_W = 512;
 const MASK_H = 1024;
@@ -171,7 +171,7 @@ function report(figure, file, mask) {
       : '  no uncovered patch',
   );
 
-  console.log(`  smaller bounding-box side, canvas units (leaf floor ${LEAF_FLOOR}; region floor ${REGION_FLOOR}, ribs-side 170, shoulder-top 195):`);
+  console.log(`  smaller bounding-box side, canvas units (leaf floor ${LEAF_FLOOR}; region floor ${REGION_FLOOR}, ribs-side 170, shoulder-top 180):`);
   for (const r of bodymap.regions[view]) {
     const leaves = byRegion.get(r.key).filter((k) => rings.has(k));
     if (!leaves.length) continue;
@@ -387,7 +387,7 @@ if (rows) {
   let done = 0;
   for (const figure of figures) {
     const zoneFile = join(ZONES, `${figure}.json`);
-    if (!existsSync(zoneFile) || !existsSync(join(ART, `${figure}.png`))) continue; // no zones yet (the male figures until B5b)
+    if (!existsSync(zoneFile) || !existsSync(join(ART, `${figure}.png`))) continue; // no zones yet
     const file = JSON.parse(readFileSync(zoneFile, 'utf8'));
     flags += report(figure, file, await bodyMask(figure, MASK_W, MASK_H));
     for (const png of await overlays(figure, file)) console.log(`  wrote ${png.slice(root.length).replace(/\\/g, '/')}`);

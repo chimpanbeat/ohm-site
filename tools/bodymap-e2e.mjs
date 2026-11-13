@@ -332,7 +332,7 @@ await check('B5: the Front and Back tabs keep the marks, swap the art and reset 
   await page.locator('#bm-done:not([hidden])').waitFor();
   const r = sends[0].report;
   assert(r.v === 2 && r.pins.length === 2, `report v${r.v}, ${r.pins.length} pins`);
-  assert(r.pins[0].zone === 'left-belly-upper' && r.pins[0].region === 'belly-upper' && r.pins[0].side === 'left' && r.pins[0].zoneSet === 1, JSON.stringify(r.pins[0]));
+  assert(r.pins[0].zone === 'left-belly-upper' && r.pins[0].region === 'belly-upper' && r.pins[0].side === 'left' && r.pins[0].zoneSet === bodymap.zoneSet, JSON.stringify(r.pins[0]));
   assert(r.pins[1].zone === 'left-skull-base' && r.pins[1].view === 'back', JSON.stringify(r.pins[1]));
   await context.close();
 });
@@ -368,7 +368,7 @@ await check('B5b (BM-1): the Female and Male picker swaps the art, keeps the mar
   await page.locator('#bm-done:not([hidden])').waitFor();
   assert(sends[0].figure === 'male', `figure ${sends[0].figure}`);
   const p = sends[0].report.pins[0];
-  assert(sends[0].report.figure === 'male' && p.zone === 'left-knee-outer' && p.region === 'left-knee' && p.side === 'left' && p.zoneSet === 1, JSON.stringify(p));
+  assert(sends[0].report.figure === 'male' && p.zone === 'left-knee-outer' && p.region === 'left-knee' && p.side === 'left' && p.zoneSet === bodymap.zoneSet, JSON.stringify(p));
   await context.close();
 });
 

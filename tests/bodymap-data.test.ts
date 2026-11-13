@@ -52,9 +52,9 @@ test('4. limits', () => {
   });
 });
 
-test('5. regions: 28 front, 29 back, unique names, left/right twins', () => {
+test('5. regions: 28 front, 31 back, unique names, left/right twins', () => {
   assert.equal(bodymap.regions.front.length, 28);
-  assert.equal(bodymap.regions.back.length, 29);
+  assert.equal(bodymap.regions.back.length, 31);
   for (const view of bodymap.views) {
     const list = bodymap.regions[view];
     const keys = list.map((r) => r.key);
