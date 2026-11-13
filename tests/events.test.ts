@@ -431,7 +431,9 @@ test('8. source: event facts live in events.ts only; no hex in the components', 
   })(join(root, 'src'));
   for (const f of files) {
     if (f.replace(/\\/g, '/').endsWith('src/data/events.ts')) continue;
-    const src = readFileSync(f, 'utf8');
+    let src = readFileSync(f, 'utf8');
+    // I-147: a UTM campaign value in the printed short links is an analytics tag (docs/runbooks/analytics.md), not an event fact.
+    if (f.replace(/\\/g, '/').endsWith('src/data/analytics.ts')) src = src.replaceAll('utm_campaign=launch-party', '');
     for (const word of ['CityROCK', 'Wahsatch', 'launch-party']) assert.ok(!src.includes(word), `${f} contains ${word}`);
   }
   const dir = join(root, 'src/components/events');

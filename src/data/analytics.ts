@@ -13,3 +13,14 @@ export const analytics = {
    */
   excludedPaths: ['/body-map'],
 } as const;
+
+/**
+ * Printed short links (I-147): path → target with its UTM tags, merged into `redirects` in astro.config.mjs (which adds
+ * site.deploy.base). Paths are one lowercase segment; tags follow docs/runbooks/analytics.md (utm_content: one value per
+ * printed design). A redirect page has no Umami tag; the visit and its tags are counted on the target page.
+ * A target can change at any time: a static build serves a meta refresh page, never an HTTP 301 a browser could cache.
+ */
+export const shortLinks: Record<string, string> = {
+  // the launch party fridge magnet's QR code encodes https://ohmprecisionbodywork.com/shrug
+  '/shrug': '/book?utm_source=magnet&utm_medium=print&utm_campaign=launch-party&utm_content=shrug',
+};

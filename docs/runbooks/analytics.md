@@ -11,9 +11,10 @@ Whenever a step builds or changes something that gets shared off-site (event pag
 
 ### Conventions
 - Lowercase, hyphens between words.
-- `utm_source` = where: `sms`, `email`, `instagram`, `facebook`, `google-gbp`, `flyer`, `card`, `partner`.
+- `utm_source` = where: `sms`, `email`, `instagram`, `facebook`, `google-gbp`, `flyer`, `card`, `magnet`, `partner`.
 - `utm_medium` = `sms`, `email`, `social`, `print`, `referral`, `organic`.
 - `utm_campaign` = the effort: `launch`, `launch-party`, `<season>-<year>`. One per push.
+- `utm_content` = which design, for print with more than one: one value per magnet design, lowercase, e.g. `shrug`.
 - Never on internal links (the site's own links add no query strings).
 - Never personal data in a tag: no names, emails, phone numbers or addresses.
 
@@ -28,9 +29,13 @@ Add the tags to every link you share, so the dashboard shows where visits came f
 | Google Business Profile | `?utm_source=google-gbp&utm_medium=organic&utm_campaign=launch` |
 | Flyer or QR code | `?utm_source=flyer&utm_medium=print&utm_campaign=launch` |
 | Business card | `?utm_source=card&utm_medium=print&utm_campaign=launch` |
+| Fridge magnet, "shrug" design (launch party) | QR code `https://ohmprecisionbodywork.com/shrug` → `/book?utm_source=magnet&utm_medium=print&utm_campaign=launch-party&utm_content=shrug` |
 | Partner referral | `?utm_source=partner&utm_medium=referral&utm_campaign=launch` |
 
 Example: `https://ohmprecisionbodywork.com/events/launch-party?utm_source=sms&utm_medium=sms&utm_campaign=launch-party`. Umami reads the tags from the first pageview; they appear under Sources and UTM in the dashboard. The site's own links add no query strings.
+
+### Printed short links (I-147)
+A QR code holds a short, lowercase path; the tags live in the redirect. The table is `shortLinks` in `src/data/analytics.ts` (path → target). A new design is a new entry with its own `utm_content`; changing a target is a one-line edit and a deploy, and the printed code keeps working. The redirect page has no tag, so the visit is counted on the target page. The path must be live before the piece goes to print.
 
 ## Exclude your own devices
 On each phone and laptop you use, open the live site once and run this in the browser console:
