@@ -4,7 +4,7 @@ Brief §15 R3–R6 · Architecture §B12 Revision of Nov 13, Pins, Storage, Zone
 
 Models: builder Sonnet (high effort; medium before the Nov 13 re-plan) · architect Opus (no planning in this step) · reviewer Fable 5.2 (client data: the note, the details and intensity go into storage, and Start over clears it). Ignored after Nov 16, 2026 11:59 pm PT (I-124).
 
-Re-planned Nov 13, 2026 (architect): intensity is 1–10, the details are structured fields behind `Add details`, and the step now makes its own contract changes, so it runs at high effort (the STATUS row's Effort and Command need the same change). Needs B5b done, and Brian's OK on the copy deck's Details strings (asked with I-159).
+Re-planned Nov 13, 2026 (architect): intensity is 1–10, the details are structured fields behind `Add details`, and the step now makes its own contract changes, so it runs at high effort (the STATUS row's Effort and Command need the same change). Needs B5b, B5c and B5d done (B5d, I-161, splits the hands and closes the other two; `zoneSet` is 3 from then), and Brian's OK on the copy deck's Details strings (asked with I-159).
 
 ## Goal
 - **Contract** (`src/data/bodymap.ts`, as §B12 Pins): `intensity` = `{ min: 1, max: 10 }`, `qualities`, `courses`, types `PainQuality` and `Course`, `limits.detailChars` = 80, `limits.startedChars` = 40, and the strings in copy deck → Body map → Details, copied as written (`details`, `quality`, `qualities`, `course`, `courses`, `started`, `startedPlaceholder`, `worse`, `better`, and the `pdf` ones). The copy deck's Details sheet and PDF lines then say 1–10. `noteChars` stays 140.

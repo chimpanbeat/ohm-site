@@ -122,16 +122,16 @@ test('the report: fixed keys, the pins numbered in order, no zone without a look
 
 test('BM-9: the PDF list shows the zone name, the region name for a list mark, and "unlabelled" outside every zone', async () => {
   const known: Record<string, { zone: string | null; zoneName: string | null; region: string | null; regionName: string | null; side: 'left' | 'right' | null }> = {
-    a: { zone: 'left-knee-inner', zoneName: 'Left knee, inner side', region: 'left-knee', regionName: 'Left knee', side: 'left' },
+    a: { zone: 'left-knee-inner', zoneName: 'Left knee, medial', region: 'left-knee', regionName: 'Left knee', side: 'left' },
     b: { zone: null, zoneName: null, region: 'right-glute', regionName: 'Right glute', side: 'right' },
     c: { zone: null, zoneName: null, region: null, regionName: null, side: null },
   };
   const pins = [pin(1, { id: 'a' }), pin(2, { id: 'b', fromList: true }), pin(3, { id: 'c' })];
   const { text } = await read(buildPdf(state(pins), SENT, {}, { describe: (p) => known[p.id] }));
-  assert.ok(text.includes('Left knee, inner side'), text);
+  assert.ok(text.includes('Left knee, medial'), text);
   assert.ok(text.includes(`Right glute, ${bodymap.text.pdf.fromList}`), text);
   assert.ok(text.includes(bodymap.text.unlabelled), text);
-  assert.ok(!text.includes('Left knee, inner side, '), 'a zone is named once');
+  assert.ok(!text.includes('Left knee, medial, '), 'a zone is named once');
   const none = await read(buildPdf(state([pin(1)]), SENT, {}));
   assert.ok(none.text.includes(bodymap.text.unlabelled), 'no lookup, no zone');
 });

@@ -79,7 +79,8 @@ export interface Located {
 }
 
 /**
- * Fine zones (B5, I-157; the list Brian approved Nov 13, 2026, docs/build/steps/B5-zone-list-draft.md).
+ * Fine zones (B5, I-157; the list Brian approved Nov 13, 2026, docs/build/steps/B5-zone-list-draft.md; zone set 3, B5d:
+ * the hands I-161, the splits I-163 and I-164).
  * `zonePair` makes the left and right twins of a paired region; `zoneSplit` makes the twins of a midline region.
  * A region with no fine zones is its own zone (the lookup's leaf), so it is not listed here.
  */
@@ -93,41 +94,55 @@ const zoneSplit = (key: string, name: string, region: string): Zone[] => [
 ];
 
 const zonesFront: Zone[] = [
-  { key: 'forehead', name: 'Forehead and temples', region: 'head-face' },
+  ...zoneSplit('forehead', 'forehead and temple', 'head-face'),
   ...zoneSplit('jaw', 'cheek and jaw', 'head-face'),
   ...zoneSplit('neck-front', 'side of the front of the neck', 'neck-front'),
   ...zonePair('collarbone', 'collarbone', 'shoulder'),
   ...zonePair('shoulder-front', 'front of shoulder', 'shoulder'),
   ...zonePair('chest-inner', 'chest, by the breastbone', 'chest'),
   ...zonePair('chest-outer', 'chest, by the armpit', 'chest'),
-  ...zonePair('elbow-inner', 'inner elbow', 'elbow'),
-  ...zonePair('elbow-outer', 'outer elbow', 'elbow'),
-  ...zonePair('wrist-front', 'wrist, palm side', 'wrist-hand'),
-  ...zonePair('palm', 'palm and base of thumb', 'wrist-hand'),
-  ...zonePair('fingers', 'fingers and thumb', 'wrist-hand'),
+  // Keys say inner/outer, names say medial/lateral (Brian, Nov 13, 2026): toward/away from the body's midline. On the
+  // arm medial is the little-finger side (the art's palms face forward); on the foot, the big-toe side.
+  ...zonePair('elbow-inner', 'front of elbow, medial', 'elbow'),
+  ...zonePair('elbow-outer', 'front of elbow, lateral', 'elbow'),
+  ...zonePair('forearm-upper-inner', 'upper forearm, medial', 'forearm'),
+  ...zonePair('forearm-upper-outer', 'upper forearm, lateral', 'forearm'),
+  ...zonePair('forearm-lower-inner', 'lower forearm, medial', 'forearm'),
+  ...zonePair('forearm-lower-outer', 'lower forearm, lateral', 'forearm'),
+  // I-161, I-164: the wrist halves come before the thumb leaf, and the thumb before the palm, in each zone file
+  ...zonePair('wrist-front-inner', 'wrist, palm side, medial', 'wrist-hand'),
+  ...zonePair('wrist-front-outer', 'wrist, palm side, lateral', 'wrist-hand'),
+  ...zonePair('thumb', 'thumb and base of thumb', 'wrist-hand'),
+  ...zonePair('palm', 'palm', 'wrist-hand'),
+  ...zonePair('index-middle-fingers', 'index and middle fingers', 'wrist-hand'),
+  ...zonePair('ring-little-fingers', 'ring and little fingers', 'wrist-hand'),
   ...zoneSplit('belly-upper', 'upper belly', 'belly-upper'),
   ...zoneSplit('belly-lower', 'lower belly', 'belly-lower'),
   ...zonePair('hip-bone-front', 'front of hip bone', 'hip-front'),
   ...zonePair('hip-crease', 'hip crease and groin', 'hip-front'),
-  ...zonePair('thigh-front-upper-inner', 'front of thigh, upper inner', 'thigh-front'),
-  ...zonePair('thigh-front-upper-outer', 'front of thigh, upper outer', 'thigh-front'),
-  ...zonePair('thigh-front-lower-inner', 'front of thigh, lower inner', 'thigh-front'),
-  ...zonePair('thigh-front-lower-outer', 'front of thigh, lower outer', 'thigh-front'),
-  ...zonePair('knee-inner', 'knee, inner side', 'knee'),
-  ...zonePair('knee-outer', 'knee, outer side', 'knee'),
-  ...zonePair('shin-upper', 'upper shin', 'shin'),
-  ...zonePair('shin-lower', 'lower shin', 'shin'),
-  ...zonePair('ankle-front', 'front of ankle', 'ankle-foot'),
-  ...zonePair('foot-top', 'top of foot and toes', 'ankle-foot'),
+  ...zonePair('thigh-front-upper-inner', 'front of thigh, upper medial', 'thigh-front'),
+  ...zonePair('thigh-front-upper-outer', 'front of thigh, upper lateral', 'thigh-front'),
+  ...zonePair('thigh-front-lower-inner', 'front of thigh, lower medial', 'thigh-front'),
+  ...zonePair('thigh-front-lower-outer', 'front of thigh, lower lateral', 'thigh-front'),
+  ...zonePair('knee-inner', 'knee, medial', 'knee'),
+  ...zonePair('knee-outer', 'knee, lateral', 'knee'),
+  ...zonePair('shin-upper-inner', 'upper shin, medial', 'shin'),
+  ...zonePair('shin-upper-outer', 'upper shin, lateral', 'shin'),
+  ...zonePair('shin-lower-inner', 'lower shin, medial', 'shin'),
+  ...zonePair('shin-lower-outer', 'lower shin, lateral', 'shin'),
+  ...zonePair('ankle-front-inner', 'front of ankle, medial', 'ankle-foot'),
+  ...zonePair('ankle-front-outer', 'front of ankle, lateral', 'ankle-foot'),
+  ...zonePair('foot-top-inner', 'top of foot, medial', 'ankle-foot'),
+  ...zonePair('foot-top-outer', 'top of foot, lateral', 'ankle-foot'),
 ];
 
 const zonesBack: Zone[] = [
-  { key: 'head-back-upper', name: 'Back and top of head', region: 'head-back' },
+  ...zoneSplit('head-back-upper', 'back and top of head', 'head-back'),
   ...zoneSplit('skull-base', 'base of skull', 'head-back'),
   ...zoneSplit('neck-back', 'side of the back of the neck', 'neck-back'),
   ...zonePair('shoulder-back-upper', 'back of shoulder, upper', 'shoulder-back'),
   ...zonePair('shoulder-back-lower', 'back of shoulder, by the armpit', 'shoulder-back'),
-  ...zonePair('shoulder-blade-inner', 'shoulder blade, inner edge by the spine', 'shoulder-blade'),
+  ...zonePair('shoulder-blade-inner', 'shoulder blade, medial border, by the spine', 'shoulder-blade'),
   ...zonePair('shoulder-blade-mid', 'shoulder blade, middle', 'shoulder-blade'),
   ...zonePair('mid-back-inner', 'mid back, beside the spine', 'mid-back'),
   ...zonePair('mid-back-outer', 'mid back, over the ribs', 'mid-back'),
@@ -135,17 +150,30 @@ const zonesBack: Zone[] = [
   ...zonePair('low-back-outer', 'low back, side of the waist', 'low-back'),
   ...zoneSplit('spine-base', 'side of the base of the spine', 'spine-base'),
   ...zonePair('glute-upper', 'upper glute', 'glute'),
-  ...zonePair('glute-outer', 'outer hip', 'glute'),
+  ...zonePair('glute-outer', 'lateral hip', 'glute'),
   ...zonePair('glute-mid', 'middle of glute', 'glute'),
-  ...zonePair('glute-lower', 'lower glute and sit bone', 'glute'),
-  ...zonePair('wrist-back', 'back of wrist', 'hand-back'),
+  ...zonePair('glute-lower-inner', 'lower glute, medial, by the sit bone', 'glute'),
+  ...zonePair('glute-lower-outer', 'lower glute, lateral', 'glute'),
+  ...zonePair('elbow-back-inner', 'back of elbow, medial', 'elbow-back'),
+  ...zonePair('elbow-back-outer', 'back of elbow, lateral', 'elbow-back'),
+  ...zonePair('forearm-back-upper-inner', 'back of upper forearm, medial', 'forearm-back'),
+  ...zonePair('forearm-back-upper-outer', 'back of upper forearm, lateral', 'forearm-back'),
+  ...zonePair('forearm-back-lower-inner', 'back of lower forearm, medial', 'forearm-back'),
+  ...zonePair('forearm-back-lower-outer', 'back of lower forearm, lateral', 'forearm-back'),
+  ...zonePair('wrist-back-inner', 'back of wrist, medial', 'hand-back'),
+  ...zonePair('wrist-back-outer', 'back of wrist, lateral', 'hand-back'),
+  ...zonePair('thumb-back', 'back of thumb and base of thumb', 'hand-back'),
   ...zonePair('knuckles', 'back of hand and knuckles', 'hand-back'),
-  ...zonePair('fingers-back', 'back of fingers and thumb', 'hand-back'),
-  ...zonePair('hamstring-upper-inner', 'hamstring, upper inner', 'hamstring'),
-  ...zonePair('hamstring-upper-outer', 'hamstring, upper outer', 'hamstring'),
-  ...zonePair('hamstring-lower-inner', 'hamstring, lower inner', 'hamstring'),
-  ...zonePair('hamstring-lower-outer', 'hamstring, lower outer', 'hamstring'),
-  ...zonePair('calf-upper', 'upper calf', 'calf'),
+  ...zonePair('index-middle-fingers-back', 'back of index and middle fingers', 'hand-back'),
+  ...zonePair('ring-little-fingers-back', 'back of ring and little fingers', 'hand-back'),
+  ...zonePair('hamstring-upper-inner', 'hamstring, upper medial', 'hamstring'),
+  ...zonePair('hamstring-upper-outer', 'hamstring, upper lateral', 'hamstring'),
+  ...zonePair('hamstring-lower-inner', 'hamstring, lower medial', 'hamstring'),
+  ...zonePair('hamstring-lower-outer', 'hamstring, lower lateral', 'hamstring'),
+  ...zonePair('knee-back-inner', 'back of knee, medial', 'knee-back'),
+  ...zonePair('knee-back-outer', 'back of knee, lateral', 'knee-back'),
+  ...zonePair('calf-upper-inner', 'upper calf, medial', 'calf'),
+  ...zonePair('calf-upper-outer', 'upper calf, lateral', 'calf'),
   ...zonePair('calf-lower', 'lower calf', 'calf'),
   ...zonePair('achilles', 'Achilles and back of ankle', 'ankle-heel'),
   ...zonePair('heel', 'heel', 'ankle-heel'),
@@ -158,7 +186,7 @@ export function sideOf(key: string): Side {
 
 export const bodymap = {
   /** Goes up when a zone key is added, removed or renamed, or a border moves enough to change what a name means. */
-  zoneSet: 2,
+  zoneSet: 3,
   /** The report JSON's own format version (`v`). */
   reportVersion: 2,
   zones: { front: zonesFront, back: zonesBack } satisfies Record<View, Zone[]>,
