@@ -7,7 +7,7 @@ Models: builder Sonnet (medium effort) · architect Opus (no planning in this st
 Planned Nov 13, 2026 (architect). I-149 is a Should that must not delay the launch, so it runs after B10; its desktop layout half was built in B6. Needs B10 done.
 
 ## Goal
-The §A3 sixteenth exception, and nothing else: the wheel and the `+`, `−` and reset buttons ease the `viewBox` to its target in at most 200 ms (ease-out), the wheel toward the cursor, through one `requestAnimationFrame` loop that stops at the target and is retargeted by a new wheel step; the panel's content fades and rises 8 px in 150 ms when a pin opens (CSS). Pinch, pan, double tap and drag stay one to one. Reduced motion gives the instant behaviour. The pure easing lives in `src/lib/bodymap-view.ts`.
+The §A3 sixteenth exception, and nothing else: the wheel and the `+`, `−` and reset buttons ease the `viewBox` to its target in at most 200 ms (ease-out), the wheel toward the cursor, through one `requestAnimationFrame` loop that stops at the target and is retargeted by a new wheel step; the panel's content fades and rises 8 px in 150 ms when a pin opens (CSS). Pinch, pan, double tap and drag stay one to one, and the loupe (B6b) follows the eased `viewBox` frame by frame. The buttons sit in the toolbar since B6 (I-170). Reduced motion gives the instant behaviour. The pure easing lives in `src/lib/bodymap-view.ts`.
 
 Read-only: `src/data/bodymap.ts`, `src/styles/tokens.css`, the zone files. Known gaps: none.
 

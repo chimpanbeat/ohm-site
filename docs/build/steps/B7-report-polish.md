@@ -1,77 +1,48 @@
-# B7: Body map report and polish (I-073, I-153, I-155, I-156)
+# B7: Body map report: the full PDF and JSON (I-073, I-153, I-155, I-167, I-168, I-169's reserved keys, I-171–I-174, I-178, I-179)
 
-Brief §15 R4, R8, R10, R11 · Architecture §B12 Revision of Nov 13, Report and PDF, Report JSON, Wire contract, Filing script, Checks, Privacy
+Brief §15 R4, R8, R14, R16–R22 · Architecture §B12 Pins → Types and fields, Both sides, Whole-body item, Visit … timing, Report and PDF, Report JSON, Wire contract (size), Privacy
 
-Models: builder Sonnet (high effort; medium before the Nov 13 re-plan) · architect Opus (no planning in this step) · reviewer Opus (the wire contract's report, client data in the PDF, the honeypot and caps, the filing script's one change). No Fable (Brian, Nov 13). Ignored after Nov 16, 2026 11:59 pm PT (I-124).
+Models: builder Sonnet (high effort) · architect Opus (no planning in this step) · reviewer Opus (client data in the PDF and JSON). No Fable (Brian, Nov 13). Ignored after Nov 16, 2026 11:59 pm PT (I-124).
 
-Re-planned Nov 13, 2026 (architect): the report carries the detail fields, the report cap rises, and the filing script changes once, here (the STATUS row's Effort and Command need the same change). Later that day: the PDF draws I-150's glyphs (not the page's marker) and never the skin tone (I-151); the sheet is now `PinPanel` (I-148). Needs B6b done.
+Re-planned Nov 13 and Nov 14, 2026 (architect). Nov 14, late: with I-171 to I-179 the old B7 (report, script, push and polish) was too big for one session, so it splits: this step builds the report; B7b changes the filing script, runs the real payload through it, pushes, and does the send polish (honeypot, caps, error states, accessibility, `check:dist`). The file keeps its name because history step files link to it. Needs B6e done. The PDF strings are approved (Brian, Nov 14: `Filled in by {name}`, `Filled in by someone helping`, `Look at first`, `Overall`, `Worst`).
 
 ## Goal
-The full PDF:
-- header: name, appointment, sent (Denver) and figure;
-- both views with numbered pins, each figure drawn from the art the page displays (never `png/`) onto a 600×1200 canvas as a JPEG, always in the art's grey whatever skin tone is chosen (I-151); each pin is its type's glyph from `src/lib/bodymap-shapes.ts` centred on its spot with its number, not the page's map-pin marker (I-150, §B12 Marker);
-- then `Priority` (starred), `Avoid` and `Other marks`. Each line: number, type, zone name, `{n}/10`, the qualities, each answered detail (`pdf.courses`, then `pdf.started`, `pdf.worse` and `pdf.better` as labels) and the note. An unanswered field prints nothing. A pin from the list prints its region name and `pdf.fromList`;
+The full PDF (`src/lib/bodymap-pdf.ts`, §B12 Report and PDF):
+- header: name, appointment, sent (Denver), figure, the visit when answered, `Filled in by …` when `forWhom` is `helper`;
+- the `Look at first` box when it has a line: injury marks with `course` `acute` or unanswered and every numb mark, then the whole item first if it qualifies, each `{n} {type} · {region}` (region name with its side; a pair's `pairName`; `Overall` for the whole item, unnumbered), no other words;
+- both views with numbered glyphs from the displayed art, always the art's grey (I-151); a pair: a glyph on each point, one number;
+- `Overall` (`pdf.overall`): the whole item as one line, no number, never moved into `Priority` (its star badge in place when starred); then `Priority`, `Avoid`, `Other marks`. Each line: number, type, zone name (a pair's `pairName`), `{n}/10`, qualities, `Worst` and the times, each answered detail, `Since last time` on a follow-up, the note. A field unanswered or not the type's prints nothing. A list pin: region name and `pdf.fromList`;
 - footer `{site.name} · private client record`.
 
-The JSON report is §B12 Report JSON in full: `v: 2`, and every pin's `intensity`, `quality`, `course`, `started`, `worse`, `better` and `note` join B5's zone fields. An avoid pin sends them empty.
-
-**Caps and the script, once.** `limits.reportBytes` becomes 96,000. In `apps-script/bodymap/bodymap.js`, `LIMITS` gains `detailChars: 80` and `startedChars: 40`, `reportBytes` becomes 96000, and the per-pin loop caps `worse`, `better` (80) and `started` (40) as it caps `note`. Nothing else in the script changes. `docs/runbooks/bodymap.md` part 7 states the new caps.
-
-The page side:
-- client honeypot (`website`, visually hidden, `tabindex="-1"`, `autocomplete="off"`);
-- size caps checked before sending;
-- every error state wired to its string;
-- focus moves to the result;
-- `aria-live` for the star messages;
-- labels on every control, 44 px targets, 16 px inputs.
-
-`check:dist` adds the last two §B12 rules: no zone markup, and the JS chunk's host allowlist. Read-only: the zone files. Known gaps: none.
+The JSON (`buildReport`) is §B12 Report JSON in full: top-level keys in order with `visit`, `forWhom`, `helperName`, `consent`, `consentAt`, `seconds`, `whole`; every pin's keys in order with `since`, `mirror` (with `to`, `area` null), `to`, `area` null. `limits.reportBytes` becomes 96,000. Read-only: the zone files, `apps-script/`. Known gaps: the script accepts these from B7b.
 
 ## AC covered (IDs)
-- BM-4: PDF text order.
-- BM-5 (PDF half): starred first.
-- BM-9: both images, zone names, name and date.
-- BM-10 (page half): the e2e honeypot and oversize cases. (Script half: test 6.)
-- BM-1 (flow): the e2e 3-front plus 2-back flow at 375 px.
+- BM-4: test 1. BM-5 (PDF half): test 1. BM-9: tests 1, 2. R14 (pairs): tests 2, 3. R16: test 3. R17, R18, R21, R22: test 2. R19, R20: test 3.
 
 ## Files
 - src/data/bodymap.ts
-- apps-script/bodymap/bodymap.js
 - src/lib/bodymap-pdf.ts
 - src/lib/pdf.ts
 - src/lib/bodymap.ts
 - src/scripts/bodymap.ts
-- src/pages/body-map.astro
-- src/components/bodymap/PinPanel.astro
-- src/components/bodymap/RegionList.astro
 - tests/bodymap-pdf.test.ts
-- tests/bodymap-page.test.ts
 - tests/bodymap-state.test.ts
 - tests/bodymap-data.test.ts
-- tests/bodymap-script.test.ts
-- tests/fixtures/bodymap-payloads.json
-- scripts/check-dist.mjs
-- tests/check-dist.test.ts
-- tools/bodymap-e2e.mjs
-- docs/runbooks/bodymap.md
 - docs/build/STATUS.md
 
-Earlier tests that change: `tests/bodymap-data.test.ts` test 4 (`reportBytes`); `tests/bodymap-script.test.ts` (about lines 328 and 381 to 402: the caps the script copies, and the report-size cases).
+Earlier tests that change: `bodymap-data` test 4 (`reportBytes`).
 
 ## Tests first (write them and see them fail before writing code)
-1. PDF: two images. Section order is Priority → Avoid → Other marks. Starred pins come first, and avoid pins appear only under `Avoid`. Every pin's zone name is present, pin numbers match the list, and the name and date are there.
-2. PDF details: a pin with intensity 7, `sharp` and `burning`, `chronic`, and started, worse, better and a note prints `7/10`, both qualities, `Chronic`, and each text after its label. A pin with none prints no label at all. An avoid pin prints no intensity. A list pin prints its region name and `chosen from the list`.
-3. JSON: `v` is 2; every pin has exactly §B12's keys in order; an avoid pin's detail fields are empty; text is trimmed.
-4. Static: `bodymap-pdf.ts` and the figure rasteriser import no zone file and no `png/` path; `bodymap-pdf.ts` draws pins with the glyphs from `bodymap-shapes.ts` (a pin of each type draws its own glyph, and none draws the marker outline); the rasteriser reads no tone and sets no filter (B6b's e2e case 6 still passes).
-5. Size: 60 pins with every text field full of `"` characters give a report under 96,000 characters. A 1.6 MB PDF is refused before `fetch`.
-6. Script (`node:vm`, fake data): the script's caps equal `bodymap.limits` (now with `detailChars` and `startedChars`); a pin with `worse` of 81 characters, `better` of 81 or `started` of 41 → `invalid`, nothing filed, nothing counted; the same at the caps → `ok`; a 96,001-character report → `invalid`; a B4-shaped report with none of the new keys → `ok`. Then in sequence: a send at the caps, a retry with the same `id` → `ok` with no second pair.
-7. Page: the honeypot is present and empty. Dist has no `data-zone`, no `bodymap-zones`, no zone key as an attribute and no fine zone name in the HTML.
-8. e2e sequence: the 3-front plus 2-back flow sends once. Honeypot filled → `errServer` with no send. A request log shows only allowlisted hosts and no query string on the endpoint. The console listener records 0 messages.
+1. PDF order: header → `Look at first` → two images → `Overall` → `Priority` → `Avoid` → `Other marks`; starred first among pins; avoid only under `Avoid`; numbers match; name and date present.
+2. PDF content: pain 7, `sharp`, `burning`, chronic, all texts → `7/10`, both qualities, `Chronic`, each text after its label; no answers → no labels; avoid and other → no intensity; tight with `mornings`, `still` → after `Worst`; a pain pin that was tight → no `Worst`; a pain pin that was numb with `tingling` → no `Tingling`; a list pin → region and `chosen from the list`; a low-back pair → `Low back, beside the spine (L and R)` once, two glyphs with one number. Look at first: an acute injury, an unanswered-course injury, a chronic injury, a numb pair and a pain pin → exactly 3 lines (the chronic and pain absent), the pair's line `(L and R)`; none qualifying → no box; a numb whole item → an unnumbered `Overall` line first; the `Overall` section has no number and a starred whole item isn't under `Priority`. Header: `Follow-up` and `Filled in by Sam Sample`; helper with no name → `Filled in by someone helping`; `self` → no line. `since` `worse` on a follow-up → `Since last time` `Worse`; on a first visit → absent.
+3. JSON: `v` 2; top-level and pin keys exactly §B12's, in order; avoid and other pins' details empty; a single pin's `mirror` null, a pair's with both points' zone fields and null `to`/`area`; `to` and `area` null everywhere; `consent` true and `consentAt` equal to `sent` on every report; `seconds` = floor((sent − firstAt)/1000); `whole` null or its type's fields only; `since` null unless follow-up; `helperName` `''` unless helper; text trimmed.
+4. Static: `bodymap-pdf.ts` and the rasteriser import no zone file or `png/` path; seven types draw their own glyph and none the marker; no tone read, no filter.
+5. Size: 60 pairs with every field full of `"` (every quality and worst, `since`), a full whole item and an 80-character helper name → under 96,000 characters.
+6. Sequence: build, send fails (mocked), retry 30 s later → same `id`, `seconds` 30 more, `sent` and `consentAt` 30 s later and still equal, report otherwise equal.
 
 ## Done when
-1. `npm run check` passes, including the new tests. `npm run e2e:bodymap` passes.
-2. Screens of the form, a sent result and each error at 375 and 1280 px in `docs/build/screens/B7/`, made with `npm run shots -- B7 --route /body-map --stub <state>` (`ok`, `busy`, `invalid`, `server`, `network`, `nonjson`, `sending`) and `--nojs` (I-122), not throwaway scripts. A sample PDF made from fake data is attached to the report, and never committed.
-3. The script is pushed once, from the main session: `npm run push:bodymap -- "B12 revision: detail caps"` (needs clasp logged in as the Ohm account; runbook part 3). Then two live sends with fake data from the main session, each under a fresh fake name: one with every detail at its cap → `{"ok":true}`, one with `worse` of 81 characters → `{"ok":false,"error":"invalid"}`. Brian deletes the filed pair. The push and both replies are logged in STATUS → Change log.
+1. `npm run check` passes, including the new tests. `npm run e2e:bodymap` passes (the minimum-path flow unchanged).
+2. A sample PDF from fake data (every type, a pair, a whole item, a follow-up, a helper, a Look at first box) is attached to the report, never committed; Brian looks at it.
 
 ## Report
-Files changed · Checks (command and result) · The push and the two live replies · Deviations · New items (I-###) · Questions for the architect.
+Files changed · Checks (command and result) · Deviations · New items (I-###) · Questions for the architect.

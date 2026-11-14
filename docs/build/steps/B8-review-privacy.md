@@ -12,9 +12,11 @@ The reviewer confirms, read-only, that health information goes only where §B12 
 - URLs and the page title;
 - PDF and JSON contents and the Drive file names;
 - the detail fields from the Nov 13 revision (quality, course, started, worse, better): health information like the note, on the same paths and no others;
-- the skin tone (I-151, B6b): page memory only, never in `localStorage`, `sessionStorage`, the report, the PDF's figure, a request, a URL or the console; a moved pin (I-148) drops the send `id` like any edit;
+- the skin tone (I-151, B6d) and the Undo stack (I-168, B6b): page memory only, never in `localStorage`, `sessionStorage`, the report, the PDF's figure, a request, a URL or the console; a moved pin (I-148), an undo and a Both sides or Unlink (I-168, B6c) drop the send `id` like any edit;
+- the seven types (I-167): each sends only its own fields; a pair's `mirror` carries the same zone fields as the pin; `to` and `area` are `null` (I-169); the keys (B6d) never fire while the client types in a field;
+- the Nov 14 additions (I-171–I-174, I-178, B6e, B7, B7b): the whole-body item, `since` and the visit on the same paths as the pins; the helper's name only in storage, the POST body and the report, never a file name, folder match or state key; consent is the line above Send (no control, nothing stored), every report carries `consent: true` with `consentAt` = `sent`, and the pushed script refuses a report without it; `seconds` the only measurement and `firstAt` only in the one storage entry (no tap, field or timing record anywhere else); the figure thumbnails and their names name no sex on the page, and load only the existing art (never `png/`);
 - zones: the JSON pins carry §B12's zone fields, a fine zone name is never rendered on the page, and left and right are the client's own;
-- the filing script changed once at B7 (`LIMITS` and the per-pin caps only), and the repo's copy is what was pushed;
+- the filing script changed once at B7b (`LIMITS`, the per-pin and whole-item caps, the helper's name cap and the consent check only), and the repo's copy is what was pushed;
 - fixtures: fake data only;
 - the pin-greyscale screenshot;
 - that the PDF writer is sound: if it is fragile, the architect brings jsPDF to Brian.
