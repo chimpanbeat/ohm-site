@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { bodymap } from '../src/data/bodymap.ts';
-import { buildPayload, createStore, dateWindow, makeId, sendMap, validate, type StorageLike } from '../src/lib/bodymap.ts';
+import { buildPayload, createStore, dateWindow, fieldsOf, makeId, sendMap, validate, type StorageLike } from '../src/lib/bodymap.ts';
 
 const HOUR = 3_600_000;
 const MIN = 60_000;
@@ -56,8 +56,8 @@ test('add a pin, reload: the same pins, name, date and figure come back', () => 
   assert.equal(b.state.figure, 'female');
   assert.equal((storage as ReturnType<typeof memoryStorage>).data.has(KEY), true);
   const saved = JSON.parse((storage as ReturnType<typeof memoryStorage>).data.get(KEY)!);
-  assert.deepEqual(Object.keys(saved).sort(), ['apptDate', 'figure', 'id', 'name', 'pins', 'savedAt', 'v']);
-  assert.equal(saved.v, 1);
+  assert.deepEqual(Object.keys(saved).sort(), ['apptDate', 'figure', 'firstAt', 'forWhom', 'helperName', 'id', 'name', 'pins', 'savedAt', 'v', 'visit', 'whole']);
+  assert.equal(saved.v, 2, 'B6: v is 2');
   assert.equal(saved.id, null, 'no id until the first send');
 });
 
@@ -89,10 +89,12 @@ test('each change moves the 24 hours: the clock runs from the last change', () =
 
 test('an unknown version, broken JSON or a wrong shape is deleted, and the page starts empty', () => {
   for (const bad of [
-    JSON.stringify({ v: 2, savedAt: T0, name: 'Test Client', apptDate: '', figure: 'female', pins: [], id: null }),
+    JSON.stringify({ v: 3, savedAt: T0, name: 'Test Client', apptDate: '', figure: 'female', pins: [], id: null }),
+    // B6: a v1 entry used the 1-5 scale, so it is deleted, never re-read on the new one
+    JSON.stringify({ v: 1, savedAt: T0, name: 'Test Client', apptDate: '', figure: 'female', pins: [{ id: 'p1', view: 'front', x: 0.1, y: 0.1, type: 'pain', intensity: 4, note: '', star: false, fromList: false }], id: null }),
     '{not json',
-    JSON.stringify({ v: 1, savedAt: T0, name: 5, apptDate: '', figure: 'female', pins: 'x', id: null }),
-    JSON.stringify({ v: 1, savedAt: T0, name: '', apptDate: '', figure: 'alien', pins: [], id: null }),
+    JSON.stringify({ v: 2, savedAt: T0, name: 5, apptDate: '', figure: 'female', pins: 'x', id: null }),
+    JSON.stringify({ v: 2, savedAt: T0, name: '', apptDate: '', figure: 'alien', pins: [], id: null }),
     JSON.stringify(null),
   ]) {
     const storage = memoryStorage();
@@ -218,6 +220,7 @@ test('limits: 60 pins, a 140-character note, an 80-character name; coordinates a
   assert.equal(pin.star, false);
   assert.equal(pin.intensity, null);
   assert.equal(pin.fromList, false);
+  assert.deepEqual([pin.quality, pin.worst, pin.course, pin.started, pin.worse, pin.better, pin.since, pin.mirror], [[], [], null, '', '', '', null, null], 'B6: every detail empty');
 });
 
 test('the date window is today -14 to +365 days, and validate() names what is missing', () => {
@@ -278,4 +281,185 @@ test('the send: one POST of a JSON string with no custom headers; ok, busy, inva
   assert.equal(await sendMap({ fetch: reply('{"ok":true}', 500), url: URL, payload }), 'network', 'a failed HTTP status');
   assert.equal(await sendMap({ fetch: async () => { throw new TypeError('Failed to fetch'); }, url: URL, payload }), 'network');
   assert.equal(await sendMap({ fetch: reply('{"ok":"yes"}'), url: URL, payload }), 'server', 'ok must be true');
+});
+
+// --- B6: the pin model (stars, fields, storage v2) --------------------------------------------------------------------
+
+const place = (s: ReturnType<ReturnType<typeof setup>['make']>, type: 'pain' | 'discomfort' | 'tight' | 'injury' | 'numb' | 'avoid' | 'other' = 'pain', x = 0.4) =>
+  s.addPin({ view: 'front', x, y: 0.3, type })!;
+
+test('2. stars: three at most, avoid never, other yes, and a starred pin changed to avoid is unstarred', () => {
+  const s = setup().make();
+  const [a, b, c, d] = [place(s, 'pain', 0.1), place(s, 'pain', 0.2), place(s, 'tight', 0.3), place(s, 'pain', 0.4)];
+  assert.equal(s.toggleStar(a.id), 'ok');
+  assert.equal(s.toggleStar(b.id), 'ok');
+  assert.equal(s.toggleStar(c.id), 'ok');
+  assert.equal(s.toggleStar(d.id), 'star-limit', 'a 4th star');
+  assert.equal(d.star, false);
+  assert.equal(s.toggleStar(a.id), 'ok', 'a tap on a starred pin unstars it');
+  assert.equal(a.star, false);
+  assert.equal(s.toggleStar(d.id), 'ok');
+  const av = place(s, 'avoid', 0.5);
+  assert.equal(s.toggleStar(av.id), 'star-avoid', 'avoid is checked before the limit');
+  assert.equal(av.star, false);
+  assert.equal(s.toggleStar(b.id), 'ok'); // 2 starred: c, d
+  const other = place(s, 'other', 0.6);
+  assert.equal(s.toggleStar(other.id), 'ok', 'other can be starred');
+  assert.equal(other.star, true);
+  assert.equal(s.setType(other.id, 'avoid'), true);
+  assert.equal(other.star, false, 'a starred pin changed to avoid is unstarred');
+  assert.equal(s.toggleStar('nope'), 'none');
+});
+
+test('3. fields: intensity 1-10, the per-type lists in list order, caps, control characters, refused values keep the old one', () => {
+  const s = setup().make();
+  const p = place(s);
+  const sendId = () => {
+    s.sendId();
+    assert.ok(s.state.id);
+  };
+  assert.equal(s.setIntensity(p.id, 1), true);
+  assert.equal(p.intensity, 1);
+  assert.equal(s.setIntensity(p.id, 10), true);
+  assert.equal(p.intensity, 10);
+  for (const bad of [0, 11, 5.5, '7', NaN, -1]) {
+    assert.equal(s.setIntensity(p.id, bad as number), false, String(bad));
+    assert.equal(p.intensity, 10, 'the old value is kept');
+  }
+  assert.equal(s.setIntensity(p.id, 10), true, 'the same value again clears it');
+  assert.equal(p.intensity, null);
+  // quality: in the order of the type's list, any number; a quality of another type's list is refused
+  assert.equal(s.toggleQuality(p.id, 'burning'), true);
+  assert.equal(s.toggleQuality(p.id, 'sharp'), true);
+  assert.deepEqual(fieldsOf(p).quality, ['sharp', 'burning']);
+  assert.equal(s.toggleQuality(p.id, 'tingling'), false, 'tingling is not a pain quality');
+  assert.equal(s.setType(p.id, 'numb'), true);
+  assert.deepEqual(fieldsOf(p).quality, [], 'numb has none of the pain qualities');
+  assert.deepEqual([...p.quality].sort(), ['burning', 'sharp'], 'the state keeps them');
+  assert.equal(s.toggleQuality(p.id, 'tingling'), true);
+  assert.deepEqual(fieldsOf(p).quality, ['tingling']);
+  assert.equal(s.setType(p.id, 'pain'), true);
+  assert.deepEqual(fieldsOf(p).quality, ['sharp', 'burning'], 'changing back restores the pain answers');
+  // tight: worst times in order, any number; refused on pain
+  assert.equal(s.toggleWorst(p.id, 'worst' as never), false);
+  assert.equal(s.toggleWorst(p.id, 'mornings'), false, 'worst is a tight-only field');
+  const t = place(s, 'tight', 0.7);
+  assert.equal(s.toggleWorst(t.id, 'evenings'), true);
+  assert.equal(s.toggleWorst(t.id, 'mornings'), true);
+  assert.deepEqual(fieldsOf(t).worst, ['mornings', 'evenings']);
+  assert.equal(s.toggleQuality(t.id, 'stiff'), true);
+  assert.equal(s.toggleQuality(t.id, 'sharp'), false);
+  // avoid and other: no intensity, the note kept
+  for (const type of ['avoid', 'other'] as const) {
+    const q = place(s, type, 0.8);
+    assert.equal(s.setIntensity(q.id, 5), false, `${type}: intensity refused`);
+    assert.equal(s.toggleQuality(q.id, 'sharp'), false);
+    assert.equal(s.setText(q.id, 'worse', 'fake'), false, `${type}: no worse field`);
+    assert.equal(s.setText(q.id, 'note', 'fake note'), true);
+    assert.equal(fieldsOf(q).note, 'fake note');
+    assert.equal(fieldsOf(q).intensity, null);
+  }
+  // course and since
+  assert.equal(s.setCourse(p.id, 'acute'), true);
+  assert.equal(p.course, 'acute');
+  assert.equal(s.setCourse(p.id, 'gone' as never), false);
+  assert.equal(p.course, 'acute');
+  assert.equal(s.setCourse(p.id, 'acute'), true, 'the same chip again clears it');
+  assert.equal(p.course, null);
+  assert.equal(s.setSince(p.id, 'better'), true);
+  assert.equal(p.since, 'better');
+  assert.equal(s.setSince(p.id, 'gone' as never), false);
+  assert.equal(p.since, 'better');
+  assert.equal(s.setSince(p.id, 'better'), true);
+  assert.equal(p.since, null);
+  // caps: started 40, worse and better 80, note 140; control characters become a space
+  assert.equal(s.setText(p.id, 'started', 'x'.repeat(100)), true);
+  assert.equal(p.started.length, bodymap.limits.startedChars);
+  assert.equal(s.setText(p.id, 'worse', 'y'.repeat(200)), true);
+  assert.equal(p.worse.length, bodymap.limits.detailChars);
+  assert.equal(s.setText(p.id, 'better', 'z'.repeat(200)), true);
+  assert.equal(p.better.length, bodymap.limits.detailChars);
+  assert.equal(s.setText(p.id, 'note', 'n'.repeat(300)), true);
+  assert.equal(p.note.length, bodymap.limits.noteChars);
+  assert.equal(s.setText(p.id, 'note', 'a\nb\tc\u0007d'), true);
+  assert.equal(p.note, 'a b c d');
+  // a pin has fieldsOf(): the fields of its type, the rest empty
+  const fo = fieldsOf(p);
+  assert.deepEqual(Object.keys(fo), ['intensity', 'quality', 'worst', 'course', 'started', 'worse', 'better', 'since', 'note']);
+  assert.deepEqual(fo.worst, [], 'a pain pin has no worst times');
+  // every change drops the send id
+  for (const change of [
+    () => s.setIntensity(p.id, 4),
+    () => s.toggleQuality(p.id, 'dull'),
+    () => s.setCourse(p.id, 'chronic'),
+    () => s.setSince(p.id, 'worse'),
+    () => s.setText(p.id, 'better', 'fake'),
+    () => s.setType(p.id, 'discomfort'),
+    () => s.toggleStar(p.id),
+  ]) {
+    sendId();
+    change();
+    assert.equal(s.state.id, null);
+  }
+  // remove, add again: a new id and no answers
+  s.removePin(p.id);
+  const again = place(s);
+  assert.notEqual(again.id, p.id);
+  assert.deepEqual([again.intensity, again.quality, again.note], [null, [], '']);
+});
+
+test('4. storage v2: every pin and entry key survives a reload; bad values are cleared field by field; a v1 entry is deleted', () => {
+  const { make, storage } = setup();
+  const a = make();
+  const t = place(a, 'tight', 0.2);
+  a.setIntensity(t.id, 7);
+  a.toggleQuality(t.id, 'knotted');
+  a.toggleWorst(t.id, 'still');
+  a.setCourse(t.id, 'chronic');
+  a.setSince(t.id, 'same');
+  a.setText(t.id, 'started', 'last spring');
+  a.setText(t.id, 'worse', 'sitting');
+  a.setText(t.id, 'better', 'heat');
+  a.setText(t.id, 'note', 'fake note');
+  a.toggleStar(t.id);
+  const o = place(a, 'other', 0.6);
+  a.setText(o.id, 'note', 'something odd');
+  a.setVisit('followup');
+  a.setForWhom('helper');
+  a.setHelperName('Sam Sample');
+  a.setFirstAt(T0 + 5);
+  a.setWhole({ type: 'pain', intensity: 3, quality: ['dull'], worst: [], course: null, started: '', worse: '', better: '', since: null, note: 'fake whole', star: false });
+  const b = make(99);
+  assert.deepEqual(b.state, a.state, 'reload gives the same state');
+  assert.equal(b.state.visit, 'followup');
+  assert.equal(b.state.forWhom, 'helper');
+  assert.equal(b.state.helperName, 'Sam Sample');
+  assert.equal(b.state.firstAt, T0 + 5);
+  assert.equal(b.state.whole?.note, 'fake whole');
+  // bad values: cleared, field by field
+  const raw = JSON.parse((storage as ReturnType<typeof memoryStorage>).data.get(KEY)!);
+  raw.pins[0].intensity = 11;
+  raw.pins[0].quality = ['knotted', 'bogus'];
+  raw.pins[0].worst = ['sometimes'];
+  raw.pins[0].since = 'gone';
+  raw.pins[0].course = 'maybe';
+  raw.visit = 'later';
+  raw.forWhom = 'nobody';
+  raw.firstAt = 'soon';
+  (storage as ReturnType<typeof memoryStorage>).data.set(KEY, JSON.stringify(raw));
+  const c = make(5).state;
+  assert.deepEqual([c.pins[0].intensity, c.pins[0].quality, c.pins[0].worst, c.pins[0].since, c.pins[0].course], [null, [], [], null, null]);
+  assert.equal(c.pins[0].note, 'fake note', 'the good fields stay');
+  assert.deepEqual([c.visit, c.forWhom, c.firstAt], [null, null, null]);
+  // an unknown type drops that pin only; a whole-body item of type avoid is dropped
+  raw.pins[1].type = 'sparkle';
+  raw.whole.type = 'avoid';
+  (storage as ReturnType<typeof memoryStorage>).data.set(KEY, JSON.stringify(raw));
+  const d = make(6).state;
+  assert.equal(d.pins.length, 1);
+  assert.equal(d.whole, null);
+  // Start over and a send empty the new keys too
+  const e = make(7);
+  e.startOver();
+  assert.deepEqual([e.state.whole, e.state.visit, e.state.forWhom, e.state.helperName, e.state.firstAt], [null, null, null, '', null]);
 });

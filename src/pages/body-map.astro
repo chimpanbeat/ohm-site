@@ -4,6 +4,7 @@
 // `OHM_BODYMAP_PREVIEW=1 npm run build` builds the real page for local and LAN-phone tests (like OHM_EVENTS_NOW).
 import Base from '../layouts/Base.astro';
 import { bodymap, artName } from '../data/bodymap.ts';
+import { glyphPath } from '../lib/bodymap-shapes.ts';
 import { site } from '../data/site.ts';
 
 const t = bodymap.text;
@@ -11,20 +12,21 @@ const preview = (globalThis as { process?: { env?: Record<string, string | undef
 const open = bodymap.open || preview;
 
 // The art is found by one glob on the folder, so a new set with the same names and viewBox needs no code change (BM-14).
-// A figure with a WebP beside it (the SVG was over 400 KB) is shown as the WebP.
+// Each figure-view is `{ webp, svg }` (B6, Brian, Nov 14, 2026): a figure with a WebP beside it (its SVG was over 400 KB) shows the SVG
+// where `bodymap.artQuery` matches and the WebP everywhere else; one with no WebP is the SVG everywhere. The `<image>` below has no
+// `href` because SVG's `<image>` takes no `srcset` or `media`: the script sets it from the query (ARCHITECTURE §B12 Art).
 const svgs = import.meta.glob('../assets/bodymap/svg/*_{front,back}.svg', { query: '?url', import: 'default', eager: true }) as Record<string, string>;
 const webps = import.meta.glob('../assets/bodymap/webp/*_{front,back}.webp', { query: '?url', import: 'default', eager: true }) as Record<string, string>;
-const figures: Record<string, string> = {};
+const figures: Record<string, { webp: string | null; svg: string }> = {};
 if (open) {
   for (const sex of bodymap.figures) {
     for (const view of bodymap.views) {
       const name = artName(sex, view);
-      const url = webps[`../assets/bodymap/webp/${name}.webp`] ?? svgs[`../assets/bodymap/svg/${name}.svg`];
-      if (url) figures[name] = url;
+      const svg = svgs[`../assets/bodymap/svg/${name}.svg`];
+      if (svg) figures[name] = { webp: webps[`../assets/bodymap/webp/${name}.webp`] ?? null, svg };
     }
   }
 }
-const first = figures[artName('female', 'front')];
 const label = t.figureLabel.replace('{figure}', t.figures.female).replace('{view}', t.views.front.toLowerCase());
 ---
 
@@ -62,22 +64,40 @@ const label = t.figureLabel.replace('{figure}', t.figures.female).replace('{view
                     <button type="button" class="bm-btn bm-tab" data-figure={s} aria-pressed={s === 'female' ? 'true' : 'false'}>{t.figures[s]}</button>
                   ))}
                 </div>
-                <div class="bm-tabs" id="bm-tabs" role="group" aria-label={t.views.front + ' / ' + t.views.back}>
-                  {bodymap.views.map((v) => (
-                    <button type="button" class="bm-btn bm-tab" data-view={v} aria-pressed={v === 'front' ? 'true' : 'false'}>{t.views[v]}</button>
-                  ))}
-                </div>
                 <div class="bm-figure-block">
                   <div class="bm-stage" id="bm-stage" data-figures={JSON.stringify(figures)}>
                     <svg id="bm-figure" class="bm-figure" viewBox={`0 0 ${bodymap.viewBox.width} ${bodymap.viewBox.height}`} preserveAspectRatio="xMidYMid meet" role="img" aria-label={label} aria-describedby="bm-hint">
-                      <image id="bm-art" href={first} x="0" y="0" width={bodymap.viewBox.width} height={bodymap.viewBox.height}></image>
+                      <image id="bm-art" x="0" y="0" width={bodymap.viewBox.width} height={bodymap.viewBox.height}></image>
                       <g id="bm-pins"></g>
                     </svg>
                   </div>
-                  <div class="bm-zoom" role="group" aria-label={t.zoomHint}>
-                    <button type="button" class="bm-btn" id="bm-zoom-in" aria-label={t.zoomIn}>+</button>
-                    <button type="button" class="bm-btn" id="bm-zoom-out" aria-label={t.zoomOut}>−</button>
-                    <button type="button" class="bm-btn bm-btn--text" id="bm-zoom-reset">{t.zoomReset}</button>
+                  {/* The toolbar (B6, I-170): under the figure and sticky to the bottom of the screen while any of the figure is on it. */}
+                  <div class="bm-toolbar" id="bm-toolbar">
+                    <div class="bm-toolbar-row">
+                      <p class="bm-sr" id="bm-types-label">{t.typeQuestion}</p>
+                      <div class="bm-types" id="bm-types" role="radiogroup" aria-labelledby="bm-types-label">
+                        {bodymap.types.map((ty) => (
+                          <label class="bm-chip" style={`--chip: var(--${ty.token})`} data-type={ty.key}>
+                            <input type="radio" name="bm-type" value={ty.key} checked={ty.key === 'pain'} />
+                            <svg class="bm-chip-glyph" viewBox="-8 -8 16 16" aria-hidden="true" focusable="false"><path d={glyphPath(ty.shape)}></path></svg>
+                            <span class="bm-sr">{t.types[ty.key]}</span>
+                          </label>
+                        ))}
+                      </div>
+                      <span class="bm-type-name" id="bm-type-name" aria-hidden="true">{t.types.pain}</span>
+                    </div>
+                    <div class="bm-toolbar-row">
+                      <div class="bm-tabs" id="bm-tabs" role="group" aria-label={t.views.front + ' / ' + t.views.back}>
+                        {bodymap.views.map((v) => (
+                          <button type="button" class="bm-btn bm-tab" data-view={v} aria-pressed={v === 'front' ? 'true' : 'false'}>{t.views[v]}</button>
+                        ))}
+                      </div>
+                      <div class="bm-zoom" role="group" aria-label={t.zoomHint}>
+                        <button type="button" class="bm-btn" id="bm-zoom-in" aria-label={t.zoomIn}>+</button>
+                        <button type="button" class="bm-btn" id="bm-zoom-out" aria-label={t.zoomOut}>−</button>
+                        <button type="button" class="bm-btn bm-btn--text" id="bm-zoom-reset">{t.zoomReset}</button>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -281,17 +301,149 @@ const label = t.figureLabel.replace('{figure}', t.figures.female).replace('{view
     padding: var(--s-6);
     border: 2px solid var(--green-700);
   }
-  /* Pins: shape and number first, colour second (BM-3). Sizes are set by the script from the live zoom. */
-   .bm-pin {
-    fill: var(--pin-pain);
-    stroke: var(--pin-halo);
+  /* Visually hidden, still read by screen readers (the chips' type names, the type question). */
+  .bm-sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
   }
-   .bm-pin-n {
-    fill: var(--pin-halo);
-    font-family: var(--font-text);
+  /* The toolbar (B6, §B12 Layout → Toolbar): directly under the figure, sticky to the bottom of the screen while any of the
+     figure is on it. Row 1 the seven type chips (7 x 44 px with 4 px gaps is 332 px, inside 343 at 375 wide), row 2 the
+     Front/Back toggle and zoom. */
+  .bm-toolbar {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    justify-self: stretch;
+    display: grid;
+    gap: var(--s-2);
+    padding-block: var(--s-2);
+    background: var(--bg-light);
+    border-top: 1px solid var(--line-light);
+  }
+  .bm-toolbar-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-2) var(--s-3);
+  }
+  .bm-toolbar .bm-tabs,
+  .bm-toolbar .bm-zoom {
+    margin: 0;
+  }
+  .bm-zoom {
+    display: flex;
+    gap: var(--s-1);
+    align-items: center;
+  }
+  /* Row 2 has to fit one line at 375 px: the two view buttons (counts included) and the three zoom buttons. */
+  .bm-toolbar .bm-btn {
+    padding-inline: 0.4rem;
+    font-size: 0.9375rem;
+  }
+  .bm-toolbar .bm-tabs {
+    gap: 4px;
+  }
+  .bm-toolbar .bm-btn--text {
+    padding-inline: 0.25rem;
+  }
+  .bm-toolbar-row:nth-child(2) {
+    flex-wrap: nowrap;
+    justify-content: space-between;
+  }
+  .bm-types {
+    display: flex;
+    gap: 4px;
+  }
+  .bm-chip {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 2px solid transparent;
+    border-radius: var(--radius);
+    cursor: pointer;
+  }
+  .bm-chip input {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .bm-chip-glyph {
+    width: 28px;
+    height: 28px;
+    fill: var(--chip);
+    stroke: var(--pin-edge);
+    stroke-width: 0.7;
+    stroke-linejoin: round;
+    pointer-events: none;
+  }
+  .bm-chip[data-type='injury'] .bm-chip-glyph {
+    stroke: var(--pin-injury-edge);
+    stroke-width: 1.1;
+  }
+  .bm-chip:has(input:checked) {
+    border-color: var(--text-on-light);
+    background: var(--bodymap-figure);
+  }
+  .bm-chip:has(input:focus-visible) {
+    outline: 3px solid var(--text-on-light);
+    outline-offset: 2px;
+  }
+  .bm-type-name {
     font-weight: 700;
-    text-anchor: middle;
-    dominant-baseline: central;
+  }
+  /* Marks (B6, §B12 Marker): a type's glyph, or the map-pin when it is the open one. Shape first, colour second (BM-3).
+     Sizes are set by the script from the live zoom. Each mark is drawn three times: the 1px edge, the 3px halo, then the fill. */
+  .bm-pin-edge {
+    fill: var(--pin-edge);
+    stroke: var(--pin-edge);
+    stroke-linejoin: round;
+  }
+  .bm-pin-halo {
+    fill: var(--pin-halo);
+    stroke: var(--pin-halo);
+    stroke-linejoin: round;
+  }
+  .bm-pin-fill {
+    stroke: none;
+  }
+  .bm-pin-fill--pain { fill: var(--pin-pain); }
+  .bm-pin-fill--discomfort { fill: var(--pin-discomfort); }
+  .bm-pin-fill--tight { fill: var(--pin-tight); }
+  .bm-pin-fill--injury { fill: var(--pin-injury); }
+  .bm-pin-fill--numb { fill: var(--pin-numb); }
+  .bm-pin-fill--avoid { fill: var(--pin-avoid); }
+  .bm-pin-fill--other { fill: var(--pin-other); }
+  .bm-pin-rim {
+    fill: none;
+    stroke: var(--pin-injury-edge);
+    stroke-linejoin: round;
+  }
+  .bm-pin-on {
+    fill: var(--pin-on);
+    stroke: none;
+  }
+  .bm-pin-on--injury {
+    fill: var(--pin-injury-on);
+  }
+  .bm-pin-star-disc {
+    fill: var(--pin-halo);
+    stroke: var(--pin-edge);
+  }
+  .bm-pin-star {
+    fill: var(--pin-edge);
+  }
+  .bm-pin-g {
     pointer-events: none;
   }
 </style>

@@ -7,18 +7,31 @@
 
 export type Sex = 'female' | 'male';
 export type View = 'front' | 'back';
-export type PinTypeKey = 'pain' | 'discomfort' | 'injury' | 'numb' | 'avoid';
-export type PinShape = 'circle' | 'diamond' | 'triangle' | 'star4' | 'ring-slash';
-export interface PinType { key: PinTypeKey; shape: PinShape; token: string; starrable: boolean }
+export type PinTypeKey = 'pain' | 'discomfort' | 'tight' | 'injury' | 'numb' | 'avoid' | 'other';
+export type PinShape = 'circle' | 'diamond' | 'hexagon' | 'triangle' | 'star4' | 'ring-slash' | 'bubble';
+/** The fields a mark can carry (§B12 Pins → Fields). `note` is the mark's note; for avoid and other it is the only field. */
+export type PinField = 'intensity' | 'since' | 'quality' | 'worst' | 'course' | 'started' | 'worse' | 'better' | 'note';
+export type Quality = 'sharp' | 'dull' | 'burning' | 'spreading' | 'numb' | 'tingling' | 'tight' | 'stiff' | 'knotted';
+export type Worst = 'mornings' | 'evenings' | 'still' | 'activity' | 'always';
+export type Course = 'acute' | 'chronic';
+export type Visit = 'first' | 'followup';
+export type Since = 'better' | 'same' | 'worse';
+export type ForWhom = 'self' | 'helper';
+/** `fields` is the panel's order: the first is the one up front, the rest sit behind `Add details`, the note last. */
+export interface PinType { key: PinTypeKey; shape: PinShape; token: string; starrable: boolean; fields: PinField[] }
 export interface Region { key: string; name: string }
 
-const pinTypes: PinType[] = [
-  { key: 'pain', shape: 'circle', token: 'pin-pain', starrable: true },
-  { key: 'discomfort', shape: 'diamond', token: 'pin-discomfort', starrable: true },
-  { key: 'injury', shape: 'triangle', token: 'pin-injury', starrable: true },
-  { key: 'numb', shape: 'star4', token: 'pin-numb', starrable: true },
+// The seven types, in I-167's order (the toolbar chips, the 1–7 keys, the legend). Brian, Nov 14, 2026.
+const types: PinType[] = [
+  { key: 'pain', shape: 'circle', token: 'pin-pain', starrable: true, fields: ['intensity', 'since', 'quality', 'course', 'started', 'worse', 'better', 'note'] },
+  { key: 'discomfort', shape: 'diamond', token: 'pin-discomfort', starrable: true, fields: ['intensity', 'since', 'quality', 'course', 'started', 'worse', 'better', 'note'] },
+  { key: 'tight', shape: 'hexagon', token: 'pin-tight', starrable: true, fields: ['intensity', 'since', 'quality', 'worst', 'course', 'started', 'worse', 'better', 'note'] },
+  { key: 'injury', shape: 'triangle', token: 'pin-injury', starrable: true, fields: ['intensity', 'since', 'course', 'started', 'worse', 'better', 'note'] },
+  { key: 'numb', shape: 'star4', token: 'pin-numb', starrable: true, fields: ['intensity', 'since', 'quality', 'course', 'started', 'worse', 'better', 'note'] },
   // Avoid marks can't be starred (Brian, Nov 8, 2026): a star means "work here first".
-  { key: 'avoid', shape: 'ring-slash', token: 'pin-avoid', starrable: false },
+  { key: 'avoid', shape: 'ring-slash', token: 'pin-avoid', starrable: false, fields: ['note'] },
+  // Other can be starred (Brian, Nov 14, 2026).
+  { key: 'other', shape: 'bubble', token: 'pin-other', starrable: true, fields: ['note'] },
 ];
 
 /** Pairs in head-to-toe order, left (the client's own left) first. */
@@ -76,6 +89,41 @@ export interface Located {
   region: string | null;
   regionName: string | null;
   side: Side | null;
+}
+
+/**
+ * The report's new shapes, set once in B6 so storage and the report agree (§B12 Report JSON); B7 fills them.
+ * `consent` is always true and `consentAt` equals `sent` (I-173); `seconds` is whole seconds from the first mark (I-174);
+ * `to` and `area` are reserved for v1.1 and sent as null (I-169).
+ */
+export interface ReportTo extends Located { x: number; y: number }
+export interface ReportArea { x: number; y: number; r: number; zones: Array<Located & { share: number }> }
+/** A Both sides pair's second point in the report (I-168): its own zone fields, and the reserved `to` and `area`. */
+export interface ReportMirror extends Located { x: number; y: number; to: ReportTo | null; area: ReportArea | null }
+/** The keys a report pin gains in B6's contract; B7 fills them. `to` and `area` are null in v1 (I-169). */
+export interface ReportPinExtras { mirror: ReportMirror | null; to: ReportTo | null; area: ReportArea | null }
+/** The whole-body item (I-171): the per-type fields of a mark, with no spot. */
+export interface WholeItem {
+  type: PinTypeKey;
+  intensity: number | null;
+  quality: Quality[];
+  worst: Worst[];
+  course: Course | null;
+  started: string;
+  worse: string;
+  better: string;
+  since: Since | null;
+  note: string;
+  star: boolean;
+}
+export interface ReportExtras {
+  visit: Visit | null;
+  forWhom: ForWhom | null;
+  helperName: string;
+  consent: true;
+  consentAt: string;
+  seconds: number;
+  whole: WholeItem | null;
 }
 
 /**
@@ -198,11 +246,29 @@ export const bodymap = {
   laterViews: ['left_side', 'right_side'] as const,
   /** The art's own canvas; pins are stored as 0–1 of it. */
   viewBox: { width: 2048, height: 4096 },
-  pinTypes,
+  types,
+  /** Intensity is ten chips (I-153; was 1–5). */
+  intensity: { min: 1, max: 10 },
+  /** Per-type quality lists (I-158, I-167). A key can sit in two lists (`spreading`): one answer, shown in both. */
+  qualities: {
+    pain: ['sharp', 'dull', 'burning', 'spreading'],
+    numb: ['numb', 'tingling', 'spreading'],
+    tight: ['tight', 'stiff', 'knotted'],
+  } as const satisfies Partial<Record<PinTypeKey, readonly Quality[]>>,
+  worsts: ['mornings', 'evenings', 'still', 'activity', 'always'] as const satisfies readonly Worst[],
+  courses: ['acute', 'chronic'] as const satisfies readonly Course[],
+  /** Visit, since and who it's for are filled from B6e; the keys and values are set here so storage and the report are set once. */
+  visits: ['first', 'followup'] as const satisfies readonly Visit[],
+  sinces: ['better', 'same', 'worse'] as const satisfies readonly Since[],
+  forWhoms: ['self', 'helper'] as const satisfies readonly ForWhom[],
+  /** WebP on phones, SVG on desktop (Brian, Nov 14, 2026): the SVG where this matches, else the WebP when there is one. The only copy. */
+  artQuery: '(min-width: 1024px) and (pointer: fine)',
   limits: {
     stars: 3,
     pins: 60,
     noteChars: 140,
+    detailChars: 80,
+    startedChars: 40,
     nameChars: 80,
     expiryHours: 24,
     /** base64 characters of the PDF */
@@ -230,10 +296,14 @@ export const bodymap = {
     types: {
       pain: 'Pain',
       discomfort: 'Discomfort',
+      tight: 'Tight or stiff',
       injury: 'Injury',
       numb: 'Numbness or tingling',
       avoid: 'Avoid this area',
+      other: 'Other',
     } satisfies Record<PinTypeKey, string>,
+    /** A toolbar button: `{view}` is views[view], `{n}` the marks on it. Shown as `{view}` alone while that view has none. */
+    viewCount: '{view} {n}',
     tapHint: 'Tap where you feel it.',
     zoomHint: 'Pinch, or use + and −, to zoom.',
     zoomIn: 'Zoom in',
@@ -244,8 +314,40 @@ export const bodymap = {
     intensity: 'How strong is it?',
     intensityLow: 'Mild',
     intensityHigh: 'Strong',
-    note: 'Note (optional)',
+    /** Behind `Add details` for types 1–5 (I-166 (5)); avoid and other have their own prompts below. */
+    note: 'Anything else?',
     notePlaceholder: 'A few words, if it helps',
+    avoidNote: 'Why avoid it? (optional)',
+    otherNote: "What's here? (optional)",
+    tightIntensity: 'How tight is it?',
+    tightEnds: { low: 'Slight', high: 'Very tight' },
+    details: 'Add details',
+    quality: 'What does it feel like?',
+    qualities: {
+      sharp: 'Sharp',
+      dull: 'Dull or achy',
+      burning: 'Burning',
+      spreading: 'Spreading',
+      numb: 'Numb',
+      tingling: 'Tingling or pins and needles',
+      tight: 'Tight or pulling',
+      stiff: 'Stiff, hard to move',
+      knotted: 'Knotted',
+    } satisfies Record<Quality, string>,
+    worst: 'When is it worst?',
+    worsts: {
+      mornings: 'Mornings',
+      evenings: 'Evenings or at night',
+      still: 'After sitting still',
+      activity: 'During or after activity',
+      always: 'All the time',
+    } satisfies Record<Worst, string>,
+    course: 'Is it new or long-standing?',
+    courses: { acute: 'New', chronic: 'Long-standing' } satisfies Record<Course, string>,
+    started: 'When did it start?',
+    startedPlaceholder: 'Roughly, if you know',
+    worse: 'What makes it worse?',
+    better: 'What makes it better?',
     star: 'Star as a top priority',
     remove: 'Remove',
     done: 'Done',
@@ -287,7 +389,7 @@ export const bodymap = {
       other: 'Other marks',
       front: 'Front',
       back: 'Back',
-      intensity: '{n}/5',
+      intensity: '{n}/10',
       /** A mark ticked in the region list: the zone is not known, only the region (B5). */
       fromList: 'chosen from the list',
       /** {site} is site.name, filled by the PDF builder. */

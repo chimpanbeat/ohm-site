@@ -17,8 +17,8 @@ async function jpeg(w = 60, h = 120) {
   const bytes = await sharp({ create: { width: w, height: h, channels: 3, background: { r: 255, g: 255, b: 255 } } }).jpeg().toBuffer();
   return { jpeg: new Uint8Array(bytes), width: w, height: h };
 }
-const pin = (i: number, over: Record<string, unknown> = {}) => ({ id: `p${i}`, view: 'front' as const, x: 0.2 + (i % 5) * 0.1, y: 0.1 + (i % 7) * 0.1, type: 'pain' as const, intensity: null, note: '', star: false, fromList: false, ...over });
-const state = (pins = [pin(1, { note: 'fake note' })], over: Record<string, unknown> = {}) => ({ name: 'Test Client', apptDate: '2026-12-03', figure: 'female' as const, pins, id: '3f2a9c1e-5b7d-4e8a-9c0b-1a2b3c4d5e6f', ...over });
+const pin = (i: number, over: Record<string, unknown> = {}) => ({ id: `p${i}`, view: 'front' as const, x: 0.2 + (i % 5) * 0.1, y: 0.1 + (i % 7) * 0.1, type: 'pain' as const, intensity: null, quality: [], worst: [], course: null, started: '', worse: '', better: '', since: null, note: '', star: false, fromList: false, mirror: null, ...over });
+const state = (pins = [pin(1, { note: 'fake note' })], over: Record<string, unknown> = {}) => ({ name: 'Test Client', apptDate: '2026-12-03', figure: 'female' as const, pins, id: '3f2a9c1e-5b7d-4e8a-9c0b-1a2b3c4d5e6f', whole: null, visit: null, forWhom: null, helperName: '', firstAt: null, ...over });
 
 async function read(bytes: Uint8Array) {
   const doc = await getDocumentProxy(new Uint8Array(bytes));
@@ -152,7 +152,7 @@ test('the fallback PDF colours equal the tokens in tokens.css (the page normally
   };
   const rgb = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);
   const same = (got: number[], token: string) => got.forEach((c, i) => assert.ok(Math.abs(c - rgb(hex(token))[i]) < 0.005, `${token}: ${got} vs ${hex(token)}`));
-  for (const p of bodymap.pinTypes) same(DEFAULT_COLORS.pin[p.key], p.token);
+  for (const p of bodymap.types) same(DEFAULT_COLORS.pin[p.key], p.token);
   same(DEFAULT_COLORS.halo, 'pin-halo');
   same(DEFAULT_COLORS.edge, 'pin-edge');
   same(DEFAULT_COLORS.text, 'ink');

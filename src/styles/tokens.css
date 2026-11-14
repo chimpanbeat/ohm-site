@@ -57,13 +57,19 @@
 
   /* Body map (B0, I-073, §B12). The figure grey is the art's silhouette fill (measured from the delivered SVGs,
      Nov 10, 2026); the art files keep their own hex (§D). Pins: the glyph in the map-pin head first, colour
-     second (BM-3, I-150); every pin has a 3px halo ring and a 1px edge. */
+     second (BM-3, I-150); every pin has a 3px halo ring and a 1px edge. Seven pin colours (B6, I-167, Nov 14, 2026):
+     Brian allows colours beyond the brand palette here; the glyph is the main difference, colour backs it up. */
   --bodymap-figure: #d3d7dc;
-  --pin-pain: var(--terra-700);
-  --pin-discomfort: var(--terra-500);
-  --pin-injury: var(--green-700);
-  --pin-numb: var(--ink);
-  --pin-avoid: var(--ink); /* stroke, on a cream fill */
+  --pin-pain: #c62828; /* red */
+  --pin-discomfort: #c75100; /* orange */
+  --pin-tight: #6a3d9a; /* purple */
+  --pin-injury: #f2c12e; /* yellow: 1.5:1 on cream, so it carries a dark edge */
+  --pin-numb: #1f5fad; /* blue */
+  --pin-avoid: var(--ink); /* black */
+  --pin-other: #6b7280; /* grey */
+  --pin-injury-edge: var(--ink);
+  --pin-injury-on: var(--ink); /* the glyph in an open injury pin's head */
+  --pin-on: var(--cream); /* the glyph in an open pin's head, every other type */
   --pin-halo: var(--cream);
   --pin-edge: var(--ink);
   /* Skin tones (I-151, §A1, §B12 Skin tone; proposed Nov 13, 2026, used from B6b): the figure's fill on the

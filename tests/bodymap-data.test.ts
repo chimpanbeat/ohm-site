@@ -32,24 +32,60 @@ test('2. figures, views and art names', () => {
   assert.equal(artName('male', 'back'), 'male_back');
 });
 
-test('3. five pin types, unique shapes, tokens resolve', () => {
-  const keys = bodymap.pinTypes.map((p) => p.key);
-  assert.deepEqual(keys, ['pain', 'discomfort', 'injury', 'numb', 'avoid']);
-  assert.equal(new Set(bodymap.pinTypes.map((p) => p.shape)).size, 5);
-  for (const p of bodymap.pinTypes) {
+test('3. seven types in order, unique shapes, tokens resolve, only avoid is unstarrable (B6)', () => {
+  const keys = bodymap.types.map((p) => p.key);
+  assert.deepEqual(keys, ['pain', 'discomfort', 'tight', 'injury', 'numb', 'avoid', 'other']);
+  assert.deepEqual(bodymap.types.map((p) => p.shape), ['circle', 'diamond', 'hexagon', 'triangle', 'star4', 'ring-slash', 'bubble']);
+  assert.equal(new Set(bodymap.types.map((p) => p.shape)).size, 7);
+  for (const p of bodymap.types) {
     assert.ok(resolve(p.token), `--${p.token} resolves to a hex value`);
     assert.ok(bodymap.text.types[p.key], `type ${p.key} has a label`);
   }
-  for (const t of ['pin-halo', 'pin-edge', 'bodymap-figure']) assert.ok(resolve(t), `--${t} resolves`);
+  for (const t of ['pin-halo', 'pin-edge', 'bodymap-figure', 'pin-injury-edge', 'pin-injury-on', 'pin-on']) assert.ok(resolve(t), `--${t} resolves`);
   assert.equal(resolve('bodymap-figure'), '#d3d7dc');
-  assert.equal(bodymap.pinTypes.find((p) => p.key === 'avoid')?.starrable, false);
-  assert.ok(bodymap.pinTypes.filter((p) => p.key !== 'avoid').every((p) => p.starrable));
+  assert.deepEqual(bodymap.types.filter((p) => !p.starrable).map((p) => p.key), ['avoid']);
 });
 
 test('4. limits', () => {
   assert.deepEqual({ ...bodymap.limits }, {
-    stars: 3, pins: 60, noteChars: 140, nameChars: 80, expiryHours: 24, pdfBytes: 1_500_000, reportBytes: 64_000,
+    stars: 3, pins: 60, noteChars: 140, detailChars: 80, startedChars: 40, nameChars: 80, expiryHours: 24, pdfBytes: 1_500_000, reportBytes: 64_000,
   });
+});
+
+test('4b. the fields of each type, the lists and the enums equal ARCHITECTURE §B12 (B6)', () => {
+  const fields = Object.fromEntries(bodymap.types.map((p) => [p.key, p.fields.join(' ')]));
+  assert.deepEqual(fields, {
+    pain: 'intensity since quality course started worse better note',
+    discomfort: 'intensity since quality course started worse better note',
+    tight: 'intensity since quality worst course started worse better note',
+    injury: 'intensity since course started worse better note',
+    numb: 'intensity since quality course started worse better note',
+    avoid: 'note',
+    other: 'note',
+  });
+  assert.deepEqual({ ...bodymap.intensity }, { min: 1, max: 10 });
+  assert.deepEqual({ pain: [...bodymap.qualities.pain], numb: [...bodymap.qualities.numb], tight: [...bodymap.qualities.tight] }, {
+    pain: ['sharp', 'dull', 'burning', 'spreading'],
+    numb: ['numb', 'tingling', 'spreading'],
+    tight: ['tight', 'stiff', 'knotted'],
+  });
+  assert.deepEqual([...bodymap.worsts], ['mornings', 'evenings', 'still', 'activity', 'always']);
+  assert.deepEqual([...bodymap.courses], ['acute', 'chronic']);
+  assert.deepEqual([...bodymap.visits], ['first', 'followup']);
+  assert.deepEqual([...bodymap.sinces], ['better', 'same', 'worse']);
+  assert.deepEqual([...bodymap.forWhoms], ['self', 'helper']);
+  assert.equal(bodymap.artQuery, '(min-width: 1024px) and (pointer: fine)');
+  const t = bodymap.text;
+  assert.equal(t.note, 'Anything else?');
+  assert.equal(t.otherNote, "What's here? (optional)");
+  assert.equal(t.avoidNote, 'Why avoid it? (optional)');
+  assert.equal(t.tightIntensity, 'How tight is it?');
+  assert.deepEqual({ ...t.tightEnds }, { low: 'Slight', high: 'Very tight' });
+  assert.equal(t.viewCount, '{view} {n}');
+  assert.equal(t.pdf.intensity, '{n}/10');
+  assert.equal(t.qualities.tight, 'Tight or pulling');
+  assert.equal(t.types.tight, 'Tight or stiff');
+  assert.equal(t.types.other, 'Other');
 });
 
 test('5. regions: 28 front, 31 back, unique names, left/right twins', () => {

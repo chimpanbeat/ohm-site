@@ -156,6 +156,18 @@ test('6. check:contrast pin rules: a pin fill under 3:1 against --pin-halo fails
     // The edge must stand off the figure too.
     const edge = run(tokens.replace(/--pin-edge:[^;]+;/, '--pin-edge: #d6dade;'));
     assert.equal(edge.status, 1, edge.stdout);
+    // B6: seven types. Every type has a rule; injury's yellow needs its dark edge; a head glyph (-on) needs 3:1 on its head.
+    for (const t of ['pain', 'discomfort', 'tight', 'injury', 'numb', 'avoid', 'other']) assert.match(real.stdout, new RegExp(`pin-${t}`), t);
+    const noEdge = run(tokens.replace(/--pin-injury-edge:[^;]+;/, '--pin-injury-edge: #f2c12e;'));
+    assert.equal(noEdge.status, 1, noEdge.stdout);
+    assert.match(noEdge.stdout, /FAIL.*pin-injury/);
+    const bareYellow = run(tokens.replace(/--pin-injury-edge:[^;]+;/, ''));
+    assert.equal(bareYellow.status, 1, 'an injury colour with no edge token fails');
+    const faint = run(tokens.replace(/--pin-on:[^;]+;/, '--pin-on: #9aa0a8;'));
+    assert.equal(faint.status, 1, faint.stdout);
+    assert.match(faint.stdout, /FAIL.*pin-on/);
+    const faintInjury = run(tokens.replace(/--pin-injury-on:[^;]+;/, '--pin-injury-on: #f2c12e;'));
+    assert.equal(faintInjury.status, 1, faintInjury.stdout);
   } finally {
     rmSync(tmp, { recursive: true, force: true });
   }

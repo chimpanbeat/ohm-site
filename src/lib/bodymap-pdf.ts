@@ -12,7 +12,16 @@ export type Rgb = [number, number, number];
 /** 0-1 channels. The page fills this from the CSS tokens (--pin-*, --pin-halo, --ink); these are only the fallback, and tests/bodymap-pdf.test.ts keeps them equal to tokens.css. */
 export interface PdfColors { pin: Record<PinTypeKey, Rgb>; halo: Rgb; edge: Rgb; text: Rgb; rule: Rgb }
 export const DEFAULT_COLORS: PdfColors = {
-  pin: { pain: [0.612, 0.341, 0.224], discomfort: [0.765, 0.478, 0.357], injury: [0.071, 0.322, 0.271], numb: [0.043, 0.149, 0.125], avoid: [0.043, 0.149, 0.125] },
+  // B6: seven types (tokens.css --pin-*). The PDF's own glyphs and number layout are B7's.
+  pin: {
+    pain: [0.776, 0.157, 0.157],
+    discomfort: [0.78, 0.318, 0],
+    tight: [0.416, 0.239, 0.604],
+    injury: [0.949, 0.757, 0.18],
+    numb: [0.122, 0.373, 0.678],
+    avoid: [0.043, 0.149, 0.125],
+    other: [0.42, 0.447, 0.502],
+  },
   halo: [0.953, 0.949, 0.941],
   edge: [0.043, 0.149, 0.125],
   text: [0.043, 0.149, 0.125],

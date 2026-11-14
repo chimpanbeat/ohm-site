@@ -114,11 +114,16 @@ test('preview: the figure wrapper is the only touch-action: none, the figure is 
 
 test('preview: the figure URLs for the v1 figures are in the page data and none is a data URL', () => {
   const stage = preview.match(/<[^>]*\bdata-figures="([^"]*)"[^>]*>/)?.[1] ?? '';
-  const map = JSON.parse(decode(stage)) as Record<string, string>;
+  // B6: each figure-view is `{ webp, svg }` (webp null when the SVG was small enough to ship as it is)
+  const map = JSON.parse(decode(stage)) as Record<string, { webp: string | null; svg: string }>;
   for (const key of ['female_front', 'female_back', 'male_front', 'male_back']) {
-    assert.ok(map[key], key);
-    assert.doesNotMatch(map[key], /^data:/);
+    assert.ok(map[key]?.svg, key);
+    assert.doesNotMatch(map[key].svg, /^data:/);
+    if (map[key].webp !== null) assert.doesNotMatch(map[key].webp, /^data:/);
   }
+  assert.ok(map.female_front.webp, 'female_front has a WebP (its SVG is over 400 KB)');
+  assert.equal(map.male_front.webp, null);
+  assert.match(preview, /<image\b(?![^>]*\bhref=)[^>]*\bid="bm-art"/, 'the figure image has no href until the script sets it from artQuery');
   assert.equal(Object.keys(map).some((k) => /side/.test(k)), false, 'the side views are not shown in v1');
 });
 
@@ -133,6 +138,22 @@ test('preview (B5b): the figure picker has Female and Male, the view tabs have F
   const tabs = preview.match(/<div\b[^>]*\bid="bm-tabs"[^>]*>([\s\S]*?)<\/div>/)?.[1] ?? '';
   assert.deepEqual([...tabs.matchAll(/\bdata-view="([^"]+)"/g)].map((m) => m[1]), ['front', 'back']);
   assert.equal([...preview.matchAll(/\bdata-figure="/g)].length, 2, 'no other element carries a figure choice');
+});
+
+test('preview (B6): the toolbar sits after the figure with seven glyph-only type chips named by type, then Front and Back and the zoom buttons', () => {
+  const toolbar = preview.match(/<div\b[^>]*\bid="bm-toolbar"[^>]*>([\s\S]*?)<\/form>/)?.[1] ?? '';
+  assert.ok(toolbar, 'a toolbar');
+  assert.ok(preview.indexOf('id="bm-stage"') < preview.indexOf('id="bm-toolbar"'), 'the toolbar is under the figure');
+  assert.match(preview, /<div\b[^>]*\bid="bm-types"[^>]*\brole="radiogroup"[^>]*\baria-labelledby="bm-types-label"/);
+  const radios = [...preview.matchAll(/<input\b[^>]*\btype="radio"[^>]*\bname="bm-type"[^>]*\bvalue="([^"]+)"[^>]*>/g)].map((m) => m[1]);
+  assert.deepEqual(radios, bodymap.types.map((p) => p.key));
+  assert.match(preview, /<input\b[^>]*\bvalue="pain"[^>]*\bchecked/, 'pain is chosen at load');
+  for (const p of bodymap.types) assert.ok(preview.includes(`>${bodymap.text.types[p.key]}<`), `${p.key} is named`);
+  assert.deepEqual([...toolbar.matchAll(/\bdata-view="([^"]+)"/g)].map((m) => m[1]), ['front', 'back'], 'the view toggle is in the toolbar and the old tabs are gone');
+  assert.ok(preview.indexOf('id="bm-tabs"') > preview.indexOf('id="bm-stage"'), 'no view tabs above the figure');
+  for (const id of ['bm-zoom-in', 'bm-zoom-out', 'bm-zoom-reset']) assert.ok(toolbar.includes(`id="${id}"`), id);
+  const css = [...preview.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)].map((m) => m[1]).join('\n');
+  assert.match(css, /\.bm-toolbar\s*\{[^}]*position:\s*sticky[^}]*bottom:\s*0/);
 });
 
 test('the only importer of the body map script is body-map.astro', () => {

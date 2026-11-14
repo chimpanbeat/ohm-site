@@ -15,6 +15,9 @@ const hex = (name, depth = 0) => {
   return m[1];
 };
 
+/** Is the token defined at all (as a hex value or an alias)? */
+const has = (name) => new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6}\\b|var\\(--[\\w-]+\\))`).test(css);
+
 const lum = (h) => {
   const [r, g, b] = [1, 3, 5].map((i) => {
     const c = parseInt(h.slice(i, i + 2), 16) / 255;
@@ -61,7 +64,17 @@ const pairs = [
   ]),
   // Body map pins (B1, §A1, BM-3): every pin fill or stroke at least 3:1 against the halo ring it sits in,
   // and the 1px edge at least 3:1 against the figure it is drawn over.
-  ...['pain', 'discomfort', 'injury', 'numb', 'avoid'].map((t) => [`pin-${t}`, hex(`pin-${t}`), 'pin-halo', hex('pin-halo'), 3.0]),
+  // Seven types (B6, §A1): a type's outline colour is its `-edge` token when it has one (injury's yellow is 1.5:1 on cream, so it
+  // carries a dark edge), else its fill; the outline is held to 3:1 against the halo. The glyph in an open pin's head (`-on`,
+  // else --pin-on) is held to 3:1 against the head's fill.
+  ...['pain', 'discomfort', 'tight', 'injury', 'numb', 'avoid', 'other'].flatMap((t) => {
+    const edge = has(`pin-${t}-edge`);
+    const on = has(`pin-${t}-on`) ? `pin-${t}-on` : 'pin-on';
+    return [
+      [edge ? `pin-${t}-edge` : `pin-${t}`, hex(edge ? `pin-${t}-edge` : `pin-${t}`), 'pin-halo', hex('pin-halo'), 3.0],
+      [on, hex(on), `pin-${t}`, hex(`pin-${t}`), 3.0],
+    ];
+  }),
   ['pin-edge', hex('pin-edge'), 'bodymap-figure', hex('bodymap-figure'), 3.0],
 ];
 
