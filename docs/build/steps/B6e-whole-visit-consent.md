@@ -9,7 +9,7 @@ Planned Nov 14, 2026 (architect) from I-171 to I-178; revised the same day after
 ## Goal
 - **Whole-body item** (§B12): at most one `whole`; `wholeAdd` (with `wholeHint`) above the log adds it (the toolbar's type, `pain` if that is avoid) and opens the panel `{type} · Whole body`; the panel minus `Both sides` and `Move`, avoid hidden from its chips; first log entry on both views; star counts toward 3; Undo covers add and remove; Delete removes it; one mark in the review line, none in the toggle counts; not one of the 60; a send with only it is allowed.
 - **Visit:** `visit` radios, none at load, stored; on `followup`, `since` chips first behind `Add details` (marks and the whole item). **Who it's for:** `forWhom` radios (`self` read when unanswered); `helper` relabels the name `Their name` and shows the optional `Your name (optional)` (80, `autocomplete="off"`).
-- **Figure picker** (§B12 Figure picker): two options, each an `<img>` of the same `<sex>_front` SVG URL the figure uses (SVG only since B6; never a WebP or `png/`; no new asset), 40×80 px by CSS, `alt=""`, `aria-hidden`, with `Figure 1` / `Figure 2` as the visible label and the radio's accessible name; `figureLabel` from the copy deck; stored values unchanged.
+- **Figure picker** (§B12 Figure picker): two options, each an `<img>` of the same `<sex>_front` URL the figure uses (the glob's WebP, else SVG; never `png/`; no new asset), 40×80 px by CSS, `alt=""`, `aria-hidden`, with `Figure 1` / `Figure 2` as the visible label and the radio's accessible name; `figureLabel` from the copy deck; stored values unchanged.
 - **Consent:** the line `Sending saves this to my private client file.` directly above Send; no checkbox, nothing stored. The report builder sets `consent: true`, `consentAt` = `sent`. **Timer:** `firstAt` per §B12 Timing; a pure `secondsSince(firstAt, sent)` for B7.
 - The minimum-path flow stays exactly as B6 wrote it.
 
@@ -43,7 +43,7 @@ Read-only: `src/styles/tokens.css`, the zone files, `src/lib/bodymap-zones.ts`, 
 ## Done when
 1. `npm run check` passes, including the new tests. `npm run e2e:bodymap` passes.
 2. Screens at 375 and 1280 px in `docs/build/screens/B6e/`: the top of the form with both questions and the thumbnails, the helper's field, the whole item in the panel and the log, a follow-up's `Add details` with `Since last time`, the consent line above Send.
-3. The report states the page weight on load at 375 px (bytes transferred, from the preview build served like Pages and from one LAN-phone load), before and after the thumbnails, with `female_front.svg` (412,647 bytes; 136,822 gzipped) as the default figure in both, the served `content-encoding` of the SVGs, and a Lighthouse mobile performance run on `/body-map` (median of 3) before and after.
+3. The report states the page weight on load at 375 px (bytes transferred, from the preview build served like Pages and from one LAN-phone load), before and after the thumbnails, with the default figure as it loads (`female_front.webp`, 104,840 bytes) in both, and a Lighthouse mobile performance run on `/body-map` (median of 3) before and after. Only the performance score counts there: the page is noindex by design, so Lighthouse's SEO category can't pass on it.
 
 ## Report
 Files changed · Checks (command and result) · Deviations · New items (I-###) · Questions for the architect.
