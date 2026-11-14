@@ -10,12 +10,13 @@ Re-planned Nov 14, 2026 (architect), a third time: I-167's seven types, the two 
 - **Contract** (`src/data/bodymap.ts`, §B12 Who applies): `types` in I-167's order with `shape`, `token`, `starrable` (false only for `avoid`) and each type's fields; `PinTypeKey` gains `tight`, `other`; `PinShape` `hexagon`, `bubble`; `intensity` `{ min: 1, max: 10 }`; `qualities` (three lists), `worsts`, `courses`, `visits`, `sinces`, `forWhoms`; `limits.detailChars` 80, `startedChars` 40 (`noteChars` 140); the Pin type with `since` and `mirror`; the entry type with `whole`, `visit`, `forWhom`, `helperName`, `firstAt`; the report types with `consent`, `consentAt`, `seconds`, `whole`, and `to`, `area` (`{ x, y, r, zones }`) on pins and mirrors. Strings: Details, Seven types (with `tightEnds`, `otherNote`, `note` = `Anything else?`) and `viewCount`, as written; `pdf.intensity` `{n}/10`.
 - **Tokens** (§A1): the seven `--pin-<type>`, `--pin-injury-edge`, `--pin-injury-on`, `--pin-on`. **`check:contrast`** gets the seven-type rules. **Shapes:** the seven glyphs and the map-pin outline.
 - **State** (`src/lib/bodymap.ts`): the pin fields and per-type rules (refuse what the type can't take; keep answers across type changes; `fieldsOf(pin)`), stars (avoid never; other yes), storage `v: 2` with every pin and entry key (new entry keys empty until B6e), bad values cleared.
+- **Art per device** (Brian, Nov 14; §B12 Art): `bodymap.artQuery` = `(min-width: 1024px) and (pointer: fine)` in `src/data/bodymap.ts`, the only copy; `body-map.astro` builds the art map `{ webp, svg }` per figure-view from its two globs (unchanged) and renders the figure `<image>` without `href`; the script sets `href` by `matchMedia(bodymap.artQuery)` (SVG where it matches, else the WebP, else the SVG) on load, figure and view change. `figureJpeg` reads the map's `svg` only, so the PDF figure is the SVG on every device.
 - **Page:** marks in the two states (glyph; the last placed or tapped as the map-pin). **The toolbar** (§B12 Toolbar), sticky under the figure: seven glyph-only chips, each named by its type (`aria-label` from `types`), `pain` at load, the chosen type's name beside the row; `Front` · `Back` with `viewCount`; the zoom buttons. The view tabs go. The e2e **minimum-path flow** helper (§B12 Checks).
 
 Read-only: the zone files, `src/lib/bodymap-zones.ts`, `apps-script/`. Known gaps: the panel, log and list are B6a; the new entry keys get UI in B6e; the report carries the fields from B7.
 
 ## AC covered (IDs)
-- BM-1 (minimum path, BRIEF §15): e2e case 7. BM-2: e2e case 7. BM-3: test 5, `docs/build/screens/B6/legend-grey.png`, each type as glyph and map-pin in greyscale at 3×. R15 (chip names): e2e case 7.
+- BM-1 (minimum path, BRIEF §15): e2e case 7. BM-2: e2e case 7. BM-3: test 5, `docs/build/screens/B6/legend-grey.png`, each type as glyph and map-pin in greyscale at 3×. R15 (chip names): e2e case 7. Art per device (Brian, Nov 14): e2e case 8.
 
 ## Files
 - src/data/bodymap.ts
@@ -44,6 +45,7 @@ Earlier tests that change: `bodymap-data` tests 3 and 4; `bodymap-art` test 6; `
 5. Shapes: seven glyphs at 40 samples per unit, every pair's IoU under 0.75; each centred within 0.25; the marker's lowest point (0, 0), head centred on x 0.
 6. Contrast: a fill under 3:1 against the halo fails; injury without its edge fails; a `-on` under 3:1 fails; the real tokens pass.
 7. e2e at 375 px: the toolbar under the figure, on screen while the figure scrolls; 7 chips, each at least 44 px, glyph only, accessible names exactly `types`; `Pain` pressed at load and shown beside the row; each type tapped → its glyph; the last is the map-pin; tap a glyph → it becomes the map-pin, no new mark; at 1× and 3× the point and a glyph's centre within 1 px of the tap; the toggle reads `Front 3`, `Back 2`; the minimum-path flow passes.
+8. e2e art per device (request log from a fresh context, cache off): at 375 px with touch → `female_front.webp` requested, no `female_front.svg` request until Send, then the send requests `female_front.svg`; at 1280 px with a mouse (fine pointer) → `female_front.svg` requested, no `.webp` request at all; on both, `Figure 2` → `male_front.svg`, and a pin placed at the same canvas point gets the same `x`, `y` and zone. Data: `artQuery` equals the string above.
 
 ## Done when
 1. `npm run check` passes, including the new tests. `npm run e2e:bodymap` passes.
