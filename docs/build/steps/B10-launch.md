@@ -16,6 +16,7 @@ Close I-073 and I-074. Hand the link to Brian with UTM-tagged variants for the i
 
 ## AC covered (IDs)
 - Spec §10 "Launched": the two production test sends.
+- AC-5 on `/body-map` (BRIEF §12, Brian, Nov 14, 2026): one Lighthouse mobile run on production (median of 3), performance 90+; accessibility and best practices recorded, not scored; SEO not scored (noindex by design). Done when 4.
 
 ## Files
 - src/data/bodymap.ts
@@ -41,6 +42,7 @@ Earlier tests that change (I-123), each pinning the closed page:
 1. `npm run check` passes, and `npm run check:wording`, `check:contrast`, `check:dist`, `check:secrets` and `check:reviewer` each pass on their own against the open build (the open page is a new kind of built page, I-123).
 2. Both production sends are in Drive, and Brian confirms.
 3. The link is in the report: `https://ohmprecisionbodywork.com/body-map`, plus the UTM-tagged variants.
+4. The report gives `/body-map`'s Lighthouse mobile scores on production: performance 90+ (median of 3); the other three recorded as information only.
 
 ## Report
 Files changed · Checks (command and result) · Links for Brian · New items (I-###) · Questions for the architect.
