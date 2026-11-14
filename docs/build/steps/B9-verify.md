@@ -22,7 +22,7 @@ Every BM passes, first in Playwright (Chromium and WebKit, at 375 and 1280 px), 
 - BM-11: airplane mode, then send, then retry.
 - BM-12: DevTools → Network during one real send.
 - BM-13: `check:dist` and `check:wording`.
-- AC-5 on `/body-map` (BRIEF §12, Brian, Nov 14, 2026): Lighthouse mobile on the preview build, median of 3, performance 90+; accessibility and best practices recorded, not scored; SEO not scored (noindex by design).
+- AC-5 on `/body-map` (BRIEF §12, Brian, Nov 14, 2026): Lighthouse mobile on the preview build, median of 3, performance, accessibility and best practices each 90+; SEO not scored (noindex by design).
 - BM-14: swap rehearsal. On a scratch copy, replace one figure with an edited same-named SVG and rebuild; `git diff` shows no code change.
 
 ## Files
