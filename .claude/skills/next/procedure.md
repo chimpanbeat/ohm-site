@@ -9,18 +9,18 @@ the master-list writes in docs/build/steps/0-setup.md.
 
 Models line (I-124). A step file may carry one line
 `Models: builder <model> (<why>) · architect <model> (<why>) · reviewer <model> (<why>)`,
-each model Sonnet, Opus or Fable 5.2. The line counts only until Nov 16, 2026 11:59 pm PT
-(Nov 17, 12:59 am Denver time), the end of the Fable offer; run `date` when it is close,
-and check again at each subagent call. After that, or in a step file with no line, ignore
-it: the builder is Sonnet and subagents get no model, so the agent files decide (Opus).
-Nothing needs reverting.
+each model Sonnet or Opus. No Fable (Brian, Nov 13, 2026: his Fable use is spent): if an
+older step file still names Fable 5.2, read it as Opus. The line counts only until Nov 16,
+2026 11:59 pm PT (Nov 17, 12:59 am Denver time); run `date` when it is close, and check
+again at each subagent call. After that, or in a step file with no line, ignore it: the
+builder is Sonnet and subagents get no model, so the agent files decide (Opus). Nothing
+needs reverting.
 - Subagents (architect, reviewer): while the line counts, pass the listed model as the
-  Agent call's `model`, by alias: `fable` for Fable 5.2, `opus`, `sonnet`. The per-call
-  model wins over the agent file's; the call takes aliases only; `fable` is Fable 5.2
-  outside Claude apps gateway sessions and needs Claude Code v2.1.321 or later
-  (https://code.claude.com/docs/en/sub-agents, https://code.claude.com/docs/en/model-config,
-  read 2026-11-10). Never pass an effort. If the call is refused because of the model,
-  repeat it with no model and say so in the step 12 report.
+  Agent call's `model`, by alias: `opus` or `sonnet`. The per-call model wins over the
+  agent file's; the call takes aliases only (https://code.claude.com/docs/en/sub-agents,
+  https://code.claude.com/docs/en/model-config, read 2026-11-10). Never pass an effort. If
+  the call is refused because of the model, repeat it with no model and say so in the
+  step 12 report.
 - Builder: you are the builder, on the model your system prompt names. Wanted is the
   line's builder while it counts, otherwise Sonnet. A /next command runs its first turn
   on Sonnet whatever /model says (`model: sonnet` in its SKILL.md), and the session's
@@ -49,7 +49,7 @@ Nothing needs reverting.
    (/next is medium, /next-low is low, /next-high is high.) Then the builder (Models line,
    above). Your model is the wanted one: go on. It isn't: stop before step 3 and say
    "Next is <step>, builder <wanted>, and this turn is on <yours>. Run /model <alias>
-   (`fable`, `sonnet` or `opus`), set the effort to <effort>, then send `go`. This
+   (`sonnet` or `opus`), set the effort to <effort>, then send `go`. This
    command's first turn is always Sonnet, so if /model is already set, just send `go`."
    On `go`, check again: still not the wanted model, name the model this turn is on and
    stop; the wanted one, carry on from step 3.

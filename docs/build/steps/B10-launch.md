@@ -2,7 +2,7 @@
 
 Brief §15 · Architecture §B12 Page
 
-Models: builder Sonnet (low effort) · architect Opus (no planning in this step) · reviewer Fable 5.2 (opens the client-data path to the public; production Drive sends). Ignored after Nov 16, 2026 11:59 pm PT (I-124).
+Models: builder Sonnet (low effort) · architect Opus (no planning in this step) · reviewer Opus (opens the client-data path to the public; production Drive sends). No Fable (Brian, Nov 13). Ignored after Nov 16, 2026 11:59 pm PT (I-124).
 
 ## Goal
 `bodymap.open` becomes `true` (contract: this step lists `src/data/bodymap.ts`). The tests that pinned "closed" now pin "open":

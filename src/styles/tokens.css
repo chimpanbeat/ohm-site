@@ -56,8 +56,8 @@
   --zone-out-tint: color-mix(in srgb, var(--ink) 15%, var(--bg-light));
 
   /* Body map (B0, I-073, §B12). The figure grey is the art's silhouette fill (measured from the delivered SVGs,
-     Nov 10, 2026); the art files keep their own hex (§D). Pins: shape first, colour second (BM-3); every pin
-     has a 3px halo ring and a 1px edge. */
+     Nov 10, 2026); the art files keep their own hex (§D). Pins: the glyph in the map-pin head first, colour
+     second (BM-3, I-150); every pin has a 3px halo ring and a 1px edge. */
   --bodymap-figure: #d3d7dc;
   --pin-pain: var(--terra-700);
   --pin-discomfort: var(--terra-500);
@@ -66,6 +66,21 @@
   --pin-avoid: var(--ink); /* stroke, on a cream fill */
   --pin-halo: var(--cream);
   --pin-edge: var(--ink);
+  /* Skin tones (I-151, §A1, §B12 Skin tone; proposed Nov 13, 2026, used from B6b): the figure's fill on the
+     page only (never the PDF), and the colour its outline and landmarks take on that tone. */
+  --bodymap-outline: #404850; /* the art's outline fill, measured from the four v1 SVGs */
+  --bodymap-tone-grey: var(--bodymap-figure);
+  --bodymap-line-grey: var(--bodymap-outline);
+  --bodymap-tone-light: #f2d6c2;
+  --bodymap-line-light: var(--bodymap-outline);
+  --bodymap-tone-medium-light: #e3b593;
+  --bodymap-line-medium-light: var(--bodymap-outline);
+  --bodymap-tone-medium: #c68e66;
+  --bodymap-line-medium: var(--bodymap-outline);
+  --bodymap-tone-medium-dark: #9c6544;
+  --bodymap-line-medium-dark: var(--cream);
+  --bodymap-tone-dark: #5c3b2a;
+  --bodymap-line-dark: var(--cream);
 
   /* Type */
   --font-text: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;

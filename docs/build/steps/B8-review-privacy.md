@@ -2,7 +2,7 @@
 
 Brief §15 · Architecture §B12 (all), §B11 (excluded page), §D
 
-Models: builder Fable 5.2 (high effort) · architect Fable 5.2 (plans the fix items from a FIX verdict, and the jsPDF decision) · reviewer Fable 5.2 (client data end to end). Ignored after Nov 16, 2026 11:59 pm PT (I-124).
+Models: builder Opus (high effort; `/model opus` after the command stops) · architect Opus (plans the fix items from a FIX verdict, and the jsPDF decision) · reviewer Opus (client data end to end). No Fable (Brian, Nov 13). Ignored after Nov 16, 2026 11:59 pm PT (I-124).
 
 ## Goal
 The reviewer confirms, read-only, that health information goes only where §B12 Privacy allows: page memory, `localStorage` for at most 24 h, the POST body and Drive. Their verdict is PASS or FIX with a numbered list. The areas to check:
@@ -12,6 +12,7 @@ The reviewer confirms, read-only, that health information goes only where §B12 
 - URLs and the page title;
 - PDF and JSON contents and the Drive file names;
 - the detail fields from the Nov 13 revision (quality, course, started, worse, better): health information like the note, on the same paths and no others;
+- the skin tone (I-151, B6b): page memory only, never in `localStorage`, `sessionStorage`, the report, the PDF's figure, a request, a URL or the console; a moved pin (I-148) drops the send `id` like any edit;
 - zones: the JSON pins carry §B12's zone fields, a fine zone name is never rendered on the page, and left and right are the client's own;
 - the filing script changed once at B7 (`LIMITS` and the per-pin caps only), and the repo's copy is what was pushed;
 - fixtures: fake data only;

@@ -312,7 +312,7 @@ A client-facing page, `https://ohmprecisionbodywork.com/body-map`, where a clien
 **Requirements (v1).**
 - R1 Front and back figures, female or male. The 4 side views (left and right, both sexes) stay in the assets for a later release and are not shown.
 - R2 Zoom and pan (pinch, wheel, buttons); pins stay on the body at any zoom.
-- R3 Pin types: pain, discomfort, injury, numbness or tingling, avoid. Each has its own shape as well as colour.
+- R3 Pin types: pain, discomfort, injury, numbness or tingling, avoid. Each has its own shape as well as colour: on the page every pin is a map-pin whose point marks the spot, and the type shows as the glyph and colour of its head (Brian, Nov 13, 2026; I-150).
 - R4 Optional details in a few taps: intensity 1–10 and a one-line note; behind "Add details", what it feels like (sharp, dull or achy, burning, spreading), acute or chronic, when it started, and what makes it worse or better (Brian, Nov 13, 2026; I-153, I-155, I-158). None is required.
 - R5 Star up to 3 priority pins. Avoid pins can't be starred (Brian, Nov 8, 2026).
 - R6 A region list (checkboxes by area name, per view) gives the same report data without tapping.
@@ -321,6 +321,9 @@ A client-facing page, `https://ohmprecisionbodywork.com/body-map`, where a clien
 - R9 The report names body regions from hidden zones, never drawn for the client. Two levels (Brian, Nov 13, 2026; I-156, I-157): coarse regions the client sees by name (28 front, 31 back; the back gained left and right "back of shoulder", I-160, Nov 13, 2026), and finer zones inside them that appear only in the PDF and the JSON. Each mark in the JSON carries its zone ID, the zone-set version, its side (left, right or midline; the client's own left and right) and the region name, and the JSON has a format version.
 - R10 Spam protection: a honeypot, size caps and rate limits (6 per 10 minutes, 30 per day, 3 per client name and appointment date per day; Brian, Nov 8, 2026). Turnstile can be added later without a redesign.
 - R11 A confirmation after sending; a clear error and retry if filing fails, with the marks kept.
+- R12 Placing a pin opens a details panel (below the figure on phones, beside it on desktop); a log of the current view's pins follows the front/back toggle; a pin or its log entry opens it to change or remove; pins can be dragged to a new spot without breaking pan (Brian, Nov 13, 2026; I-148). BM-1 still holds.
+- R13 An optional skin-tone choice recolours the figure on the page only. It is never saved, sent, or put in the PDF or the JSON (Brian, Nov 13, 2026; I-151).
+- Should, after launch: smooth wheel zoom toward the cursor with short transitions, reduced motion respected (I-149). It doesn't hold up the launch.
 
 **Non-goals (v1).** Red-flag screening, appointment tie-in, session goals, before/after overlays, side views, circled areas (v1.1), any technique or origin brief (Brian, Nov 13, 2026), 3D, accounts, a history the client can read, muscle-layer diagrams, email notices of new maps (Brian, Nov 8, 2026), automatic deletion (Brian keeps maps under his own records policy).
 

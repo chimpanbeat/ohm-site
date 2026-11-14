@@ -2,14 +2,14 @@
 
 Brief §15 R4, R8, R10, R11 · Architecture §B12 Revision of Nov 13, Report and PDF, Report JSON, Wire contract, Filing script, Checks, Privacy
 
-Models: builder Sonnet (high effort; medium before the Nov 13 re-plan) · architect Opus (no planning in this step) · reviewer Fable 5.2 (the wire contract's report, client data in the PDF, the honeypot and caps, the filing script's one change). Ignored after Nov 16, 2026 11:59 pm PT (I-124).
+Models: builder Sonnet (high effort; medium before the Nov 13 re-plan) · architect Opus (no planning in this step) · reviewer Opus (the wire contract's report, client data in the PDF, the honeypot and caps, the filing script's one change). No Fable (Brian, Nov 13). Ignored after Nov 16, 2026 11:59 pm PT (I-124).
 
-Re-planned Nov 13, 2026 (architect): the report carries the detail fields, the report cap rises, and the filing script changes once, here (the STATUS row's Effort and Command need the same change).
+Re-planned Nov 13, 2026 (architect): the report carries the detail fields, the report cap rises, and the filing script changes once, here (the STATUS row's Effort and Command need the same change). Later that day: the PDF draws I-150's glyphs (not the page's marker) and never the skin tone (I-151); the sheet is now `PinPanel` (I-148). Needs B6b done.
 
 ## Goal
 The full PDF:
 - header: name, appointment, sent (Denver) and figure;
-- both views with numbered pins, each figure drawn from the art the page displays (never `png/`) onto a 600×1200 canvas as a JPEG;
+- both views with numbered pins, each figure drawn from the art the page displays (never `png/`) onto a 600×1200 canvas as a JPEG, always in the art's grey whatever skin tone is chosen (I-151); each pin is its type's glyph from `src/lib/bodymap-shapes.ts` centred on its spot with its number, not the page's map-pin marker (I-150, §B12 Marker);
 - then `Priority` (starred), `Avoid` and `Other marks`. Each line: number, type, zone name, `{n}/10`, the qualities, each answered detail (`pdf.courses`, then `pdf.started`, `pdf.worse` and `pdf.better` as labels) and the note. An unanswered field prints nothing. A pin from the list prints its region name and `pdf.fromList`;
 - footer `{site.name} · private client record`.
 
@@ -42,7 +42,7 @@ The page side:
 - src/lib/bodymap.ts
 - src/scripts/bodymap.ts
 - src/pages/body-map.astro
-- src/components/bodymap/PinSheet.astro
+- src/components/bodymap/PinPanel.astro
 - src/components/bodymap/RegionList.astro
 - tests/bodymap-pdf.test.ts
 - tests/bodymap-page.test.ts
@@ -62,7 +62,7 @@ Earlier tests that change: `tests/bodymap-data.test.ts` test 4 (`reportBytes`); 
 1. PDF: two images. Section order is Priority → Avoid → Other marks. Starred pins come first, and avoid pins appear only under `Avoid`. Every pin's zone name is present, pin numbers match the list, and the name and date are there.
 2. PDF details: a pin with intensity 7, `sharp` and `burning`, `chronic`, and started, worse, better and a note prints `7/10`, both qualities, `Chronic`, and each text after its label. A pin with none prints no label at all. An avoid pin prints no intensity. A list pin prints its region name and `chosen from the list`.
 3. JSON: `v` is 2; every pin has exactly §B12's keys in order; an avoid pin's detail fields are empty; text is trimmed.
-4. Static: `bodymap-pdf.ts` and the figure rasteriser import no zone file and no `png/` path.
+4. Static: `bodymap-pdf.ts` and the figure rasteriser import no zone file and no `png/` path; `bodymap-pdf.ts` draws pins with the glyphs from `bodymap-shapes.ts` (a pin of each type draws its own glyph, and none draws the marker outline); the rasteriser reads no tone and sets no filter (B6b's e2e case 6 still passes).
 5. Size: 60 pins with every text field full of `"` characters give a report under 96,000 characters. A 1.6 MB PDF is refused before `fetch`.
 6. Script (`node:vm`, fake data): the script's caps equal `bodymap.limits` (now with `detailChars` and `startedChars`); a pin with `worse` of 81 characters, `better` of 81 or `started` of 41 → `invalid`, nothing filed, nothing counted; the same at the caps → `ok`; a 96,001-character report → `invalid`; a B4-shaped report with none of the new keys → `ok`. Then in sequence: a send at the caps, a retry with the same `id` → `ok` with no second pair.
 7. Page: the honeypot is present and empty. Dist has no `data-zone`, no `bodymap-zones`, no zone key as an attribute and no fine zone name in the HTML.
